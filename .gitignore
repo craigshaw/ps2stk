@@ -1,0 +1,26 @@
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.vite/
+.wrangler/
+playwright-report/
+test-results/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+
+# Personal card images and dumps. Deliberate test fixtures require review.
+*.ps2
+*.mc2
+*.mcr
+*.bin
+samples/
+tests/fixtures/local/
+dumps/
