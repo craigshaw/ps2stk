@@ -4,6 +4,7 @@ Usage: python3 scripts/reference-check.py /path/to/mymcplus [LOCAL_CARD SAVE_NAM
 The optional card stays local. Temporary output is removed after checking.
 """
 import gzip
+import copy
 import hashlib
 import contextlib
 import io
@@ -66,6 +67,23 @@ def inspect(path):
         return entries
 
 
+def run_cli(*args):
+    result = subprocess.run(["npm", "run", "card", "--", *map(str, args)], cwd=root, capture_output=True, text=True)
+    if result.returncode:
+        raise RuntimeError(result.stderr or result.stdout)
+
+
+def assert_card(path, expected):
+    assert inspect(path) == expected, f"Independent file/metadata mismatch: {path.name}"
+
+
+def data_bytes(path):
+    image = path.read_bytes()
+    if len(image) == 8650752:
+        return b"".join(image[i:i + 512] for i in range(0, len(image), 528))
+    return image
+
+
 with tempfile.TemporaryDirectory(prefix="ps2stk-reference-") as directory:
     temp = Path(directory)
     for file in (root / "tests/fixtures").glob("*.ps2.gz"):
@@ -96,4 +114,79 @@ with tempfile.TemporaryDirectory(prefix="ps2stk-reference-") as directory:
             print(json.dumps({"source": source.name, "destination": layout, "structural_check": "passed",
                               "entries_checked": len(actual), "files_and_metadata": "matched",
                               "output_sha256": hashlib.sha256(output.read_bytes()).hexdigest()}))
+    # Milestone 2: independent checks for all new mutation and conversion paths.
+    for layout in ("data", "ecc"):
+        base = temp / f"destination-{layout}.ps2"
+        source = temp / f"source-{layout}.ps2"
+        base_expected = inspect(base)
+        source_expected = inspect(source)
+        before_hashes = [hashlib.sha256(p.read_bytes()).hexdigest() for p in (base, source)]
+        current = base
+        expected = copy.deepcopy(base_expected)
+        checks = 0
+        for size in (0, 1, 513, 1024, 1025, 25000):
+            payload = bytes((i * 17 + 21) % 256 for i in range(size))
+            payload_path = temp / "replacement.bin"
+            payload_path.write_bytes(payload)
+            output = temp / f"m2-{layout}-replace-{size}.ps2"
+            run_cli("replace", current, "/KEEP/original", payload_path, output)
+            expected["/KEEP/original"][2] = size
+            expected["/KEEP/original"][-1] = hashlib.sha256(payload).hexdigest()
+            assert_card(output, expected)
+            current = output
+            checks += 1
+
+        # Replace a protected/hidden file while preserving all other metadata.
+        protected = temp / f"m2-{layout}-protected.ps2"
+        run_cli("replace", source, "/SAVE-A/bytes-513", payload_path, protected)
+        protected_expected = copy.deepcopy(source_expected)
+        protected_expected["/SAVE-A/bytes-513"][2] = len(payload)
+        protected_expected["/SAVE-A/bytes-513"][-1] = hashlib.sha256(payload).hexdigest()
+        assert_card(protected, protected_expected)
+        checks += 1
+
+        copied = temp / f"m2-{layout}-copied.ps2"
+        run_cli("copy", source, base, "SAVE-A", copied)
+        # Use the independent writer to add a destination-only file. Whole-save
+        # replacement must remove it, rather than silently merge the directory.
+        with copied.open("r+b") as stream:
+            with contextlib.redirect_stdout(io.StringIO()):
+                card = ps2mc(stream)
+            extra = card.open("/SAVE-A/destination-only", "wb")
+            extra.write(b"Only in the old destination save")
+            extra.close()
+            card.close()
+        assert "/SAVE-A/destination-only" in inspect(copied)
+        replaced = temp / f"m2-{layout}-whole-save.ps2"
+        run_cli("copy", protected, copied, "SAVE-A", replaced, "replace")
+        assert_card(replaced, {**base_expected, **protected_expected})
+        checks += 1
+
+        # A mixed batch skips a changed KEEP, replaces ALSO-KEEP, and adds SAVE-A.
+        plan = temp / "plan.json"
+        plan.write_text(json.dumps([{"name": "KEEP", "onConflict": "skip"},
+                                    {"name": "ALSO-KEEP", "onConflict": "replace"}, {"name": "SAVE-A"}]))
+        batch = temp / f"m2-{layout}-batch.ps2"
+        run_cli("copy-batch", replaced, current, plan, batch)
+        assert_card(batch, {**expected, **protected_expected})
+        checks += 1
+
+        deleted = temp / f"m2-{layout}-deleted.ps2"
+        run_cli("delete", batch, deleted, "SAVE-A", "ALSO-KEEP")
+        assert_card(deleted, {p: v for p, v in expected.items() if not p.startswith("/ALSO-KEEP")})
+        checks += 1
+
+        opposite = "ecc" if layout == "data" else "data"
+        converted = temp / f"m2-{layout}-converted.ps2"
+        run_cli("convert", replaced, opposite, converted)
+        assert_card(converted, {**base_expected, **protected_expected})
+        assert data_bytes(converted) == data_bytes(replaced)
+        roundtrip = temp / f"m2-{layout}-roundtrip.ps2"
+        run_cli("convert", converted, layout, roundtrip)
+        assert_card(roundtrip, {**base_expected, **protected_expected})
+        assert data_bytes(roundtrip) == data_bytes(replaced)
+        checks += 2
+        assert [hashlib.sha256(p.read_bytes()).hexdigest() for p in (base, source)] == before_hashes
+        print(json.dumps({"milestone": 2, "layout": layout, "mutation_and_conversion_checks": checks,
+                          "structural_checks": "passed", "files_metadata_and_ecc": "matched"}))
 print("Independent checks passed. No emulator or hardware execution was performed.")

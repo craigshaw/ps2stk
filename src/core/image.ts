@@ -57,5 +57,21 @@ export class CardImage {
     }
   }
 
-  export(): Uint8Array { return this.#bytes.slice(); }
+  export(layout: CardLayout = this.layout): Uint8Array {
+    if (layout !== 'data' && layout !== 'ecc') throw new CardError('unsupported', 'Expected data or ecc layout.');
+    if (layout === this.layout) return this.#bytes.slice();
+    const stride = layout === 'data' ? 512 : 528;
+    const result = new Uint8Array(PAGE_COUNT * stride);
+    for (let page = 0; page < PAGE_COUNT; page++) {
+      // Preserve every data byte, including unused space. Live pages were
+      // validated when opening the card; conversion does not repair live data.
+      const data = this.#bytes.subarray(page * this.#stride, page * this.#stride + 512);
+      result.set(data, page * stride);
+      if (layout === 'ecc') {
+        if (data.every(byte => byte === 255)) result.fill(255, page * stride + 512, (page + 1) * stride);
+        else result.set(pageEcc(data), page * stride + 512);
+      }
+    }
+    return result;
+  }
 }

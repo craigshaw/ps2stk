@@ -1,6 +1,6 @@
 # PS2STK Implementation Plan
 
-Status: milestone 1 engine, tooling, fixtures, and independent-tool validation are implemented. PCSX2 and MemCard PRO2 execution remain open acceptance gates. See [the validation record](./milestone-1-validation.md). Later milestones have not started.
+Status: milestone 1 is accepted for further development, and milestone 2 editing, binary output, and session history are implemented and tested. Milestone 3 is next and has not started. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md) and [milestone 2](./milestone-2-validation.md) validation records.
 
 Product decisions: [planning.md](./planning.md). Domain terms: [CONTEXT.md](../CONTEXT.md).
 
@@ -36,7 +36,7 @@ Deliverable: a small test harness that opens two supported cards, copies one sav
 6. Extract exact file contents and expose names and metadata. Stop on incomplete data rather than silently returning partial file contents.
 7. Export an unchanged card in its original layout without changing its bytes.
 8. Implement one complete-save copy into a valid destination with enough space. Preserve the source and unrelated destination content. Generate valid ECC values when output includes spare bytes.
-9. Check the output with independent tooling and run the copied save on PCSX2 and on a PS2 through MemCard PRO2.
+9. Check the output with independent tooling. Game-load checks on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 by user agreement on 2026-09-19.
 
 ### Acceptance criteria
 
@@ -45,7 +45,7 @@ Deliverable: a small test harness that opens two supported cards, copies one sav
 - Truncated images, invalid references, allocation cycles, and incomplete file chains are rejected with bounded execution and useful errors.
 - A copied save contains every source file with identical names and bytes. The source card and unrelated destination saves remain unchanged.
 - The exported destination passes structural checks from an independent implementation.
-- A representative copied save loads on each agreed target. A same-parser round trip alone is insufficient.
+- Independent tooling confirms output integrity. A same-parser round trip alone is insufficient. Successful game loads on both agreed targets remain a release requirement, not a milestone 1 acceptance requirement.
 
 ### Current evidence and dependencies
 
@@ -53,9 +53,11 @@ On 2026-09-19, the existing ps2mcs parser/icon test passed against `icon_browser
 
 Four synthetic reference images now cover both layouts. They were generated with a pinned external mymc+ checkout, not the new engine. Their provenance, image hashes, file hashes, and metadata are recorded in [the fixture inventory](../tests/fixtures/README.md). Exact extraction from both local samples also matches ps2mcd.
 
-The file system document was retrieved from the mymc+ source tree, and ps2mcd was retrieved and reviewed. Independent checks validate copied images, every output file, metadata, and ECC. Destination execution still requires PCSX2 and a PS2 with MemCard PRO2. Follow the manual test in [the validation record](./milestone-1-validation.md) and keep the compatibility gate open until results are recorded.
+The file system document was retrieved from the mymc+ source tree, and ps2mcd was retrieved and reviewed. Independent checks validate copied images, every output file, metadata, and ECC. The user also checked both prepared images in existing tooling. This is sufficient to proceed to milestone 2 under the revised delivery sequence. Follow the manual game-load test in [the validation record](./milestone-1-validation.md) during milestone 4; target compatibility remains unverified until those results are recorded.
 
 ## Milestone 2: complete editing and binary output
+
+Implemented in the card engine, session API, and CLI harness. Browser controls belong to milestone 3. The [validation record](./milestone-2-validation.md) defines metadata preservation, copy preflight, history limits, and download acknowledgement semantics.
 
 ### Work
 
@@ -100,7 +102,7 @@ The file system document was retrieved from the mymc+ source tree, and ps2mcd wa
 ## Milestone 4: validate and release
 
 - Run the complete workflow on the supported desktop browser families. Set and document minimum versions based on tested dependencies and required features.
-- Repeat representative edited-card tests on PCSX2 and MemCard PRO2, including images with and without spare bytes as appropriate to each destination.
+- Complete the deferred game-load tests on PCSX2 and a PS2 through MemCard PRO2, including images with and without spare bytes as appropriate to each destination. Check copied progress, unrelated saves, and saving new progress back to the edited card.
 - Check responsiveness with full cards and representative icon complexity. Measure before adding background-thread or caching complexity.
 - Connect the user-created [craigshaw/ps2stk repository](https://github.com/craigshaw/ps2stk) to a Cloudflare Pages project when ready for hosting. Confirm the Cloudflare account, production branch, and project name at setup time.
 - Use the agreed Pages Git integration. Ensure required checks pass before changes reach the production branch. Configure the static build and verify the deployed download and folder-permission flows over HTTPS.

@@ -14,7 +14,7 @@
 - Read `docs/implementation-plan.md` for milestone work and acceptance criteria.
 - Follow the current user request. Do not start later milestones merely because they appear in the plan.
 
-The project has a milestone 1 card engine, a command-line harness, and a minimal browser shell. The production explorer is not implemented. Read `docs/milestone-1-validation.md` for the evidence and open destination tests.
+The project has an accepted milestone 1 engine and implemented milestone 2 editing, conversion, and session history. The command-line harness is usable; the browser remains a minimal shell. The production explorer is milestone 3. The user deferred game-load tests to milestone 4. Read `docs/milestone-1-validation.md` and `docs/milestone-2-validation.md` for evidence and remaining release tests.
 
 Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
 
@@ -31,9 +31,10 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 
 ## Implementation approach
 
-- Prove reading and writing compatibility before most production UI work.
+- Establish reading and writing correctness through independent-tool checks before most production UI work. Game-load testing on PCSX2 and a PS2 through MemCard PRO2 is deferred to milestone 4 by user agreement.
 - Keep the TypeScript card engine independent of React, the DOM, and browser file pickers.
 - Keep card operations, session state, browser I/O, and icon rendering separate.
+- Preserve the documented milestone 2 metadata policy and 64 MiB shared history-byte limit. Engine and session TypeScript must compile without DOM or Node types.
 - Prefer the smallest implementation that meets the agreed scope. Use evidence before adding workers, caches, or other architectural complexity.
 - The optional sibling checkout `../ps2mcs/icon_browser/` is a reference for parsing and rendering. It is not a runtime or build dependency of this repository.
 - Validate reused code, preserve its attribution and license notices, and do not assume the existing parser is safe for writing cards.

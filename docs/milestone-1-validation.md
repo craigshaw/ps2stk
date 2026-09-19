@@ -1,6 +1,6 @@
 # Milestone 1 validation
 
-Date: 2026-09-19. Engine and harness implemented; destination execution pending.
+Date: 2026-09-19. Milestone 1 accepted for further development. Game-load testing is deferred to milestone 4 by user agreement.
 
 ## Implemented
 
@@ -23,15 +23,16 @@ Date: 2026-09-19. Engine and harness implemented; destination execution pending.
 | Local OutRun card | All 6 files match ps2mcd; unchanged export is identical. Copy into both destination layouts passes mymc+ checks. |
 | Local homebrew/system card | All 49 files match ps2mcd; unchanged export is identical. |
 | Minimal browser shell | Rendered in the in-app browser at a 960 by 720 desktop viewport; no console errors or warnings. No interactive controls or animation exist yet. |
-| PCSX2 game load | Not run. |
-| PS2 game load through MemCard PRO2 | Not run. |
+| User checks of both prepared OutRun cards | Passed in existing tooling, as reported by the user. Tool names and versions were not supplied. |
+| PCSX2 game load | Not run. Deferred to milestone 4. |
+| PS2 game load through MemCard PRO2 | Not run. Deferred to milestone 4. |
 | Full browser editing, keyboard and reduced-motion workflows | Deferred to the explorer milestone. |
 
 The unit tests cover page and cluster boundaries, a fragmented file spanning FAT clusters, empty files, metadata, unchanged unrelated content, all layout combinations, destination root expansion, slot reuse, exact-fit capacity, bad-block exclusion, immutable buffers, malformed geometry, invalid references, cycles, cross-links, orphan allocations, incomplete/excess chains, duplicate names, invalid parent links, pending flash transactions, and ECC faults. CLI tests verify that existing card files cannot be overwritten.
 
 The synthetic fixture inventory and reproduction commands are in [tests/fixtures/README.md](../tests/fixtures/README.md). The local game images remain in the sibling checkout and are not included in this repository or the browser build.
 
-On 2026-09-19, the user reviewed the two prepared OutRun test images and reported that they looked good. The target device, software version, and game-load result were not specified, so this feedback does not yet close the destination compatibility gates. The prepared images remain local and excluded from Git.
+On 2026-09-19, the user confirmed that both prepared OutRun test images passed checks in existing tooling. The saves were not loaded into OutRun through PCSX2 or a real PS2. The user agreed to defer game-load testing to a later stage. Milestone 1 is accepted on the current integrity evidence; game-load testing remains in milestone 4 release validation. The prepared images remain local and excluded from Git.
 
 ### Local input provenance
 
@@ -62,9 +63,9 @@ mymc+ attempts ECC detection before recognising a data-only image, which prints 
 - The engine owns image buffers and uses temporary candidate copies. No workers, cache service, persistence, or backend have been added. Full-session memory and Undo history bounds remain milestone 2 work.
 - The browser shell does not import fixture data or offer card operations yet. Three.js and Lucide are deferred until they are used.
 
-## Manual compatibility gate
+## Deferred release compatibility checks
 
-Complete this for PCSX2 and for a PS2 using MemCard PRO2. Use copies of card images and retain the originals.
+Complete this during milestone 4 for PCSX2 and for a PS2 using MemCard PRO2. These checks do not block milestone 2. Use copies of card images and retain the originals.
 
 1. Record the emulator/device firmware version, game and region, source and destination card origin, input layout, and SHA-256 hashes.
 2. Confirm that the source save already loads in the target game. Choose a destination card with enough space and no directory of the same name.
@@ -74,4 +75,4 @@ Complete this for PCSX2 and for a PS2 using MemCard PRO2. Use copies of card ima
 6. Start the matching game and load the copied progress. Record a concrete checkpoint such as the displayed slot, progress, or game state. Check an unrelated save as well.
 7. Save new progress in the game, reopen the resulting card with the harness, and verify that it remains readable. Record results, output hashes, and any evidence in this document.
 
-No emulator or hardware result can be inferred from passing file-system checks. Milestone 1 remains open at this gate.
+The current checks provide evidence of card integrity. Emulator and hardware game-load compatibility remain unverified until these release checks pass.

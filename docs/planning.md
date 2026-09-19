@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: first-release scope, desktop design direction, stack, and delivery order agreed. The milestone 1 engine and harness are implemented, with destination execution still pending. See [the implementation plan](./implementation-plan.md) and [validation record](./milestone-1-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: first-release scope, desktop design direction, stack, and delivery order agreed. Milestone 1 is accepted for further development; milestone 2 editing and session logic are implemented. The user deferred destination game-load tests to milestone 4. See [the implementation plan](./implementation-plan.md) and [milestone 2 validation](./milestone-2-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -37,7 +37,7 @@ The user confirmed on 2026-09-19 that a replacement file can differ in size from
 - If the replacement cannot fit, leave the card unchanged.
 - Validate memory card structure, but do not validate game-specific data or recalculate game-specific checksums in version 1.
 
-Timestamp and attribute handling remain to be specified.
+Milestone 2 uses conservative metadata preservation: retain the destination file's timestamps, mode flags, attributes, and opaque fields, changing only its bytes, length, and allocation. Complete-save replacement takes the source save's metadata. Copy-protection flags remain intact. Editing a card image does not enforce the PS2 browser's copy restrictions.
 
 ## Agreed save identity
 
@@ -62,7 +62,7 @@ The user clarified on 2026-09-19 that this is a short-session utility, not a pro
 - Users retain results by downloading an edited memory card image or dumping files. Dumping files does not save the complete edited card.
 - Original input files remain unchanged.
 
-The user accepted a simple warning before discarding edits that have not been downloaded. Show each card's changed status, confirm before closing or replacing such a card within the app, and request the browser's leave-page warning when applicable. Browser warnings must not be treated as guaranteed recovery or persistence. Detailed download-status tracking remains to be specified.
+The user accepted a simple warning before discarding edits that have not been downloaded. Show each card's changed status, confirm before closing or replacing such a card within the app, and request the browser's leave-page warning when applicable. Browser warnings must not be treated as guaranteed recovery or persistence. Milestone 2 tracks the revision last offered as a whole-card download; preparing bytes and raw dumps do not mark it as offered. Browser controls will acknowledge the offer after initiating the download, which does not prove disk persistence.
 
 ## Agreed compatibility targets
 
@@ -71,6 +71,8 @@ The user confirmed on 2026-09-19 that exported memory card images must work with
 Release validation must include opening a card image from each source, modifying its contents, exporting the result, and verifying that the destination can load the affected saves. For MemCard PRO2, this includes loading the saves through a PS2. Merely parsing the exported image in this application is not sufficient evidence of compatibility.
 
 This requirement does not imply direct communication with either destination.
+
+On 2026-09-19, the user confirmed that both prepared card images were tested in existing tooling, but the copied OutRun save was not loaded in PCSX2 or on a real PS2. The user agreed to defer those game-load checks to a later stage. They are now part of milestone 4 release validation and do not block milestone 2. Automated checks, independent-tool results, and the user's tooling checks provide the current evidence of card integrity; game compatibility remains unverified.
 
 ## Agreed first-release image scope
 
@@ -119,7 +121,7 @@ The user confirmed on 2026-09-19 that all content changes support Undo and Redo,
 - Undo of a replacement restores the complete previous destination content.
 - Redo reapplies the reverted content change.
 
-Undo and Redo history exist only during the current page session and are discarded on refresh or close. History limits and the relationship between history and downloaded images remain to be specified. Undo changes the browser working copy; it cannot change an image that has already been downloaded.
+Undo and Redo history exist only during the current page session and are discarded on refresh or close. Milestone 2 implements per-card history with a shared 64 MiB cap on retained card-byte snapshots. Current parsed cards and temporary operation buffers use additional memory. The oldest history boundary is removed when required, and the API reports the eviction count for the UI. Failed operations and no-ops retain existing history, including Redo. A new edit clears only that card's Redo branch. Undo changes the browser working copy; it cannot change an image that has already been downloaded. Returning to the last offered revision clears the changed status.
 
 ## Agreed binary input and output
 
@@ -213,12 +215,12 @@ Inspected on 2026-09-19. The new project directory was empty and was not a Git r
 
 The user approved this delivery order on 2026-09-19. It defines milestones, not calendar estimates.
 
-1. Prove the card engine on representative 8 MiB images with and without ECC spare bytes. Validate reading, exact file extraction, and export without changes. Add one copy operation and verify the resulting save on the target systems. Compare against independent tooling so the same parser cannot conceal its own writer errors.
+1. Prove the card engine on representative 8 MiB images with and without ECC spare bytes. Validate reading, exact file extraction, and export without changes. Add one copy operation and compare against independent tooling so the same parser cannot conceal its own writer errors. Game-load checks are deferred to milestone 4 by the user's subsequent agreement.
 2. Complete card operations: deletion, complete-save replacement, different-size file replacement, capacity checks, conflict handling, ECC conversion, and session-only Undo/Redo. Verify that failed operations leave the working card unchanged and successful changes preserve unrelated content.
 3. Integrate the approved explorer UI with the engine and adapt the existing icon renderer. Add two card panes, selection, inspector, animation policy, raw dumps, and whole-card downloads.
 4. Validate the complete workflow in the agreed desktop browsers and on PCSX2 and MemCard PRO2. Finish accessibility, narrow-window behaviour, and deployment to the requested host.
 
-The first milestone must resolve format and write-compatibility risks before most production UI work. The approved layout study remains the visual reference throughout. A thin test harness is sufficient for early engine checks.
+The first milestone must establish format and writing correctness through independent-tool checks before most production UI work. Game-load compatibility remains a milestone 4 release check. The approved layout study remains the visual reference throughout. A thin test harness is sufficient for early engine checks.
 
 ## Agreed implementation stack
 
@@ -243,6 +245,6 @@ References checked on 2026-09-19: [custom domains](https://developers.cloudflare
 
 ## Remaining details
 
-The implementation plan identifies technical questions to resolve during the relevant milestone: metadata rules, format edge cases, test fixture coverage, bounded Undo history, download status, browser versions, and interaction details. They do not require another general feature interview before beginning the engine work. Ask one focused question if the evidence exposes a product trade-off.
+Milestone 2 has defined metadata preservation, bounded Undo history, and download revision tracking. Remaining details include format edge cases and fixture coverage, browser versions, and explorer interactions. They do not require another general feature interview. Ask one focused question if the evidence exposes a product trade-off.
 
 Keep CONTEXT.md as the domain glossary. Keep product decisions here and executable work items in the implementation plan. Create an ADR only for a consequential trade-off that meets the skill's criteria.

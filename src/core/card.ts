@@ -1,4 +1,5 @@
 import { CardError, requireValid } from './errors';
+import { CardWriter } from './writer';
 import { CardImage, CLUSTER_SIZE } from './image';
 import type { CardLayout } from './image';
 
@@ -23,6 +24,11 @@ export interface CardEntry {
   readonly created: readonly number[];
   readonly modified: readonly number[];
   readonly children: readonly CardEntry[];
+}
+
+export interface SaveSelection {
+  readonly name: string;
+  readonly onConflict?: 'skip' | 'replace' | 'error';
 }
 
 interface Node {
@@ -62,6 +68,7 @@ export class MemoryCard {
   readonly #root: Node;
   readonly #paths = new Map<string, Node>();
   readonly #free: number[] = [];
+  readonly #eligible = new Set<number>();
 
   constructor(bytes: Uint8Array) {
     this.#image = new CardImage(bytes);
@@ -167,14 +174,21 @@ export class MemoryCard {
       const bad = this.#badBlocks.has(Math.floor((this.#offset + i) / 8));
       const allocated = (this.#fat[i]! & ALLOCATED) !== 0;
       requireValid(!allocated || owned.has(i) || (bad && this.#fat[i] === END), `Unreferenced allocated cluster ${i}.`);
-      if (!bad && ++goodCount <= quota && !allocated) this.#free.push(i);
+      if (!bad && ++goodCount <= quota) {
+        this.#eligible.add(i);
+        if (!allocated) this.#free.push(i);
+      }
     }
   }
 
   get layout(): CardLayout { return this.#image.layout; }
   get entries(): readonly CardEntry[] { return Object.freeze(this.#root.children.map(publicEntry)); }
   get freeBytes(): number { return this.#free.length * CLUSTER_SIZE; }
-  export(): Uint8Array { return this.#image.export(); }
+  get byteLength(): number { return this.layout === 'data' ? 8388608 : 8650752; }
+  export(layout: CardLayout = this.layout): Uint8Array { return this.#image.export(layout); }
+  withLayout(layout: CardLayout): MemoryCard {
+    return layout === this.layout ? this : new MemoryCard(this.export(layout));
+  }
 
   #readNode(node: Node): Uint8Array {
     const size = isDirectory(node) ? lengthOf(node) * 512 : lengthOf(node);
@@ -192,77 +206,140 @@ export class MemoryCard {
     return this.#readNode(node);
   }
 
-  /** One whole top-level save, with no replacement. The two input cards stay unchanged. */
-  copySaveTo(destination: MemoryCard, name: string): MemoryCard {
-    const save = this.#root.children.find(node => node.name === name && isDirectory(node));
-    if (!save) throw new CardError('not-found', `No save named ${name}.`);
-    if (destination.#root.children.some(node => node.name === name)) throw new CardError('conflict', `The destination already contains ${name}.`);
-    const root = destination.#root;
-    const rootData = destination.#readNode(root);
-    let slot = lengthOf(root);
-    for (let i = 2; i < lengthOf(root); i++) {
-      if (!(view(rootData).getUint16(i * 512, true) & EXISTS)) { slot = i; break; }
-    }
-    const growRoot = slot === lengthOf(root) && slot % 2 === 0;
-    const nodes: Node[] = [];
-    const collect = (node: Node) => { nodes.push(node); node.children.forEach(collect); };
-    collect(save);
-    const needed = nodes.reduce((sum, node) => sum + node.chain.length, growRoot ? 1 : 0);
-    if (needed > destination.#free.length) {
-      throw new CardError('capacity', `Copy needs ${needed * CLUSTER_SIZE} bytes including directories; ${destination.freeBytes} bytes are available. Need ${(needed - destination.#free.length) * CLUSTER_SIZE} more bytes.`);
-    }
+  #save(name: string): Node {
+    const node = this.#root.children.find(child => child.name === name && isDirectory(child));
+    if (!node) throw new CardError('not-found', `No save named ${name}.`);
+    return node;
+  }
 
-    const candidate = new CardImage(destination.export());
+  #subtree(node: Node): Node[] { return [node, ...node.children.flatMap(child => this.#subtree(child))]; }
+  #writer(): CardWriter { return new CardWriter(this.export(), this.#offset, this.#fatClusters); }
+
+  #unique(names: readonly string[]): void {
+    if (new Set(names).size !== names.length) throw new CardError('invalid-operation', 'Select each save only once.');
+  }
+
+  #capacity(needed: number, available: number): void {
+    if (needed > available) throw new CardError('capacity',
+      `Operation needs ${needed * CLUSTER_SIZE} bytes including directories; ${available * CLUSTER_SIZE} bytes are available. Need ${(needed - available) * CLUSTER_SIZE} more bytes.`);
+  }
+
+  #remove(writer: CardWriter, node: Node): void {
+    for (const child of this.#subtree(node)) writer.free(child.chain);
+    const record = node.record.slice();
+    view(record).setUint16(0, view(record).getUint16(0, true) & ~EXISTS, true);
+    writer.entry(this.#root.chain, node.index, record);
+  }
+
+  /** Delete complete top-level saves as one atomic operation. */
+  deleteSaves(names: readonly string[]): MemoryCard {
+    this.#unique(names);
+    const nodes = names.map(name => this.#save(name));
+    if (!nodes.length) return this;
+    const writer = this.#writer();
+    nodes.forEach(node => this.#remove(writer, node));
+    return new MemoryCard(writer.export());
+  }
+
+  /** Retain the destination name and metadata, including timestamps and mode flags. */
+  replaceFile(path: string, bytes: Uint8Array): MemoryCard {
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    const node = this.#paths.get(normalized);
+    if (!node || isDirectory(node)) throw new CardError('not-found', `No file at ${path}.`);
+    const needed = Math.ceil(bytes.length / CLUSTER_SIZE);
+    // Existing allocations can be retained, including readable clusters in a bad block.
+    this.#capacity(needed, node.chain.length + this.#free.length);
+    if (lengthOf(node) === bytes.length && this.#readNode(node).every((b, i) => b === bytes[i])) return this;
+    const chain = node.chain.slice(0, needed);
+    chain.push(...this.#free.slice(0, Math.max(0, needed - chain.length)));
+    const parent = this.#paths.get(normalized.slice(0, normalized.lastIndexOf('/')))!;
+    const writer = this.#writer();
+    writer.free(node.chain.slice(needed));
+    writer.file(chain, bytes);
+    const record = node.record.slice();
+    put32(record, 4, bytes.length);
+    put32(record, 16, chain[0] ?? END);
+    writer.entry(parent.chain, node.index, record);
+    return new MemoryCard(writer.export());
+  }
+
+  /** Compatibility wrapper: single-save copying still reports name conflicts. */
+  copySaveTo(destination: MemoryCard, name: string): MemoryCard {
+    return this.copySavesTo(destination, [{ name, onConflict: 'error' }]);
+  }
+
+  /** Resolve all choices and capacity before writing a candidate. Skip is the default. */
+  copySavesTo(destination: MemoryCard, selections: readonly SaveSelection[]): MemoryCard {
+    this.#unique(selections.map(selection => selection.name));
+    const selected: { node: Node; removed: Node | undefined; slot: number; nodes: Node[] }[] = [];
+    for (const selection of selections) {
+      const node = this.#save(selection.name);
+      const conflict = selection.onConflict ?? 'skip';
+      if (!['skip', 'replace', 'error'].includes(conflict)) throw new CardError('invalid-operation', 'Invalid conflict choice.');
+      const existing = destination.#root.children.find(child => child.name === node.name);
+      if (existing) {
+        if (conflict === 'skip') continue;
+        if (conflict === 'error') throw new CardError('conflict', `The destination already contains ${node.name}.`);
+        if (!isDirectory(existing)) throw new CardError('conflict', `Cannot replace a root file with save ${node.name}.`);
+        if (destination === this) continue;
+      }
+      selected.push({ node, removed: existing, slot: -1, nodes: this.#subtree(node) });
+    }
+    if (!selected.length) return destination;
+
+    const removed = new Set(selected.flatMap(item => item.removed ? [item.removed] : []));
+    const occupied = new Set(destination.#root.children.filter(node => !removed.has(node)).map(node => node.index));
+    let rootLength = lengthOf(destination.#root);
+    let nextSlot = 2;
+    for (const item of selected) {
+      while (occupied.has(nextSlot)) nextSlot++;
+      item.slot = nextSlot;
+      occupied.add(nextSlot);
+      rootLength = Math.max(rootLength, nextSlot + 1);
+    }
+    const rootGrowth = Math.ceil(rootLength / 2) - destination.#root.chain.length;
+    const needed = rootGrowth + selected.reduce((sum, item) => sum + item.nodes.reduce((count, node) => count + node.chain.length, 0), 0);
+    const freed = [...removed].flatMap(node => destination.#subtree(node).flatMap(child => child.chain));
+    const available = [...destination.#free, ...freed.filter(cluster => destination.#eligible.has(cluster))].sort((a, b) => a - b);
+    destination.#capacity(needed, available.length);
+
+    // No caller-visible data changes until the complete candidate validates.
+    const writer = destination.#writer();
+    removed.forEach(node => destination.#remove(writer, node));
     let cursor = 0;
     const chains = new Map<Node, number[]>();
-    for (const node of nodes) chains.set(node, node.chain.map(() => destination.#free[cursor++]!));
-    const fatChanges = new Map<number, Uint8Array>();
-    const setFat = (logical: number, value: number): void => {
-      const physical = destination.#fatClusters[Math.floor(logical / 256)]!;
-      let bytes = fatChanges.get(physical);
-      if (!bytes) { bytes = candidate.cluster(physical); fatChanges.set(physical, bytes); }
-      put32(bytes, (logical % 256) * 4, value);
-    };
-    for (const [node, newChain] of chains) {
-      for (let i = 0; i < newChain.length; i++) {
-        candidate.writeCluster(destination.#offset + newChain[i]!, this.#image.cluster(this.#offset + node.chain[i]!));
-        setFat(newChain[i]!, i + 1 === newChain.length ? END : (newChain[i + 1]! | ALLOCATED) >>> 0);
-      }
+    for (const item of selected) for (const node of item.nodes) {
+      const chain = node.chain.map(() => available[cursor++]!);
+      chains.set(node, chain);
+      chain.forEach((cluster, i) => writer.cluster(cluster, this.#image.cluster(this.#offset + node.chain[i]!)));
+      writer.link(chain);
     }
-    const rootChain = root.chain.slice();
-    if (growRoot) {
-      const extra = destination.#free[cursor++]!;
-      setFat(rootChain.at(-1)!, (extra | ALLOCATED) >>> 0);
-      setFat(extra, END);
-      candidate.writeCluster(destination.#offset + extra, new Uint8Array(CLUSTER_SIZE));
-      rootChain.push(extra);
+    const rootChain = destination.#root.chain.slice();
+    for (let i = 0; i < rootGrowth; i++) {
+      const cluster = available[cursor++]!;
+      writer.cluster(cluster, new Uint8Array(CLUSTER_SIZE));
+      rootChain.push(cluster);
     }
-    const writeEntry = (targetChain: number[], index: number, record: Uint8Array) => {
-      const physical = destination.#offset + targetChain[Math.floor(index / 2)]!;
-      const bytes = candidate.cluster(physical);
-      bytes.set(record, (index % 2) * 512);
-      candidate.writeCluster(physical, bytes);
-    };
-    const copyEntries = (node: Node, parentChain: number[], index: number): void => {
-      const newChain = chains.get(node)!;
+    if (rootGrowth) writer.link(rootChain);
+    const copyEntry = (node: Node, parentChain: number[], index: number): void => {
+      const chain = chains.get(node)!;
       const record = node.record.slice();
-      put32(record, 16, newChain[0] ?? END);
-      writeEntry(parentChain, index, record);
+      put32(record, 16, chain[0] ?? END);
+      writer.entry(parentChain, index, record);
       if (isDirectory(node)) {
         const dot = this.#readNode(node).slice(0, 512);
         put32(dot, 16, parentChain[0]!);
         put32(dot, 20, index);
-        writeEntry(newChain, 0, dot);
-        for (const child of node.children) copyEntries(child, newChain, child.index);
+        writer.entry(chain, 0, dot);
+        node.children.forEach(child => copyEntry(child, chain, child.index));
       }
     };
-    copyEntries(save, rootChain, slot);
-    if (slot === lengthOf(root)) {
-      const dot = root.record.slice();
-      put32(dot, 4, slot + 1);
-      writeEntry(rootChain, 0, dot);
+    selected.forEach(item => copyEntry(item.node, rootChain, item.slot));
+    if (rootLength !== lengthOf(destination.#root)) {
+      const record = destination.#root.record.slice();
+      put32(record, 4, rootLength);
+      writer.entry(rootChain, 0, record);
     }
-    for (const [physical, bytes] of fatChanges) candidate.writeCluster(physical, bytes);
-    return new MemoryCard(candidate.export());
+    return new MemoryCard(writer.export());
   }
 }

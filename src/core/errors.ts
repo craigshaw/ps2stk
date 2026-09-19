@@ -1,4 +1,4 @@
-export type CardErrorCode = 'unsupported' | 'corrupt' | 'not-found' | 'conflict' | 'capacity';
+export type CardErrorCode = 'unsupported' | 'corrupt' | 'not-found' | 'conflict' | 'capacity' | 'invalid-operation';
 
 export class CardError extends Error {
   constructor(readonly code: CardErrorCode, message: string) {
