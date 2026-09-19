@@ -14,9 +14,9 @@
 - Read `docs/implementation-plan.md` for milestone work and acceptance criteria.
 - Follow the current user request. Do not start later milestones merely because they appear in the plan.
 
-The project has an accepted milestone 1 engine and implemented milestone 2 editing, conversion, and session history. The command-line harness is usable; the browser remains a minimal shell. The production explorer is milestone 3. The user deferred game-load tests to milestone 4. Read `docs/milestone-1-validation.md` and `docs/milestone-2-validation.md` for evidence and remaining release tests.
+Milestones 1 through 3 are implemented: the card engine, editing/session API, and browser explorer. The command-line harness remains usable. Release validation and deployment are milestone 4. The user deferred game-load tests to milestone 4. Read the three `docs/milestone-*-validation.md` records for evidence and remaining release tests.
 
-Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
+Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. Run `npm run test:browser` for explorer regression tests in Playwright Chromium, Firefox, and WebKit. Install those engines with `npx playwright install chromium firefox webkit`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
 
 ## First-release boundaries
 
@@ -38,6 +38,8 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Prefer the smallest implementation that meets the agreed scope. Use evidence before adding workers, caches, or other architectural complexity.
 - The optional sibling checkout `../ps2mcs/icon_browser/` is a reference for parsing and rendering. It is not a runtime or build dependency of this repository.
 - Validate reused code, preserve its attribution and license notices, and do not assume the existing parser is safe for writing cards.
+- Browser I/O lives in `src/browser`, previews in `src/icons`, and React components in `src/ui`. Folder dumping requires a new output save folder and never merges existing dumps.
+- The renderer uses one shared WebGL context and disposes offscreen previews. Keep parsing bounded and preserve the animation/reduced-motion tests. Refresh `public/third-party-notices.txt` from the attribution file and installed runtime licenses if their content changes.
 - Use Lucide for interface icons. Use the original save assets for PS2 icon previews, with fallback previews for unsupported or broken icons.
 
 ## Binary data correctness

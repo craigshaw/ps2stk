@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: first-release scope, desktop design direction, stack, and delivery order agreed. Milestone 1 is accepted for further development; milestone 2 editing and session logic are implemented. The user deferred destination game-load tests to milestone 4. See [the implementation plan](./implementation-plan.md) and [milestone 2 validation](./milestone-2-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: first-release scope, desktop design direction, stack, and delivery order agreed. Milestone 1 is accepted for further development; milestone 2 editing/session logic and the milestone 3 explorer are implemented. The user deferred destination game-load tests to milestone 4. See [the implementation plan](./implementation-plan.md) and [milestone 2 validation](./milestone-2-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -89,7 +89,7 @@ The user confirmed on 2026-09-19 that copying a save to a card with an existing 
 - Show source and destination save details before replacement.
 - Replacement uses the complete source save. Do not merge files from the two saves or retain files that exist only in the replaced destination save.
 
-Batch conflict presentation remains to be specified. Copy failure behaviour is defined below.
+The explorer shows one review dialog for the batch. It lists each directory, source and destination file-byte totals, file counts, and modification times. Each conflict has its own Skip or Replace entire save choice. Copy failure behaviour is defined below.
 
 ## Agreed copy failure behaviour
 
@@ -134,7 +134,7 @@ The user clarified on 2026-09-19 that opening complete binary card images and sa
 - The filename extension and the binary layout are separate properties. Renaming a file does not add or remove ECC spare bytes.
 - A custom save-package format and package-import workflow are not part of the current scope.
 
-The user confirmed on 2026-09-19 that dumping a complete save extracts all its files separately with their original names and exact bytes, as ps2mcd does. Preserve its directory structure. Do not concatenate files into an undefined binary format or add package metadata. The browser mechanism for delivering multiple files remains an implementation question, including browser support and fallback behaviour.
+The user confirmed on 2026-09-19 that dumping a complete save extracts all its files separately with their original names and exact bytes, as ps2mcd does. Preserve its directory structure. Do not concatenate files into an undefined binary format or add package metadata. Folder dumping uses a selected destination directory in supported browsers. It creates a fresh save folder, rejects existing destinations and unsafe or colliding names, and reports completed file counts if writes fail. Individual file downloads remain available independently.
 
 ## Agreed whole-card save defaults
 
@@ -159,9 +159,9 @@ The user approved the interactive layout study on 2026-09-19, with two cards vis
 - Default to the comfortable icon grid and provide a list view switch.
 - Place the shared inspector on the right and allow it to be hidden to make more space for browsing.
 
-The layout study's sample workspace and simulated operations are design aids, not an implementation of card editing. Resizing and narrow-screen behaviour remain to be decided. The bottom inspector alternative is not the chosen default.
+The layout study's sample workspace and simulated operations are design aids, not an implementation of card editing. Card panes scroll independently on desktop. Below 950 pixels the two-card grid uses one column per pane. Below 760 pixels the inspector moves below the cards; below 520 pixels the card panes stack. There are no draggable pane splitters in this version. The bottom inspector alternative is not the chosen default.
 
-The user confirmed on 2026-09-19 that the first release supports a maximum of two open cards. Additional card tabs are a possible later extension, not a first-release requirement. Opening another image when both slots are occupied needs an explicit choice of which card to close or replace, with protection for unfinished work; the detailed interaction remains to be designed.
+The user confirmed on 2026-09-19 that the first release supports a maximum of two open cards. Additional card tabs are a possible later extension, not a first-release requirement. Opening another image when both slots are occupied needs an explicit choice of which card to close or replace, with protection for unfinished work. The explorer offers a slot chooser and confirms discarding undownloaded edits. A replacement image is validated before the old card is removed.
 
 The first layout study was reviewed interactively during planning. It uses real icon assets from the sibling project's sample images, arranged into a sample workspace. It supports save selection, one-card and two-card layouts, grid and list views, a collapsible inspector, and simulated copy, delete, and undo operations. Design controls offer right-side or bottom inspector placement and two icon densities. The study is a local design aid and is not distributed in this repository; the agreed layout is described above.
 
@@ -248,3 +248,11 @@ References checked on 2026-09-19: [custom domains](https://developers.cloudflare
 Milestone 2 has defined metadata preservation, bounded Undo history, and download revision tracking. Remaining details include format edge cases and fixture coverage, browser versions, and explorer interactions. They do not require another general feature interview. Ask one focused question if the evidence exposes a product trade-off.
 
 Keep CONTEXT.md as the domain glossary. Keep product decisions here and executable work items in the implementation plan. Create an ADR only for a consequential trade-off that meets the skill's criteria.
+
+## Milestone 3 implementation details
+
+- Save titles use the icon.sys byte-based line break and display normalization for full-width text. Directory identities and file bytes are unchanged.
+- Previews use the normal icon, its texture and lighting, on a dark application stage. Stored shape keyframes are interpolated; the sibling renderer's equal-time shape cycling is not used. The original format document leaves timing partly unresolved, so console-exact playback timing is not claimed.
+- Folder dumps preflight the complete file tree, reject unsafe portable filenames and case/normalization collisions, and require a new save folder. There is no silent overwrite or automatic renaming. External writes can leave partial output on failure; they do not enter Undo history or change download status.
+- Actual Save and Save as downloads acknowledge their prepared revision only after initiation. Refresh still ends the session. Browser controls request a leave-page warning while edits need downloading or an asynchronous file operation is in progress.
+- The explorer and regression tests are implemented. Installed browser permission flows, minimum supported versions, performance across a wider icon collection, and destination game loads remain in milestone 4.

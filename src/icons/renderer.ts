@@ -1,0 +1,244 @@
+// Rendering approach adapted from ps2mcs (MIT). See THIRD_PARTY_NOTICES.md.
+import * as THREE from "three";
+import { shapeWeights } from "./parser";
+import type { IconModel, IconSys } from "./parser";
+
+interface Preview {
+  canvas: HTMLCanvasElement;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  geometry: THREE.BufferGeometry;
+  material: THREE.ShaderMaterial;
+  texture: THREE.DataTexture;
+  group: THREE.Group;
+  model: IconModel;
+  active: boolean;
+  elapsed: number;
+  dirty: boolean;
+  fail: () => void;
+  observer: ResizeObserver;
+}
+const previews = new Set<Preview>();
+let renderer: THREE.WebGLRenderer | undefined;
+let frame = 0,
+  lastTime = 0;
+const vertexShader = `varying vec2 vUv; varying vec3 vNormal; varying vec3 vColor;
+void main() { vUv=uv; vNormal=normal; vColor=color; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const fragmentShader = `uniform sampler2D iconTexture; uniform vec3 ambient; uniform vec3 dirs[3]; uniform vec3 lights[3];
+uniform bool textured; varying vec2 vUv; varying vec3 vNormal; varying vec3 vColor;
+void main() { vec3 n=normalize(vNormal+vec3(0.000001)); vec3 light=ambient;
+for(int i=0;i<3;i++){ light+=max(dot(n,normalize(-dirs[i]+vec3(0.000001))),0.0)*lights[i]; }
+vec3 base=textured ? texture2D(iconTexture,vUv).rgb : vColor;
+gl_FragColor=vec4(base*light,1.0); }`;
+
+function getRenderer(): THREE.WebGLRenderer {
+  if (!renderer) {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.domElement.addEventListener("webglcontextlost", () => {
+      for (const preview of [...previews]) preview.fail();
+    });
+  }
+  return renderer;
+}
+function schedule(): void {
+  if (!frame && previews.size && !document.hidden)
+    frame = requestAnimationFrame(tick);
+}
+function tick(now: number): void {
+  frame = 0;
+  const delta = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 0;
+  lastTime = now;
+  let moving = false;
+  for (const p of [...previews]) {
+    if (!p.active && !p.dirty) continue;
+    if (p.active) {
+      p.elapsed += delta;
+      moving = true;
+    }
+    try {
+      draw(p);
+      p.dirty = false;
+    } catch {
+      p.fail();
+    }
+  }
+  if (moving) schedule();
+  else lastTime = 0;
+}
+function draw(p: Preview): void {
+  const r = getRenderer();
+  const width = Math.max(
+    1,
+    Math.min(
+      640,
+      Math.round(p.canvas.clientWidth * Math.min(devicePixelRatio, 2)),
+    ),
+  );
+  const height = Math.max(
+    1,
+    Math.min(
+      640,
+      Math.round(p.canvas.clientHeight * Math.min(devicePixelRatio, 2)),
+    ),
+  );
+  if (p.canvas.width !== width || p.canvas.height !== height) {
+    p.canvas.width = width;
+    p.canvas.height = height;
+  }
+  r.setSize(width, height, false);
+  p.camera.aspect = width / height;
+  p.camera.updateProjectionMatrix();
+  const weights = shapeWeights(
+    p.model,
+    p.elapsed * 8 * p.model.speed + p.model.offset,
+  );
+  const attr = p.geometry.getAttribute("position") as THREE.BufferAttribute;
+  const output = attr.array as Float32Array;
+  output.fill(0);
+  p.model.shapes.forEach((shape, s) => {
+    const w = weights[s]!;
+    if (w)
+      for (let i = 0; i < output.length; i++)
+        output[i] = output[i]! + shape[i]! * w;
+  });
+  attr.needsUpdate = true;
+  p.group.rotation.y = 0.65 + p.elapsed * 0.4;
+  r.render(p.scene, p.camera);
+  const ctx = p.canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is unavailable.");
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(r.domElement, 0, 0);
+}
+export function mountPreview(
+  canvas: HTMLCanvasElement,
+  model: IconModel,
+  sys: IconSys,
+  fail: () => void,
+): { animate(value: boolean): void; dispose(): void } {
+  getRenderer();
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(model.shapes[0]!.slice(), 3),
+  );
+  geometry.setAttribute("normal", new THREE.BufferAttribute(model.normals, 3));
+  geometry.setAttribute("uv", new THREE.BufferAttribute(model.uvs, 2));
+  geometry.setAttribute("color", new THREE.BufferAttribute(model.colors, 3));
+  const texture = new THREE.DataTexture(
+    model.texture ?? new Uint8Array([255, 255, 255, 255]),
+    model.texture ? 128 : 1,
+    model.texture ? 128 : 1,
+  );
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.needsUpdate = true;
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    vertexColors: true,
+    side: THREE.DoubleSide,
+    uniforms: {
+      iconTexture: { value: texture },
+      textured: { value: !!model.texture },
+      ambient: {
+        value: new THREE.Vector3(...(sys.ambient as [number, number, number])),
+      },
+      dirs: {
+        value: sys.lightDirs.map(
+          (v) => new THREE.Vector3(...(v as [number, number, number])),
+        ),
+      },
+      lights: {
+        value: sys.lightColors.map(
+          (v) => new THREE.Vector3(...(v as [number, number, number])),
+        ),
+      },
+    },
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  const bounds = new THREE.Box3();
+  // Ignore degenerate triangles when framing, as in the sibling browser.
+  const a = new THREE.Vector3(),
+    b = new THREE.Vector3(),
+    c = new THREE.Vector3(),
+    cross = new THREE.Vector3();
+  for (const shape of model.shapes)
+    for (let i = 0; i < shape.length; i += 9) {
+      a.fromArray(shape, i);
+      b.fromArray(shape, i + 3);
+      c.fromArray(shape, i + 6);
+      cross.subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a));
+      if (cross.lengthSq() > 1e-8) {
+        bounds.expandByPoint(a);
+        bounds.expandByPoint(b);
+        bounds.expandByPoint(c);
+      }
+    }
+  if (bounds.isEmpty()) bounds.setFromArray(model.shapes[0]!);
+  const center = bounds.getCenter(new THREE.Vector3()),
+    radius = Math.max(bounds.getSize(new THREE.Vector3()).length() / 2, 0.1);
+  mesh.position.copy(center).negate();
+  const oriented = new THREE.Group();
+  oriented.rotation.x = Math.PI;
+  oriented.add(mesh);
+  const group = new THREE.Group();
+  group.add(oriented);
+  const scene = new THREE.Scene();
+  scene.add(group);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 200);
+  camera.position.set(0, radius * 0.1, radius * 3.4);
+  camera.lookAt(0, 0, 0);
+  const observer = new ResizeObserver(() => {
+    preview.dirty = true;
+    schedule();
+  });
+  const preview: Preview = {
+    canvas,
+    model,
+    geometry,
+    material,
+    texture,
+    scene,
+    camera,
+    group,
+    observer,
+    fail,
+    active: false,
+    elapsed: 0,
+    dirty: true,
+  };
+  previews.add(preview);
+  observer.observe(canvas);
+  schedule();
+  return {
+    animate(value) {
+      preview.active = value;
+      preview.dirty = true;
+      schedule();
+    },
+    dispose() {
+      previews.delete(preview);
+      observer.disconnect();
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
+      if (!previews.size) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        lastTime = 0;
+        renderer?.dispose();
+        renderer?.forceContextLoss();
+        renderer = undefined;
+      }
+    },
+  };
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    lastTime = 0;
+  } else schedule();
+});

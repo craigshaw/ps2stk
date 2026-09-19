@@ -38,3 +38,12 @@ npm run test:reference -- /path/to/mymcplus /path/to/local-card.ps2 SAVE-NAME
 ```
 
 This performs the synthetic copy matrix and, when supplied, copies the local save into each synthetic destination layout. It checks all files and metadata with the external reader and tests the CLI extraction command. It then checks milestone 2 deletion, repeated file replacement, whole-save replacement, mixed batch choices, and layout conversion against the synthetic fixtures. The independent writer inserts a destination-only file to verify that replacement does not merge saves. Temporary card outputs and raw files are removed after the check. Emulator and hardware execution are separate manual tests.
+
+## Synthetic icon and browser fixtures
+
+`tests/icon-helper.ts` creates a hand-authored triangle with two shapes and
+non-uniform animation keys. The texture tests add a single RLE run with a known
+colour. Browser tests insert these generated assets into synthetic card images
+in memory. They are not personal save assets or application build inputs.
+The existing local OutRun/homebrew icons were checked separately and remain
+outside Git and public assets.

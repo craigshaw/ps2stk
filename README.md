@@ -1,6 +1,6 @@
 # PS2STK
 
-A browser application in development for managing PS2 memory card images. The planned explorer opens up to two cards, shows animated save icons, copies or deletes saves, replaces individual files, dumps raw contents, and downloads edited card images.
+A local browser application for managing PS2 memory card images. Open up to two cards, browse their original save icons, copy or delete saves, replace individual files, dump raw contents, and download edited card images.
 
 Repository: [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk).
 
@@ -8,11 +8,11 @@ The first version targets standard 8 MiB images with or without ECC spare bytes 
 
 ## Project status
 
-Milestones 1 and 2 have a TypeScript card engine, a command-line harness, and session state for two cards. The engine reads standard 8 MiB images with or without ECC, extracts exact file bytes, copies or deletes complete saves, replaces files, and converts card layouts. Session state adds bounded Undo/Redo and download revision tracking. The browser page is still a static development shell; the production explorer is milestone 3.
+Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Release validation and Cloudflare deployment remain in milestone 4.
 
 Milestone 1 is accepted for further development. Automated and independent-tool checks pass, and the user checked both prepared card images in existing tooling. Game-load tests on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 release validation. See the [validation record](docs/milestone-1-validation.md).
 
-Milestone 2 implementation decisions, checks, and remaining integration work are in the [milestone 2 validation record](docs/milestone-2-validation.md).
+Implementation decisions and test evidence are in the [milestone 2](docs/milestone-2-validation.md) and [milestone 3](docs/milestone-3-validation.md) validation records.
 
 - [Product decisions](docs/planning.md)
 - [Implementation plan and acceptance criteria](docs/implementation-plan.md)
@@ -31,7 +31,29 @@ npm run check
 npm run dev
 ```
 
-`check` runs TypeScript checks, the Node test suite, and the production build. Engine and session code also compile without DOM or Node types. `npm run build` writes the static site to `dist/`. There is no separate lint command yet. Three.js and Lucide will be added when the explorer and icon rendering are implemented.
+`check` runs TypeScript checks, the Node test suite, and the production build. Engine and session code also compile without DOM or Node types. `npm run build` writes the static site to `dist/`. There is no separate lint command yet. Three.js is loaded when an icon preview is needed. Lucide supplies interface icons.
+
+## Use the explorer
+
+1. Run `npm run dev`, then open the local URL printed by Vite.
+2. Choose **Open memory card** and select a complete 8 MiB image, with or without ECC. Open a second image to copy between cards.
+3. Select a save to inspect its icon and files. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
+4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
+5. Select an individual file in the inspector to dump its exact bytes or replace it. Chrome and Edge can also dump a whole save into a new folder within a chosen destination.
+6. Use **Save card** to retain the opened layout and filename, or **Save as** to choose an ECC layout and extension. Downloads leave the original image unchanged.
+
+Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
+
+Firefox and Safari retain editing and individual file/card downloads. The interface explains when folder dumping is unavailable. Nothing is restored after a refresh. A browser leave-page warning is requested for undownloaded edits, but it is not recovery.
+
+## Browser tests
+
+```sh
+npx playwright install chromium firefox webkit
+npm run test:browser
+```
+
+The suite uses synthetic card data and isolated browser profiles. Folder writes use a test-only directory picker connected to real Chromium file streams. Native OS picker permissions, installed Edge/Safari, and destination game loads remain release checks. See [the evidence and limits](docs/milestone-3-validation.md).
 
 ## Card harness
 
@@ -62,8 +84,8 @@ The whole batch succeeds or fails. Replace uses the entire source save, with no 
 
 ## Session API
 
-`src/session/session.ts` provides `CardSession` for the forthcoming explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
+`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
 
-`prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. Browser download controls will be connected in milestone 3.
+`prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared revision after initiating its download.
 
 The engine has no dependency on the sibling repository, browser APIs, or reference tools. Personal cards and extracted files must remain outside Git. See [fixture provenance](tests/fixtures/README.md) for synthetic test data and independent verification commands.

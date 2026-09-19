@@ -1,6 +1,6 @@
 # PS2STK Implementation Plan
 
-Status: milestone 1 is accepted for further development, and milestone 2 editing, binary output, and session history are implemented and tested. Milestone 3 is next and has not started. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md) and [milestone 2](./milestone-2-validation.md) validation records.
+Status: milestones 1 through 3 are implemented and tested. Milestone 4 release validation and deployment are next. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records.
 
 Product decisions: [planning.md](./planning.md). Domain terms: [CONTEXT.md](../CONTEXT.md).
 
@@ -78,6 +78,8 @@ Implemented in the card engine, session API, and CLI harness. Browser controls b
 - Original input files remain unchanged.
 
 ## Milestone 3: implement the explorer
+
+Implemented. See the [milestone 3 validation record](./milestone-3-validation.md) for browser, icon, and folder-write evidence, plus the remaining release checks.
 
 ### Work
 

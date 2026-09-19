@@ -22,3 +22,41 @@ No ps2mcd source is included in this application.
 The file system implementation follows Ross Ridge's PS2 memory card file system
 description. A copy of that reference is available in the pinned mymc+ checkout
 at `docs/ps2mcfs.html`. Reference tools are development aids, not build dependencies.
+
+## PS2 icon previews
+
+`src/icons/parser.ts` and `src/icons/renderer.ts` adapt the data layout,
+texture decoding, shared-renderer approach, lighting, and camera framing from
+[Craig Shaw's ps2mcs icon browser](https://github.com/craigshaw/ps2mcs),
+commit `e010a6df728a9a13f444b763344d7ae8caae730e`.
+The adaptation adds bounded parsing, retained animation keys, and a separate
+React integration. No personal icon assets are distributed.
+
+The binary format was also checked against Martin Akesson's
+[PS2 Icon Format v0.5](https://www.ps2savetools.com/ps2icon-0.5.pdf).
+The mymc+ parser is an external verification reference only; its source is not
+copied into the application.
+
+The ps2mcs source uses this license:
+
+MIT License
+
+Copyright (c) 2024 Craig Shaw
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

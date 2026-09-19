@@ -2,6 +2,8 @@
 
 Status: implemented and validated on 2026-09-19. Browser controls are milestone 3 work. Game-load tests remain deferred to milestone 4.
 
+Subsequent integration is recorded in [milestone 3 validation](./milestone-3-validation.md). The limits below describe the milestone 2 delivery.
+
 ## Implementation decisions
 
 - Preserve existing timestamps, mode flags (including copy protection), attributes, names, and opaque metadata. Replace only file bytes, length and allocation fields. A complete-save replacement takes the source save's metadata. Deletion clears the live-entry flag and frees allocations; it is not secure erasure.
