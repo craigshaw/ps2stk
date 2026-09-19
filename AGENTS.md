@@ -14,7 +14,9 @@
 - Read `docs/implementation-plan.md` for milestone work and acceptance criteria.
 - Follow the current user request. Do not start later milestones merely because they appear in the plan.
 
-The project currently contains planning documents, not a production application. There are no project build, lint, or test commands yet. Establish and document them during milestone 1; do not claim that planned commands already exist.
+The project has a milestone 1 card engine, a command-line harness, and a minimal browser shell. The production explorer is not implemented. Read `docs/milestone-1-validation.md` for the evidence and open destination tests.
+
+Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
 
 ## First-release boundaries
 

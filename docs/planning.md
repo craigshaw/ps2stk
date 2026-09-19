@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: first-release scope, desktop design direction, stack, and delivery order agreed. The next step is the card-engine milestone in [the implementation plan](./implementation-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: first-release scope, desktop design direction, stack, and delivery order agreed. The milestone 1 engine and harness are implemented, with destination execution still pending. See [the implementation plan](./implementation-plan.md) and [validation record](./milestone-1-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
