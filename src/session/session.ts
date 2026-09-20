@@ -1,4 +1,5 @@
-import { encodePsu, packageFilename } from '../formats/psu';
+import { exportSavePackage } from '../formats/index';
+import type { ExportFormat } from '../formats/index';
 import { CardError, MemoryCard, SaveContent } from '../core/index';
 import type { CardLayout, SaveSelection } from '../core/index';
 
@@ -122,8 +123,8 @@ export class CardSession {
     if (this.#get(slot).card !== expected) throw new CardError('conflict', 'The destination card changed. Import the package again to review current capacity and conflicts.');
     return this.#commit(slot, expected.importSave(save, conflict));
   }
-  prepareSaveExport(slot: CardSlot, name: string): { bytes: Uint8Array; filename: string } {
-    return { bytes: encodePsu(this.#get(slot).card.extractSave(name)), filename: packageFilename(name) };
+  prepareSaveExport(slot: CardSlot, name: string, format: ExportFormat = 'psu', acknowledgeLoss = false): { bytes: Uint8Array; filename: string } {
+    return exportSavePackage(this.#get(slot).card.extractSave(name), format, acknowledgeLoss);
   }
   deleteSaves(slot: CardSlot, names: readonly string[]): boolean {
     return this.#commit(slot, this.#get(slot).card.deleteSaves(names));

@@ -1,4 +1,6 @@
-import { decodeSavePackage } from "../formats/psu";
+import { decodePackage, encodePackage } from "../browser/packages";
+import type { ImportFormat } from "../formats/index";
+import { ExportReview } from "./ExportReview";
 import type { SaveContent } from "../core/index";
 import { ImportReview } from "./ImportReview";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -52,8 +54,8 @@ import { IconPreview } from "./IconPreview";
 import { Dialog } from "./Dialog";
 
 type Modal =
-  | { type: "import"; slot: CardSlot; save: SaveContent; expected: MemoryCard }
-  | { type: "export"; output: { bytes: Uint8Array; filename: string }; name: string }
+  | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard }
+  | { type: "export"; save: SaveContent }
   | { type: "choose" }
   | { type: "close" | "open" | "save"; slot: CardSlot }
   | { type: "delete"; slot: CardSlot; names: string[] }
@@ -64,8 +66,7 @@ type Modal =
       entry: CardEntry;
       bytes: Uint8Array;
       filename: string;
-    }
-  | { type: "dump"; slot: CardSlot; entry: CardEntry };
+    };
 const slots = [0, 1] as const;
 const letter = (slot: CardSlot) => (slot === 0 ? "A" : "B");
 const other = (slot: CardSlot): CardSlot => (slot === 0 ? 1 : 0);
@@ -224,7 +225,7 @@ export function App() {
     );
   }
   function exportSave(slot: CardSlot, name: string) {
-    act(() => setModal({ type: "export", name, output: session.prepareSaveExport(slot, name) }), "Prepared PSU export.");
+    act(() => setModal({ type: "export", save: session.state(slot).card.extractSave(name) }), "Choose an export output type.");
   }
   function showSaveAs(slot: CardSlot) {
     const state = cards[slot]!;
@@ -432,9 +433,9 @@ export function App() {
         event.target.value = "";
         if (!file || !pending) return;
         void run(async () => {
-          const { save } = decodeSavePackage(await readSavePackage(file));
+          const { save, format } = await decodePackage(await readSavePackage(file));
           if (session.state(pending.slot).card !== pending.expected) throw new Error("The destination card changed. Import the package again.");
-          setModal({ type: "import", ...pending, save });
+          setModal({ type: "import", ...pending, save, format });
         });
       }} />
       <fieldset className="application-controls" disabled={busy}>
@@ -849,28 +850,7 @@ export function App() {
                         <Copy />
                         Copy save to card {letter(other(active))}
                       </button>
-                      <button
-                        disabled={!supportedFolders}
-                        onClick={() =>
-                          setModal({
-                            type: "dump",
-                            slot: active,
-                            entry: inspected.entry,
-                          })
-                        }
-                      >
-                        <FolderOpen />
-                        Dump save to folder
-                      </button>
                     </div>
-                    {!supportedFolders && (
-                      <p className="capability-note">
-                        <Info />
-                        Folder dumps require Chrome or Edge with directory
-                        access. Save-package, individual file, and card downloads are available
-                        here.
-                      </p>
-                    )}
                     <div className="files-heading">
                       <h3>Save files</h3>
                       <span>{files.length}</span>
@@ -947,7 +927,7 @@ export function App() {
           </a>
         </span>
       </footer>
-      {error && (
+      {error && modal?.type !== "export" && (
         <div className="error-banner" role="alert">
           <Info />
           <div>
@@ -971,14 +951,14 @@ export function App() {
               copy: "Copy complete saves",
               replace: "Replace this file?",
               save: "Save memory card as",
-              dump: "Dump save to a folder",
               import: "Review save import",
-              export: "Export save package",
+              export: "Export save",
             }[modal.type]
           }
-          onClose={() => setModal(null)}
+          onClose={() => { if (!busyRef.current) setModal(null); }}
+          busy={busy}
         >
-          {modal.type === "import" && <ImportReview save={modal.save} card={modal.expected}
+          {modal.type === "import" && <ImportReview save={modal.save} format={modal.format} card={modal.expected}
             destination={`Card ${letter(modal.slot)}: ${cards[modal.slot]?.filename ?? 'Closed card'}`}
             onApply={(choice) => act(() => {
               const changed = session.importSave(modal.slot, modal.save, modal.expected, choice);
@@ -989,14 +969,22 @@ export function App() {
               setModal(null);
             }, choice === "skip" && modal.expected.entries.some(e => e.name === modal.save.name) ? "Skipped existing save. Card unchanged." : "Imported save. Download the card to retain this edit.")}
           />}
-          {modal.type === "export" && <>
-            <p>Export <strong>{modal.name}</strong> as one save package.</p>
-            <label>Package format<select aria-label="Package format" defaultValue="psu"><option value="psu">EMS (.psu)</option></select></label>
-            <p>Contains the save files and their recorded metadata. This does not save the complete memory card.</p>
-            <div className="dialog-actions"><button className="primary" onClick={() => act(() => {
-              downloadBytes(modal.output.bytes, modal.output.filename); setModal(null);
-            }, "PSU download started. Whole-card download status is unchanged.")}>Download save</button></div>
-          </>}
+          {modal.type === "export" && error && <p role="alert">{error}</p>}
+          {modal.type === "export" && <ExportReview save={modal.save} busy={busy} supportedFolders={supportedFolders}
+            onFolder={() => { void run(async () => {
+              const plan = planDump(modal.save, modal.save.entry);
+              const picker = folderPicker();
+              if (!picker) throw new Error("Raw files to folder requires Chrome or Edge with directory access.");
+              const directory = await picker({ mode: "readwrite" });
+              const count = await writeDump(directory, plan);
+              setModal(null);
+              setStatus(`Exported ${count} raw files into ${plan.name}. Whole-card download status is unchanged.`);
+            }); }}
+            onDownload={(format, acknowledged) => { void run(async () => {
+            const output = await encodePackage(modal.save, format, acknowledged);
+            downloadBytes(output.bytes, output.filename); setModal(null);
+            setStatus("Save package download started. Whole-card download status is unchanged.");
+          }); }} />}
           {modal.type === "choose" && (
             <>
               <p>
@@ -1298,50 +1286,6 @@ export function App() {
                 >
                   <Download />
                   Download card
-                </button>
-              </div>
-            </>
-          )}
-          {modal.type === "dump" && (
-            <>
-              <p>
-                Choose a destination folder. A new{" "}
-                <strong>{modal.entry.name}</strong> folder will contain{" "}
-                {flattenFiles(modal.entry).length} original files and their
-                directory structure.
-              </p>
-              <p>
-                Existing save folders are never overwritten. If permission is
-                lost or a write fails, a partial folder can remain. Dumping
-                files does not save the complete card.
-              </p>
-              <div className="dialog-actions">
-                <button onClick={() => setModal(null)}>Cancel</button>
-                <button
-                  className="primary"
-                  onClick={() => {
-                    const pending = modal;
-                    setModal(null);
-                    void run(async () => {
-                      const plan = planDump(
-                        session.state(pending.slot).card,
-                        pending.entry,
-                      );
-                      const picker = folderPicker();
-                      if (!picker)
-                        throw new Error(
-                          "Folder dumping is not supported in this browser.",
-                        );
-                      const directory = await picker({ mode: "readwrite" });
-                      const count = await writeDump(directory, plan);
-                      setStatus(
-                        `Dumped ${count} raw files into ${plan.name}. The card download status is unchanged.`,
-                      );
-                    });
-                  }}
-                >
-                  <FolderOpen />
-                  Choose destination folder
                 </button>
               </div>
             </>

@@ -232,4 +232,41 @@ with tempfile.TemporaryDirectory(prefix="ps2stk-reference-") as directory:
             assert_card(replaced, expected)
             print(json.dumps({'milestone': '3A', 'package': label, 'layout': layout,
                               'import_export_replace': 'passed', 'files_metadata_and_ecc': 'matched'}))
+    # Milestone 3B: independent legacy readers supply expected bytes and metadata.
+    from mymcplus.save import format_max_drive, format_sharkport, format_codebreaker, format_psv
+    for extension, decoder in [('max', format_max_drive), ('sps', format_sharkport), ('xps', format_sharkport), ('cbs', format_codebreaker), ('psv', format_psv)]:
+        package = temp / ('legacy.' + extension)
+        package.write_bytes(gzip.decompress((root / ('tests/fixtures/flat.' + extension + '.gz')).read_bytes()))
+        reference = PS2SaveFile()
+        stream = io.BytesIO(package.read_bytes())
+        if extension == 'max':
+            decoder.load(reference, stream, timestamp=(0, 0, 0, 1, 1, 2000))
+        else:
+            decoder.load(reference, stream)
+        source_files = list(reference)
+        name = reference.dirent[8].decode('ascii')
+        for layout in ('data', 'ecc'):
+            base = temp / f'destination-{layout}.ps2'
+            output = temp / f'legacy-{extension}-{layout}.ps2'
+            run_cli('import-save', base, package, output)
+            expected = inspect(base)
+            ent = list(reference.dirent)
+            ent[2] = len(source_files) + 2
+            expected['/' + name] = [ent[i] for i in (0, 1, 2, 3, 5, 6, 7, 8)]
+            for ent, payload in source_files:
+                ent = list(ent)
+                # mymc+ PSV exposes a zero entry length but reads the real file size.
+                # The PSV table and exact returned bytes provide the independent size.
+                ent[2] = len(payload)
+                expected['/' + name + '/' + ent[8].decode('ascii')] = [ent[i] for i in (0, 1, 2, 3, 5, 6, 7, 8)] + [hashlib.sha256(payload).hexdigest()]
+            assert_card(output, expected)
+            exported = temp / f'legacy-{extension}-{layout}-export.max'
+            run_cli('export-save', output, name, exported, 'max', '--allow-metadata-loss')
+            decoded = PS2SaveFile()
+            format_max_drive.load(decoded, io.BytesIO(exported.read_bytes()))
+            assert decoded.dirent[8] == reference.dirent[8]
+            for (ent, data), (ref_ent, ref_data) in zip(decoded, source_files, strict=True):
+                assert ent[8] == ref_ent[8] and data == ref_data
+            print(json.dumps({'milestone': '3B', 'format': extension, 'layout': layout,
+                              'import_and_MAX_export': 'passed', 'files_metadata_and_ecc': 'matched'}))
 print("Independent checks passed. No emulator or hardware execution was performed.")

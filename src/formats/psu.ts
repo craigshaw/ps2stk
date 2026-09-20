@@ -43,15 +43,8 @@ export function encodePsu(save: SaveContent): Uint8Array {
   }
   return output;
 }
-export function decodeSavePackage(bytes: Uint8Array): { format: 'psu'; save: SaveContent } {
-  if (bytes.length > MAX_PACKAGE_BYTES) throw new CardError('unsupported', 'Save package exceeds the 16 MiB input limit.');
-  // PSU has no magic. Recognise directory structure, then validate all contents.
-  if (bytes.length < 2 || (recordView(bytes).getUint16(0, true) & 0x8030) !== 0x8020)
-    throw new CardError('unsupported', 'Unsupported save package. This version imports EMS (.psu) saves. Extract ZIP downloads first.');
-  return { format: 'psu', save: decodePsu(bytes) };
-}
-export function packageFilename(name: string): string {
+export function packageFilename(name: string, format: 'psu' | 'max' = 'psu'): string {
   let stem = name.replace(/[\x00-\x1f\x7f-\xff<>:"/\\|?*]/g, '_').replace(/[. ]+$/, '');
   if (!stem || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(stem)) stem = `save_${stem}`;
-  return `${stem}.psu`;
+  return `${stem}.${format}`;
 }

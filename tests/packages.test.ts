@@ -1,3 +1,4 @@
+import { decodeSavePackage } from '../src/formats/index';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { MemoryCard, SaveContent } from '../src/core/index';
 import { makeRecord, recordView } from '../src/core/save';
-import { decodePsu, decodeSavePackage, encodePsu, packageFilename, MAX_PACKAGE_BYTES } from '../src/formats/psu';
+import { decodePsu, encodePsu, packageFilename, MAX_PACKAGE_BYTES } from '../src/formats/psu';
 import { CardSession } from '../src/session/session';
 import { fixture, nearlyFull, set32 } from './helpers';
 
@@ -58,7 +59,7 @@ test('PSU limits, truncation, duplicate names, types, trailing data and nested s
   ]) { const bytes = original.slice(); mutation(bytes); assert.throws(() => decodePsu(bytes)); }
   assert.throws(() => decodePsu(new Uint8Array([...original, 0])), /trailing/);
   assert.throws(() => decodeSavePackage(new Uint8Array(MAX_PACKAGE_BYTES + 1)), /limit/);
-  for (const magic of ['PK\x03\x04', 'Ps2PowerSave', 'CFU\0', 'Sony PS2 Memory Card Format ']) assert.throws(() => decodeSavePackage(Buffer.from(magic)), /Unsupported/);
+  for (const magic of ['PK\x03\x04', 'Sony PS2 Memory Card Format ']) assert.throws(() => decodeSavePackage(Buffer.from(magic)), /Unsupported/);
   assert.throws(() => encodePsu(new MemoryCard(fixture()).extractSave('SAVE-A')), /nested/);
 });
 

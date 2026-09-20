@@ -72,3 +72,40 @@ by mymc+. New unit tests also mutate these fixtures to exercise high-byte
 names, opaque bytes, malformed records, bounds, and capacity. Browser preview
 tests use the existing synthetic icon model in an application-produced package;
 that is UI evidence, not independent PSU-format evidence.
+
+
+## Synthetic legacy packages (milestone 3B)
+
+`legacy-manifest.json` pins the external tool revisions and SHA-256 for seven
+packages. All use the generated PSU-FLAT file bytes from `psu-manifest.json`.
+No game assets or personal saves are included, so these fixtures can be distributed.
+
+- `flat.max.gz`: produced by pinned mymc+; `size-variant.max.gz` changes the
+  compressed-size word to the documented decoded-size variant and recomputes CRC.
+- `flat.sps.gz` and `flat.xps.gz`: independently packed Python containers with
+  98- and 250-byte entries, respectively, nonempty header comments, and valid
+  body checksums. Both are read back with external mymc+.
+- `flat.cbs.gz`: Python struct/zlib plus external mymc+ RC4, mode at offset 76,
+  compressed-body size. `mode72-total.cbs.gz`: mode at offset 72 (converter
+  layout), whole-file size. External reads verify exact payloads; unit tests
+  check the mode mapping against the documented layouts.
+- `flat.psv.gz`: PSU converted and signed by external PSV Save Converter
+  `0e142d2e1a83788dcdd3f4066f6d13b2c1beb467`, then extracted independently to
+  verify payloads. Node/OpenSSL supplies a second signature implementation.
+
+```sh
+make -C /path/to/psv-save-converter
+python3 scripts/reference-legacy-fixtures.py /path/to/mymcplus /path/to/psv-save-converter
+npm run test:reference -- /path/to/mymcplus
+```
+
+MAX/CBS/SPS/XPS/PSV lack the full opaque records and extended attributes of PSU.
+MAX also lacks flags and dates. See [3B validation](../../docs/milestone-3b-validation.md)
+for expected defaults, parser limits, negative cases, measurements, and locally
+checked Apollo packages. Original-peripheral captures and destination game loads
+remain release work. Real Apollo samples remain outside Git and public assets.
+
+`staticModel()` in `tests/icon-helper.ts` adds an entirely synthetic triangle
+with a zero-key animation track and an immediately following RLE texture. It
+covers the compact static layout found while inspecting a local Kingdom Hearts
+SPS, without including any bytes from that game's icon or save.

@@ -90,3 +90,20 @@ test('PSU CLI import/export preserves inputs and refuses overwrites or partial o
     assert.equal(existsSync(failed), false);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('legacy CLI content detection and acknowledged MAX export preserve input and reject overwrites', async () => {
+  const { gunzipSync } = await import('node:zlib');
+  const { decodeSavePackage } = await import('../src/formats/index');
+  const directory = mkdtempSync(join(tmpdir(), 'ps2stk-legacy-cli-'));
+  try {
+    const card=join(directory,'card.ps2'), input=join(directory,'renamed.psu'), result=join(directory,'result.ps2'), output=join(directory,'output.max');
+    writeFileSync(card,fixture('destination'));writeFileSync(input,gunzipSync(readFileSync('tests/fixtures/flat.psv.gz')));
+    const run=(...args:string[])=>spawnSync(process.execPath,['--import','tsx','scripts/card.ts',...args],{encoding:'utf8'});
+    assert.equal(run('import-save',card,input,result).status,0);
+    assert.equal(run('export-save',result,'PSU-FLAT',output,'max','no').status,1);assert.equal(existsSync(output),false);
+    assert.equal(run('export-save',result,'PSU-FLAT',output,'max','--allow-metadata-loss').status,0);
+    assert.equal(decodeSavePackage(readFileSync(output)).format,'max');
+    assert.match(run('export-save',result,'PSU-FLAT',output,'max','--allow-metadata-loss').stderr,/EEXIST/);
+    assert.deepEqual(new Uint8Array(readFileSync(card)),fixture('destination'));
+  } finally {rmSync(directory,{recursive:true,force:true});}
+});

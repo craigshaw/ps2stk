@@ -143,14 +143,17 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     const shape = u32(),
       keyCount = u32();
     valid(
-      shape < count && !seen.has(shape) && keyCount >= 1 && keyCount <= 4096,
+      shape < count && !seen.has(shape) && keyCount <= 4096,
       "Invalid icon animation track.",
     );
     seen.add(shape);
     need(keyCount * 8);
-    // The first pair is a reserved record, included in keyCount.
-    u32();
-    u32();
+    // Nonempty tracks include a reserved pair in keyCount. A zero-key
+    // static track has no pair: the next track or texture follows immediately.
+    if (keyCount > 0) {
+      u32();
+      u32();
+    }
     const keys: Track["keys"] = [];
     for (let k = 1; k < keyCount; k++) {
       const time = f32(),

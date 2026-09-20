@@ -126,7 +126,7 @@ For each implementation increment run `npm run check`; run `npm run test:browser
 
 Milestone 4 still covers installed-browser permission/download behaviour, minimum browser versions, broader icon/performance checks, PCSX2 and PS2/MemCard PRO2 game-load tests, and Cloudflare Pages Git deployment. Expand its game-load matrix to saves imported from the supported package formats, with both card layouts checked as appropriate to each destination. Include export and re-import through independent tooling. Native hardware/emulator acceptance must be recorded separately from parser checks.
 
-Milestone **3A** is complete. The next implementation task is **3B**, when requested. Do not begin 3B, 3C, or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
+Milestones **3A and 3B** are complete. See [3B validation](./milestone-3b-validation.md) for the format policy, worker decision, and independent evidence. The next implementation task is **3C**, when requested. Do not begin 3C or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
 
 ## Research basis
 

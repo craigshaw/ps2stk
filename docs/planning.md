@@ -273,3 +273,31 @@ Keep CONTEXT.md as the domain glossary. Keep product decisions here and executab
 - Folder dumps preflight the complete file tree, reject unsafe portable filenames and case/normalization collisions, and require a new save folder. There is no silent overwrite or automatic renaming. External writes can leave partial output on failure; they do not enter Undo history or change download status.
 - Actual Save and Save as downloads acknowledge their prepared revision only after initiation. Refresh still ends the session. Browser controls request a leave-page warning while edits need downloading or an asynchronous file operation is in progress.
 - The explorer and regression tests are implemented. Installed browser permission flows, minimum supported versions, performance across a wider icon collection, and destination game loads remain in milestone 4.
+
+
+## Milestone 3B implementation details
+
+Completed on 2026-09-20. The [3B validation record](milestone-3b-validation.md)
+defines the supported container variants, strict PSV signature policy, metadata
+defaults, and independent evidence. PSU remains the default export. MAX export
+requires explicit metadata-loss acknowledgement. SPS/XPS packages without a
+populated checksum are accepted with a notice; populated checksums must match.
+A measured main-thread pause above 900 ms on a near-capacity MAX save justified
+short-lived package workers. All processing remains local and session-only.
+Signed PSV export remains milestone 3C, and game-load testing remains milestone 4.
+
+
+## Unified save export
+
+The user approved a single Export save action for package and raw-folder output.
+The dialog offers EMS package (.psu), MAX Drive package (.max), and Raw files to
+folder. PSU remains the default. Raw folder export changes the final action to
+Choose folder, supports nested saves, and explains the Chrome/Edge directory
+access requirement when unavailable. Package downloads remain available in
+other browsers. MAX keeps its metadata-loss acknowledgement.
+
+The separate Dump save to folder button is removed. Save card remains separate
+because it exports a complete memory card image. Raw folder export keeps the
+existing safe-path checks, new-folder-only writes, partial-write reporting, and
+unchanged card/history state. Cancelling the directory picker keeps the export
+review open. All output choices use the selected save snapshot.

@@ -6,10 +6,12 @@ export function Dialog({
   children,
   onClose,
   returnFocus,
+  busy = false,
 }: {
   title: string;
   children: ReactNode;
   onClose(): void;
+  busy?: boolean;
   returnFocus?: HTMLElement | null;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -38,6 +40,7 @@ export function Dialog({
         <h2 id="dialog-title">{title}</h2>
         <button
           className="icon-button"
+          disabled={busy}
           onClick={onClose}
           aria-label="Close dialog"
         >

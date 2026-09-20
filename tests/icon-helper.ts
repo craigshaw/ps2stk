@@ -85,3 +85,28 @@ export function animatedCard(): Uint8Array {
     .replaceFile("/SAVE-A/icon.ico", icon)
     .export();
 }
+
+/** One textured triangle with a zero-key static track and no reserved pair. */
+export function staticModel(): Uint8Array {
+  const bytes = new Uint8Array(128), view = new DataView(bytes.buffer);
+  view.setUint32(0, 0x10000, true);
+  view.setUint32(4, 1, true);
+  view.setUint32(8, 12, true);
+  view.setFloat32(12, 1, true);
+  view.setUint32(16, 3, true);
+  for (let vertex = 0; vertex < 3; vertex++) {
+    const at = 20 + vertex * 24;
+    view.setInt16(at, vertex === 0 ? -4096 : vertex === 1 ? 4096 : 0, true);
+    view.setInt16(at + 2, vertex === 2 ? 4096 : -4096, true);
+    view.setInt16(at + 12, 4096, true);
+    bytes.set([128, 128, 128, 128], at + 20);
+  }
+  view.setUint32(92, 1, true); // animation header
+  view.setUint32(96, 1, true); // duration
+  view.setFloat32(100, 1, true);
+  view.setUint32(108, 1, true); // one track: shape 0, zero keys
+  view.setUint32(120, 4, true); // texture immediately after the 8-byte track
+  view.setUint16(124, 16384, true);
+  view.setUint16(126, 31, true);
+  return bytes;
+}

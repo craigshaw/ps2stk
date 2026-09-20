@@ -1379,3 +1379,8 @@ dialog::backdrop {
 .package-preview > .icon-preview { width: 110px; height: 110px; flex: 0 0 110px; border-radius: 10px; background: #101623; }
 .package-preview > div { min-width: 0; overflow-wrap: anywhere; }
 .package-preview code { overflow-wrap: anywhere; }
+
+.loss-acknowledgement { display: flex; align-items: flex-start; gap: .6rem; }
+.loss-acknowledgement input { width: auto; margin-top: .25rem; }
+
+.package-export-controls { border: 0; padding: 0; margin: 0; min-width: 0; }

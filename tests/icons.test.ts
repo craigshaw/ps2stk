@@ -55,3 +55,24 @@ test("icon.sys title split is a byte offset, trims NUL and preserves icon filena
   bytes[0] = 0;
   assert.throws(() => parseIconSys(bytes));
 });
+
+test('zero-keyframe static tracks consume no reserved pair and retain the following texture', async () => {
+  const { staticModel } = await import('./icon-helper');
+  const bytes = staticModel(), icon = parseIcon(bytes);
+  assert.equal(icon.shapes.length, 1);
+  assert.equal(icon.shapes[0]!.length, 9);
+  assert.deepEqual(shapeWeights(icon, 0), [1]);
+  assert.deepEqual(shapeWeights(icon, 100), [1]);
+  assert.equal(icon.texture!.length, 65536);
+  assert.deepEqual(icon.texture!.slice(-4), new Uint8Array([248, 0, 0, 255]));
+  for (const length of [115, 119, 123, 127]) assert.throws(() => parseIcon(bytes.slice(0, length)), /Truncated/);
+  const invalid = bytes.slice(); new DataView(invalid.buffer).setUint32(112, 1, true);
+  assert.throws(() => parseIcon(invalid), /track/);
+  // A compact empty track can also precede another track with keys.
+  const animated = model(true), mixed = new Uint8Array(animated.length - 32);
+  mixed.set(animated.subarray(0, 144)); mixed.set(animated.subarray(176), 144);
+  new DataView(mixed.buffer).setUint32(140, 0, true);
+  const parsed = parseIcon(mixed);
+  assert.equal(parsed.tracks[1]!.keys.length, 5);
+  assert.equal(parsed.texture!.length, 65536);
+});

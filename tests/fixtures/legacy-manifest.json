@@ -1,0 +1,35 @@
+{
+  "mymcRevision": "5e58891fd036d9f39a6c3076f998514c8f1cb8f9",
+  "psvConverterRevision": "0e142d2e1a83788dcdd3f4066f6d13b2c1beb467",
+  "content": "Synthetic PSU-FLAT payloads only; see psu-manifest.json for file hashes.",
+  "packages": {
+    "flat.max": {
+      "bytes": 522,
+      "sha256": "0413cddaea04e62b6100516da11da1bc43a7973ee7563a8d827be0dd6b68f774"
+    },
+    "size-variant.max": {
+      "bytes": 522,
+      "sha256": "bd51fab1ad49b8ca3058b5d3a04b8502e1212d088270b16ab24c89d1c2ddf0ce"
+    },
+    "flat.sps": {
+      "bytes": 3139,
+      "sha256": "be342e7b0f5e9a2d39cdb084b5c7951aaffdff9293a4d2edf14154402a08f164"
+    },
+    "flat.xps": {
+      "bytes": 3899,
+      "sha256": "baeea2ec361d434e124946559c62c42555dbcf190d5d585da9b0a362613e3613"
+    },
+    "flat.cbs": {
+      "bytes": 671,
+      "sha256": "c86f71db1cda57962965406848e9493b24fa5e70fd5471162ddae754d6f7859a"
+    },
+    "mode72-total.cbs": {
+      "bytes": 671,
+      "sha256": "b40da4af7ce916229cee1d63fc5ad9948e66b42cdffc3d4e110ea16d0190c080"
+    },
+    "flat.psv": {
+      "bytes": 2962,
+      "sha256": "274acb857c72742eb177fbc873a5419a40399100b9719a4f54135195b8ab7368"
+    }
+  }
+}

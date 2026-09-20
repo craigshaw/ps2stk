@@ -73,7 +73,7 @@ export interface DumpPlan {
   directories: string[][];
   files: { parts: string[]; bytes: Uint8Array }[];
 }
-export function planDump(card: MemoryCard, save: CardEntry): DumpPlan {
+export function planDump(card: Pick<MemoryCard, "readFile">, save: CardEntry): DumpPlan {
   if (save.kind !== "directory")
     throw new Error("Select a complete save to dump.");
   safeSegment(save.name);

@@ -133,7 +133,7 @@ test("conflicts default to Skip and explicit Replace can be undone; close protec
   ).toBeVisible();
 });
 
-test("keyboard selection, inspector toggle, unsupported folder notice and narrow desktop", async ({
+test("keyboard selection, inspector toggle and narrow desktop", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -148,9 +148,6 @@ test("keyboard selection, inspector toggle, unsupported folder notice and narrow
   });
   await first.focus();
   await page.keyboard.press("Enter");
-  await expect(
-    page.getByText("Folder dumps require Chrome or Edge", { exact: false }),
-  ).toBeVisible();
   await page.keyboard.press("ArrowRight");
   await expect(
     pane.getByRole("button", {
@@ -216,18 +213,31 @@ test("folder dump writes exact files through the browser and refuses an existing
   // The picker is replaced with a test-only origin-private directory. The app
   // still exercises real browser directory handles and writable file streams.
   await page.addInitScript(() => {
+    let cancelled = false;
     Object.defineProperty(window, "showDirectoryPicker", {
-      value: () => navigator.storage.getDirectory(),
+      value: () => {
+        if (!cancelled) { cancelled = true; return Promise.reject(new DOMException('Cancelled', 'AbortError')); }
+        return navigator.storage.getDirectory();
+      },
     });
   });
   await page.goto("/");
   await open(page, fixture(), "dump.bin");
+  await page.getByRole('button', { name: 'Inspector', exact: true }).click();
   await page
     .getByRole("button", { name: "Select SAVE-A (SAVE-A)", exact: true })
     .click();
-  await page.getByRole("button", { name: "Dump save to folder" }).click();
-  await page.getByRole("button", { name: "Choose destination folder" }).click();
-  await expect(page.getByRole("status")).toContainText("Dumped 11 raw files");
+  await page.getByRole("button", { name: "Export save", exact: true }).click();
+  await page.getByLabel('Output type').selectOption('folder');
+  await page.getByRole("button", { name: "Choose folder", exact: true }).click();
+  // Cancelling the picker preserves the review and makes no card or folder changes.
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Choose folder', exact: true })).toBeEnabled();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Choose folder', exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("status")).toContainText("Exported 11 raw files");
   const hashes = await page.evaluate(async () => {
     const root = await (
       await navigator.storage.getDirectory()
@@ -256,8 +266,9 @@ test("folder dump writes exact files through the browser and refuses an existing
   const card = new MemoryCard(fixture());
   for (const [path, bytes] of Object.entries(hashes))
     expect(new Uint8Array(bytes)).toEqual(card.readFile(`/SAVE-A/${path}`));
-  await page.getByRole("button", { name: "Dump save to folder" }).click();
-  await page.getByRole("button", { name: "Choose destination folder" }).click();
+  await page.getByRole("button", { name: "Export save", exact: true }).click();
+  await page.getByLabel('Output type').selectOption('folder');
+  await page.getByRole("button", { name: "Choose folder", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("already exists");
   await expect(page.getByRole("alert")).toContainText("No files were written");
   await expect(page.getByText("Unchanged", { exact: true })).toBeVisible();
@@ -430,7 +441,7 @@ test("PSU import review, cancel, export and exact Undo/Redo work without folder 
   await expect(page.getByRole('complementary').getByRole('heading', { name: 'PSU-FLAT', exact: true })).toBeVisible();
   await expect(pane.getByText('● Download needed')).toBeVisible();
   await pane.getByRole('button', { name: 'Export save', exact: true }).click();
-  await expect(page.getByLabel('Package format')).toHaveValue('psu');
+  await expect(page.getByLabel('Output type')).toHaveValue('psu');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download save', exact: true }).click();
   const output = await download;
@@ -517,4 +528,114 @@ test('PSU review renders contained icon assets with reduced motion and preserves
   const output = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save card', exact: true }).click();
   expect(new MemoryCard(await downloaded(await output)).readFile('/SAVE-A/icon.ico')).toEqual(new MemoryCard(animatedCard()).readFile('/SAVE-A/icon.ico'));
+});
+
+test('legacy imports use content detection and MAX export requires loss acknowledgement', async ({ page }, testInfo) => {
+  const { gunzipSync } = await import('node:zlib');
+  const { decodeSavePackage } = await import('../../src/formats/index');
+  await page.goto('/');
+  await open(page, fixture('destination'), 'destination.ps2');
+  const pane = page.getByRole('region', { name: 'Card A', exact: true });
+  for (const [extension, label] of [['max','MAX Drive'],['sps','SharkPort / X-Port'],['xps','SharkPort / X-Port'],['cbs','Code Breaker'],['psv','signature verified']]) {
+    await pane.getByRole('button', { name: 'Import save', exact: true }).click();
+    await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'renamed.wrong', mimeType: 'application/octet-stream', buffer: gunzipSync(await readFile(`tests/fixtures/flat.${extension}.gz`)) });
+    await expect(page.getByRole('dialog')).toContainText(label!);
+    await expect(page.getByRole('dialog')).toContainText('defaults are listed below');
+    await page.getByRole('dialog').getByRole('button', { name: 'Import save', exact: true }).click();
+    await expect(pane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toBeVisible();
+    await pane.getByRole('button', { name: 'Undo card A' }).click();
+  }
+  await pane.getByRole('button', { name: 'Redo card A' }).click();
+  await pane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true }).click();
+  await pane.getByRole('button', { name: 'Export save', exact: true }).click();
+  const dialog=page.getByRole('dialog');
+  await expect(page.getByLabel('Output type')).toHaveValue('psu');
+  await page.getByLabel('Output type').selectOption('max');
+  await expect(dialog).toContainText('2000-01-01');
+  await expect(page.getByRole('button', { name: 'Download save', exact: true })).toBeDisabled();
+  await page.getByRole('checkbox', { name: 'I accept the metadata loss in this MAX export.' }).focus();
+  await page.keyboard.press('Space');
+  for(const width of [850,400]) { await page.setViewportSize({width,height:900});expect(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true); }
+  await page.screenshot({ path: testInfo.outputPath('max-export-review.png') });
+  const pending=page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download save', exact: true }).click();
+  const output=await pending; expect(output.suggestedFilename()).toBe('PSU-FLAT.max');
+  const exported=decodeSavePackage(await downloaded(output));expect(exported.format).toBe('max');
+  expect(exported.save.readFile('/PSU-FLAT/bytes-513')).toEqual(decodeSavePackage(gunzipSync(await readFile('tests/fixtures/flat.psu.gz'))).save.readFile('/PSU-FLAT/bytes-513'));
+  await expect(pane.getByText('● Download needed')).toBeVisible();
+  await page.setViewportSize({width:1440,height:1000});
+  await pane.getByRole('button', { name: 'Import save', exact: true }).click();
+  const corrupt=gunzipSync(await readFile('tests/fixtures/flat.psv.gz'));corrupt[corrupt.length-1]!^=1;
+  await page.getByLabel('Save package', {exact:true}).setInputFiles({name:'bad.psv',mimeType:'application/octet-stream',buffer:corrupt});
+  await expect(page.getByRole('alert')).toContainText('signature does not match');
+  await expect(pane.getByRole('button', {name:'Undo card A'})).toBeEnabled();
+});
+
+test('package worker keeps near-capacity processing responsive and preserves caller buffers', async ({ page }, testInfo) => {
+  test.setTimeout(60000);
+  await page.goto('/');
+  const measurements=await page.evaluate(async()=>{
+    // Vite resolves these browser modules; the worker is the production I/O adapter.
+    // @ts-expect-error absolute Vite module URL
+    const {encodePackage,decodePackage}=await import('/src/browser/packages.ts');
+    // @ts-expect-error absolute Vite module URL
+    const {SaveContent,makeRecord,recordView}=await import('/src/core/save.ts');
+    let seed=123;const bytes=Uint8Array.from({length:7800000},()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return seed&255;});
+    const record=makeRecord('LARGE',true), file=makeRecord('payload',false);recordView(record).setUint32(4,3,true);recordView(file).setUint32(4,bytes.length,true);
+    const save=new SaveContent({kind:'directory',record,dot:makeRecord('.',true),dotdot:makeRecord('..',true),children:[{kind:'file',record:file,bytes}]});
+    let ticks=0;const timer=setInterval(()=>ticks++,16);const start=performance.now();
+    try {
+      const output=await encodePackage(save,'max',true), encoded=performance.now();const encodeTicks=ticks;ticks=0;
+      const originalLength=output.bytes.length;const decoded=await decodePackage(output.bytes);
+      const actual=decoded.save.readFile('/LARGE/payload');let identical=actual.length===bytes.length;
+      for(let i=0;identical&&i<bytes.length;i++) identical=actual[i]===bytes[i];
+      return {encodeMs:encoded-start,decodeMs:performance.now()-encoded,encodeTicks,decodeTicks:ticks,identical,bufferPreserved:output.bytes.length===originalLength,sourcePreserved:save.fileBytes===bytes.length};
+    } finally {clearInterval(timer);}
+  });
+  expect(measurements.identical).toBe(true);expect(measurements.bufferPreserved).toBe(true);expect(measurements.sourcePreserved).toBe(true);
+  expect(measurements.encodeTicks).toBeGreaterThan(3);expect(measurements.decodeTicks).toBeGreaterThan(3);
+  await testInfo.attach('package-worker-measurements', {body:JSON.stringify(measurements),contentType:'application/json'});
+});
+
+test('zero-keyframe static icon renders its texture instead of the fallback', async ({ page }) => {
+  const { animatedCard, staticModel } = await import('../icon-helper');
+  const card = new MemoryCard(animatedCard()).replaceFile('/SAVE-A/icon.ico', staticModel());
+  await page.goto('/');
+  await open(page, card.export(), 'static-icon.ps2');
+  const preview = page.locator('.save-select .icon-preview');
+  await expect(preview.locator('.icon-fallback')).toHaveCount(0);
+  await expect(preview).toHaveAttribute('aria-label', /PS2 save icon$/);
+  await expect.poll(() => preview.locator('canvas').evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(1);
+  await page.locator('.save-select').click();
+  await expect(page.locator('.large-preview .icon-fallback')).toHaveCount(0);
+});
+
+test('unified export explains folder support while retaining package downloads', async ({ page }, testInfo) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'showDirectoryPicker', { value: undefined });
+  });
+  await page.goto('/');
+  await open(page, fixture('destination'), 'export-options.ps2');
+  await page.getByRole('button', { name: 'Select KEEP (KEEP)', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Dump save to folder' })).toHaveCount(0);
+  const button = page.getByRole('button', { name: 'Export save', exact: true });
+  await button.click();
+  const dialog = page.getByRole('dialog');
+  await expect(page.getByLabel('Output type')).toHaveValue('psu');
+  await page.getByLabel('Output type').selectOption('folder');
+  await expect(dialog).toContainText('requires Chrome or Edge with directory access');
+  await expect(dialog).toContainText('Existing save folders are never overwritten');
+  await expect(page.getByRole('button', { name: 'Choose folder', exact: true })).toBeDisabled();
+  for (const width of [850, 400]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+  }
+  await page.screenshot({ path: testInfo.outputPath('raw-folder-export.png') });
+  await page.getByLabel('Output type').selectOption('max');
+  await expect(page.getByRole('button', { name: 'Download save', exact: true })).toBeDisabled();
+  await page.getByLabel('Output type').selectOption('psu');
+  await expect(page.getByRole('button', { name: 'Download save', exact: true })).toBeEnabled();
+  await page.keyboard.press('Escape');
+  await expect(button).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
 });
