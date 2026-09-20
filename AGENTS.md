@@ -14,7 +14,7 @@
 - Read `docs/implementation-plan.md` for milestone work and acceptance criteria.
 - Follow the current user request. Do not start later milestones merely because they appear in the plan.
 
-Milestones 1 through 3 are implemented: the card engine, editing/session API, and browser explorer. The command-line harness remains usable. Release validation and deployment are milestone 4. The user deferred game-load tests to milestone 4. Read the three `docs/milestone-*-validation.md` records for evidence and remaining release tests.
+Milestones 1 through 3 are implemented: the card engine, editing/session API, and browser explorer. The command-line harness remains usable. Save-format milestones 3A through 3C are planned next; read `docs/save-format-plan.md` before that work. Start only the milestone requested by the user. Release validation and deployment are milestone 4. The user deferred game-load tests to milestone 4. Read the three existing `docs/milestone-*-validation.md` records for evidence and remaining release tests.
 
 Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. Run `npm run test:browser` for explorer regression tests in Playwright Chromium, Firefox, and WebKit. Install those engines with `npx playwright install chromium firefox webkit`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
 
@@ -25,6 +25,7 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Support up to two standard 8 MiB PS2 card images, with or without ECC spare bytes.
 - Keep cards, edits, and Undo/Redo history in memory for the current page session only.
 - Support complete-save copy and deletion, individual file replacement, raw file/save dumps, and complete edited-card downloads.
+- The approved expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV package imports; PSU/MAX export first, then signed PSV export. It is planned, not yet implemented. Follow the scope, metadata policy, bounds, and independent-validation requirements in `docs/save-format-plan.md`.
 - Preserve the source image's layout and extension by default. Explicit Save as can change the ECC layout and select .ps2, .mc2, or .bin.
 - Keep a save distinct from a save file and a whole memory card image, as defined in `CONTEXT.md`.
 - Do not add a backend, accounts, persistent workspaces, ZIP save packages, damaged-card recovery, or game-specific editing without a scope change from the user.
@@ -34,6 +35,7 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Establish reading and writing correctness through independent-tool checks before most production UI work. Game-load testing on PCSX2 and a PS2 through MemCard PRO2 is deferred to milestone 4 by user agreement.
 - Keep the TypeScript card engine independent of React, the DOM, and browser file pickers.
 - Keep card operations, session state, browser I/O, and icon rendering separate.
+- Keep save-format readers/writers in `src/formats`, independent of browser and Node APIs. Add validated external-save import to the engine; do not manufacture a temporary card to reuse card-to-card copying. Preserve the existing copy and metadata regressions.
 - Preserve the documented milestone 2 metadata policy and 64 MiB shared history-byte limit. Engine and session TypeScript must compile without DOM or Node types.
 - Prefer the smallest implementation that meets the agreed scope. Use evidence before adding workers, caches, or other architectural complexity.
 - The optional sibling checkout `../ps2mcs/icon_browser/` is a reference for parsing and rendering. It is not a runtime or build dependency of this repository.
@@ -53,6 +55,7 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Preserve unrelated files and metadata. Do not silently merge conflicting saves or strip attributes to make a copy succeed.
 - Each successful content action is one Undo step. Failed operations do not add history.
 - Dump raw files without added headers or metadata wrappers. A complete save dump contains separate original files and retains their directory structure.
+- Save-package export is a separate operation and does not clear whole-card download status. Preserve payload bytes, report format metadata loss, and reject unrepresentable structures. Package import follows atomic conflict/capacity/history rules.
 - Folder dumping must validate output paths and report partial external writes accurately. It is separate from atomic in-memory card edits.
 
 ## Validation

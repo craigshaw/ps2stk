@@ -8,7 +8,9 @@ The first version targets standard 8 MiB images with or without ECC spare bytes 
 
 ## Project status
 
-Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Release validation and Cloudflare deployment remain in milestone 4.
+Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Save-format milestones 3A through 3C are planned next. Release validation and Cloudflare deployment remain in milestone 4.
+
+The planned expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV imports, plus PSU/MAX exports followed by signed PSV export. These formats are not implemented yet. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported.
 
 Milestone 1 is accepted for further development. Automated and independent-tool checks pass, and the user checked both prepared card images in existing tooling. Game-load tests on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 release validation. See the [validation record](docs/milestone-1-validation.md).
 
@@ -16,6 +18,7 @@ Implementation decisions and test evidence are in the [milestone 2](docs/milesto
 
 - [Product decisions](docs/planning.md)
 - [Implementation plan and acceptance criteria](docs/implementation-plan.md)
+- [Save-format milestones 3A through 3C](docs/save-format-plan.md)
 - [Domain glossary](CONTEXT.md)
 - [Project instructions for coding agents](AGENTS.md)
 

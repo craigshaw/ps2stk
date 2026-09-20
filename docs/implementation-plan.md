@@ -1,6 +1,6 @@
 # PS2STK Implementation Plan
 
-Status: milestones 1 through 3 are implemented and tested. Milestone 4 release validation and deployment are next. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records.
+Status: milestones 1 through 3 are implemented and tested. Save-format milestones 3A through 3C are planned next, followed by milestone 4 release validation and deployment. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records. The [save-format plan](./save-format-plan.md) records the scope expansion accepted on 2026-09-20.
 
 Product decisions: [planning.md](./planning.md). Domain terms: [CONTEXT.md](../CONTEXT.md).
 
@@ -15,6 +15,7 @@ Proposed module boundaries:
 | Card image I/O | Detect the supported binary layout, map pages and spare bytes, and encode complete images. |
 | Card file system | Validate directories and allocation, enumerate saves and files, and read exact file contents. |
 | Card operations | Plan and apply copy, replace, and delete operations without partial changes. |
+| Save formats | Detect and decode established save packages into validated save content; encode supported exports with explicit metadata limits. |
 | Session | Own up to two open cards, selections, bounded Undo/Redo history, and downloaded revision status. |
 | Icons | Parse icon assets and render previews independently of file system validity. |
 | Browser I/O | Open images, download binary files and cards, and dump saves into chosen folders where supported. |
@@ -101,10 +102,23 @@ Implemented. See the [milestone 3 validation record](./milestone-3-validation.md
 - Refresh or close ends the session; a new visit does not restore card contents.
 - No card data is sent to the host. Do not bundle user card fixtures into the deployed application.
 
+## Milestones 3A through 3C: save-format support
+
+These are new work, not part of the completed milestone 3 evidence. Follow [the save-format implementation plan](./save-format-plan.md) for dependencies, module boundaries, and acceptance checks.
+
+| Milestone | Deliverable | Depends on |
+| --- | --- | --- |
+| 3A | Validated external-save import API, PSU import/export, CLI and explorer controls, independent integrity checks | Completed milestone 3 |
+| 3B | MAX, SPS, XPS, CBS, and PS2 PSV imports; MAX export; per-format interoperability evidence | 3A |
+| 3C | Signed PS2 PSV export, independent signature checks, and PS3 acceptance testing | 3B |
+
+Start implementation with 3A. Keep raw dumps and whole-card operations intact. A package export does not save the whole card. No package code or compatibility results are implied by this planning update.
+
 ## Milestone 4: validate and release
 
 - Run the complete workflow on the supported desktop browser families. Set and document minimum versions based on tested dependencies and required features.
 - Complete the deferred game-load tests on PCSX2 and a PS2 through MemCard PRO2, including images with and without spare bytes as appropriate to each destination. Check copied progress, unrelated saves, and saving new progress back to the edited card.
+- Extend the destination matrix to saves imported from the supported packages, and verify exported packages through independent tools. Include package downloads in installed-browser checks and carry forward the separate PS3 validation result from 3C.
 - Check responsiveness with full cards and representative icon complexity. Measure before adding background-thread or caching complexity.
 - Connect the user-created [craigshaw/ps2stk repository](https://github.com/craigshaw/ps2stk) to a Cloudflare Pages project when ready for hosting. Confirm the Cloudflare account, production branch, and project name at setup time.
 - Use the agreed Pages Git integration. Ensure required checks pass before changes reach the production branch. Configure the static build and verify the deployed download and folder-permission flows over HTTPS.
@@ -117,5 +131,7 @@ Release requires evidence for the agreed compatibility targets, no known data-lo
 Do not add persistent workspaces, accounts, a backend, ZIP save packages, damaged-card recovery, game-specific editors, a hex editor, dedicated phone workflows, more than two open cards, or larger card capacities to version 1.
 
 Blank-card creation, arbitrary file/folder import, save renaming, direct device synchronisation, and advanced icon-editing tools were not requested or agreed. They are not prerequisites for the first milestone.
+
+Established save-package import/export is now in scope as specified in the save-format plan. This does not authorise arbitrary folder import, ZIP support, PS1/native PS3 saves, or encrypted PS2 Classics whole-card support.
 
 Use the engine milestone to resolve format details. Ask the user one focused question when a finding changes supported behaviour or adds material scope. Do not treat minor implementation choices as new product decisions.

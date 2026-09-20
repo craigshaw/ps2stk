@@ -24,6 +24,14 @@ _Avoid_: Memory card image when referring to an individual file dump.
 The files extracted from one complete save, with their original names, directory structure, and exact contents. A save dump consists of separate files rather than one combined binary file.
 _Avoid_: Memory card image when referring to an extracted save.
 
+**Save package**:
+A single file in an established transfer format that contains one complete **save**, including its save files and the metadata represented by that format. Examples include PSU, MAX, SPS, XPS, CBS, and the PS2 variant of PSV.
+_Avoid_: Raw file dump, memory card image, or save file when referring to the complete package.
+
+**PS2 PSV package**:
+A **save package** used to transfer a PS2 save through a PS3. PSV also has a PS1 variant; a PS2 PSV package is distinct from a native PS3 game save or a complete PS2 Classics memory card.
+_Avoid_: PS3 save when the intended meaning is a packaged PS2 save.
+
 ## Example dialogue
 
 **Developer**: Are we opening two physical memory cards?
@@ -40,3 +48,6 @@ _Avoid_: Memory card image when referring to an extracted save.
 
 **Developer**: What does dumping a complete save produce?
 **Domain expert**: A save dump containing each of its files separately, with the original names and bytes.
+
+**Developer**: Is exporting a PSU the same as dumping a save?
+**Domain expert**: No. PSU export produces one save package. A save dump produces the separate contained files.

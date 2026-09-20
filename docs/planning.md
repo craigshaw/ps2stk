@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: first-release scope, desktop design direction, stack, and delivery order agreed. Milestone 1 is accepted for further development; milestone 2 editing/session logic and the milestone 3 explorer are implemented. The user deferred destination game-load tests to milestone 4. See [the implementation plan](./implementation-plan.md) and [milestone 2 validation](./milestone-2-validation.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. New milestones 3A through 3C precede milestone 4 release validation, including the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -8,6 +8,7 @@ Status: first-release scope, desktop design direction, stack, and delivery order
 - Support two memory card images concurrently in the first release, including copying content between them. Two is the initial maximum.
 - Open complete binary PS2 memory card images as the primary input.
 - Dump selected files as raw binary data. Dumping a complete save extracts its contained files separately, preserving their names, directory structure, and exact bytes.
+- Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
 - Save complete edited memory cards as binary PS2 memory card images, with or without ECC spare bytes, using a selected filename extension such as .ps2, .mc2, or .bin.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
 - Use a modern file explorer interface with deep charcoal and black, translucent surfaces, subtle blue and purple accents, and gentle animation.
@@ -132,9 +133,24 @@ The user clarified on 2026-09-19 that opening complete binary card images and sa
 - "Save memory card" produces a complete edited binary card image, including its file system.
 - Whole-card output supports layouts with and without ECC spare bytes and filename extensions .ps2, .mc2, and .bin. Verify destination compatibility and select suitable defaults during implementation planning.
 - The filename extension and the binary layout are separate properties. Renaming a file does not add or remove ECC spare bytes.
-- A custom save-package format and package-import workflow are not part of the current scope.
+- No custom save-package format is planned. The 2026-09-20 expansion below adds established transfer formats to the original card and raw-dump workflows.
 
 The user confirmed on 2026-09-19 that dumping a complete save extracts all its files separately with their original names and exact bytes, as ps2mcd does. Preserve its directory structure. Do not concatenate files into an undefined binary format or add package metadata. Folder dumping uses a selected destination directory in supported browsers. It creates a fresh save folder, rejects existing destinations and unsafe or colliding names, and reports completed file counts if writes fail. Individual file downloads remain available independently.
+
+## Agreed save-format expansion
+
+On 2026-09-20, the user accepted the recommendation to add imports for `.psu`, `.max`, `.sps`, `.xps`, `.cbs`, and PS2 `.psv`, with PSU and MAX exports first and signed PSV export as a separate step. This changes the original package-import exclusion. It does not replace raw dumps or whole-card output.
+
+- PSU is the default save-package export. MAX export must explain metadata it cannot preserve. Unsupported structures must be rejected rather than silently omitted or flattened.
+- Import into an existing open card uses the established capacity, Skip/Replace entire save, and atomic Undo rules. Exporting a package does not mark the whole card as downloaded.
+- Add Import save per card and Export save for one selected save. The implementation plan starts with one package per action and one save per download to keep the workflow bounded.
+- Package downloads are available in Chrome, Edge, Firefox, and Safari. Only raw complete-save folder dumps require folder-write support.
+- Keep all processing local. Preserve exact game payloads; no region conversion, game-specific checksum repair, or native PS3 save support is implied.
+- Defer SPS/XPS/CBS exports, multi-package batches, direct ZIP import, standalone conversion without a card, and online database integration. Users can extract downloaded ZIP files before importing a supported package.
+- PS1 PSV and encrypted PS2 Classics whole-card formats such as VME remain outside this expansion.
+- Signed PSV output needs independent signature checks and PS3 destination testing. PS3 access is not assumed; unperformed tests remain explicit and require a release-scope decision if still unavailable.
+
+The detailed dependencies, engineering policies, reference sources, and acceptance checks are in [the save-format plan](./save-format-plan.md). Parser limits and missing-metadata defaults will be fixed and documented from reference evidence during 3A, before readers ship. New product trade-offs exposed by that audit require one focused discussion, not a new general feature interview.
 
 ## Agreed whole-card save defaults
 
@@ -190,7 +206,7 @@ Detect folder-write capability at runtime and explain the limitation where that 
 
 Checked on 2026-09-19: direct export of a save into a user-selected folder depends on directory write access, which is not available across all major browsers. [MDN documents limited availability for showDirectoryPicker](https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker), and [Chrome documents File System Access support in most Chromium browsers](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access).
 
-This split does not change the required raw binary contents or introduce ZIP packaging. Individual file downloads and complete card image downloads remain independent of directory picker support.
+This split does not change the required raw binary contents or introduce ZIP packaging. Individual file downloads, complete card image downloads, and the planned save-package downloads remain independent of directory picker support.
 
 ## Existing code and references
 
@@ -213,12 +229,13 @@ Inspected on 2026-09-19. The new project directory was empty and was not a Git r
 
 ## Agreed delivery sequence
 
-The user approved this delivery order on 2026-09-19. It defines milestones, not calendar estimates.
+The user approved the original delivery order on 2026-09-19. The 2026-09-20 save-format expansion inserts 3A through 3C before release without renumbering the completed milestones or their validation records. These are milestones, not calendar estimates.
 
 1. Prove the card engine on representative 8 MiB images with and without ECC spare bytes. Validate reading, exact file extraction, and export without changes. Add one copy operation and compare against independent tooling so the same parser cannot conceal its own writer errors. Game-load checks are deferred to milestone 4 by the user's subsequent agreement.
 2. Complete card operations: deletion, complete-save replacement, different-size file replacement, capacity checks, conflict handling, ECC conversion, and session-only Undo/Redo. Verify that failed operations leave the working card unchanged and successful changes preserve unrelated content.
 3. Integrate the approved explorer UI with the engine and adapt the existing icon renderer. Add two card panes, selection, inspector, animation policy, raw dumps, and whole-card downloads.
-4. Validate the complete workflow in the agreed desktop browsers and on PCSX2 and MemCard PRO2. Finish accessibility, narrow-window behaviour, and deployment to the requested host.
+4. Complete the save-format milestones: 3A adds the import foundation and PSU import/export; 3B adds the remaining imports and MAX export; 3C adds signed PSV export and PS3 validation.
+5. Complete milestone 4: validate the expanded workflow in the agreed desktop browsers and on PCSX2 and MemCard PRO2. Finish accessibility, narrow-window behaviour, and deployment to the requested host.
 
 The first milestone must establish format and writing correctness through independent-tool checks before most production UI work. Game-load compatibility remains a milestone 4 release check. The approved layout study remains the visual reference throughout. A thin test harness is sufficient for early engine checks.
 
