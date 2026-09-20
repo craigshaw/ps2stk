@@ -1,4 +1,5 @@
-import { CardError, MemoryCard } from '../core/index';
+import { encodePsu, packageFilename } from '../formats/psu';
+import { CardError, MemoryCard, SaveContent } from '../core/index';
 import type { CardLayout, SaveSelection } from '../core/index';
 
 export type CardSlot = 0 | 1;
@@ -115,6 +116,14 @@ export class CardSession {
   copySaves(source: CardSlot, destination: CardSlot, selections: readonly SaveSelection[]): boolean {
     if (source === destination) throw new CardError('invalid-operation', 'Select the other card as the copy destination.');
     return this.#commit(destination, this.#get(source).card.copySavesTo(this.#get(destination).card, selections));
+  }
+  /** The immutable card identity also detects close/reopen and asynchronous stale reviews. */
+  importSave(slot: CardSlot, save: SaveContent, expected: MemoryCard, conflict: 'skip' | 'replace' | 'error' = 'skip'): boolean {
+    if (this.#get(slot).card !== expected) throw new CardError('conflict', 'The destination card changed. Import the package again to review current capacity and conflicts.');
+    return this.#commit(slot, expected.importSave(save, conflict));
+  }
+  prepareSaveExport(slot: CardSlot, name: string): { bytes: Uint8Array; filename: string } {
+    return { bytes: encodePsu(this.#get(slot).card.extractSave(name)), filename: packageFilename(name) };
   }
   deleteSaves(slot: CardSlot, names: readonly string[]): boolean {
     return this.#commit(slot, this.#get(slot).card.deleteSaves(names));

@@ -1,0 +1,48 @@
+{
+  "producer": "mymc+",
+  "revision": "5e58891fd036d9f39a6c3076f998514c8f1cb8f9",
+  "content": "Generated synthetic bytes only",
+  "packages": {
+    "flat": {
+      "sha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793",
+      "size": 7680,
+      "name": "PSU-FLAT",
+      "files": [
+        {
+          "nameHex": "656d707479",
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 42015,
+          "attributes": 305419896
+        },
+        {
+          "nameHex": "62797465732d353133",
+          "size": 513,
+          "sha256": "5b5a914221678b50ed06a627391fa824ba85ec7d03566d8882b30d8918de2780",
+          "mode": 42015,
+          "attributes": 305419896
+        },
+        {
+          "nameHex": "3132333435363738393031323334353637383930313233343536373839303132",
+          "size": 1025,
+          "sha256": "b6719a2ba32596815e9690856f96e4404a336fd5e758275e69fec7f1635c154b",
+          "mode": 42015,
+          "attributes": 305419896
+        },
+        {
+          "nameHex": "6c617374",
+          "size": 1024,
+          "sha256": "35ab87fea897c6da275036c0db35df444a75a6ab88c7a6343cd1ee08a221dbbb",
+          "mode": 42015,
+          "attributes": 305419896
+        }
+      ]
+    },
+    "empty": {
+      "sha256": "2a786679b763c6cea3b67de7c4dc09a6f3cc7400e33914b49e4d98bc5481c0d4",
+      "size": 1536,
+      "name": "PSU-EMPTY",
+      "files": []
+    }
+  }
+}

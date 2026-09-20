@@ -1,4 +1,6 @@
 import { CardError, requireValid } from './errors';
+import { SaveContent, recordName } from './save';
+import type { SaveNode, SaveDirectory } from './save';
 import { CardWriter } from './writer';
 import { CardImage, CLUSTER_SIZE } from './image';
 import type { CardLayout } from './image';
@@ -260,6 +262,85 @@ export class MemoryCard {
     put32(record, 4, bytes.length);
     put32(record, 16, chain[0] ?? END);
     writer.entry(parent.chain, node.index, record);
+    return new MemoryCard(writer.export());
+  }
+
+  extractSave(name: string): SaveContent {
+    const extract = (node: Node): SaveNode => {
+      const record = node.record.slice();
+      if (!isDirectory(node)) return { kind: 'file', record, bytes: this.#readNode(node) };
+      put32(record, 4, node.children.length + 2);
+      const data = this.#readNode(node);
+      return { kind: 'directory', record, dot: data.slice(0, 512), dotdot: data.slice(512, 1024), children: node.children.map(extract) };
+    };
+    return new SaveContent(extract(this.#save(name)) as SaveDirectory);
+  }
+
+  #importPlan(content: SaveContent, conflict: 'skip' | 'replace' | 'error') {
+    if (!['skip', 'replace', 'error'].includes(conflict)) throw new CardError('invalid-operation', 'Invalid conflict choice.');
+    const existing = this.#root.children.find(node => node.name === content.name);
+    if (existing && conflict === 'skip') return { existing, skip: true, needed: 0, available: this.#free, slot: 0, rootLength: 0 };
+    if (existing && (conflict === 'error' || !isDirectory(existing))) throw new CardError('conflict', `The destination already contains ${content.name}.`);
+    const occupied = new Set(this.#root.children.filter(node => node !== existing).map(node => node.index));
+    let slot = 2;
+    while (occupied.has(slot)) slot++;
+    const rootLength = Math.max(lengthOf(this.#root), slot + 1);
+    const rootGrowth = Math.ceil(rootLength / 2) - this.#root.chain.length;
+    const freed = existing ? this.#subtree(existing).flatMap(node => node.chain).filter(c => this.#eligible.has(c)) : [];
+    return { existing, skip: false, needed: content.allocatedBytes / CLUSTER_SIZE + rootGrowth,
+      available: [...this.#free, ...freed].sort((a, b) => a - b), slot, rootLength };
+  }
+
+  planImport(save: SaveContent, conflict: 'skip' | 'replace' | 'error' = 'skip') {
+    const content = new SaveContent(save.snapshot());
+    const plan = this.#importPlan(content, conflict);
+    return Object.freeze({ conflict: !!plan.existing, skipped: plan.skip, requiredBytes: plan.needed * CLUSTER_SIZE,
+      availableBytes: plan.available.length * CLUSTER_SIZE,
+      shortageBytes: Math.max(0, plan.needed - plan.available.length) * CLUSTER_SIZE });
+  }
+
+  /** Validate externally supplied content again, then commit a complete candidate. */
+  importSave(save: SaveContent, conflict: 'skip' | 'replace' | 'error' = 'skip'): MemoryCard {
+    const content = new SaveContent(save.snapshot());
+    const plan = this.#importPlan(content, conflict);
+    if (plan.skip) return this;
+    this.#capacity(plan.needed, plan.available.length);
+    const writer = this.#writer();
+    if (plan.existing) this.#remove(writer, plan.existing);
+    let cursor = 0;
+    const allocate = (count: number): number[] => {
+      const chain = plan.available.slice(cursor, cursor + count);
+      cursor += count;
+      for (const cluster of chain) writer.cluster(cluster, new Uint8Array(CLUSTER_SIZE));
+      writer.link(chain);
+      return chain;
+    };
+    const rootChain = this.#root.chain.slice();
+    rootChain.push(...allocate(Math.ceil(plan.rootLength / 2) - rootChain.length));
+    writer.link(rootChain);
+    const write = (node: SaveNode, parent: number[], index: number): void => {
+      const length = node.kind === 'file' ? node.bytes.length : (node.children.length + 2) * 512;
+      const chain = allocate(Math.ceil(length / CLUSTER_SIZE));
+      const record = node.record.slice();
+      put32(record, 16, chain[0] ?? END);
+      writer.entry(parent, index, record);
+      if (node.kind === 'file') writer.file(chain, node.bytes);
+      else {
+        const dot = node.dot.slice(), dotdot = node.dotdot.slice();
+        put32(dot, 16, parent[0]!); put32(dot, 20, index);
+        // Dot entries retain metadata, but never package/source allocation links.
+        put32(dotdot, 16, 0); put32(dotdot, 20, 0);
+        writer.entry(chain, 0, dot); writer.entry(chain, 1, dotdot);
+        node.children.forEach((child, i) => write(child, chain, i + 2));
+      }
+    };
+    const root = content.snapshot();
+    requireValid(recordName(root.record) === content.name, 'Save identity changed during import.');
+    write(root, rootChain, plan.slot);
+    if (plan.rootLength !== lengthOf(this.#root)) {
+      const record = this.#root.record.slice(); put32(record, 4, plan.rootLength);
+      writer.entry(rootChain, 0, record);
+    }
     return new MemoryCard(writer.export());
   }
 

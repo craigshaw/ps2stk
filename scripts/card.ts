@@ -1,3 +1,4 @@
+import { decodeSavePackage, encodePsu, MAX_PACKAGE_BYTES } from '../src/formats/psu';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { MemoryCard } from '../src/core/index';
 import type { CardLayout, SaveSelection } from '../src/core/index';
@@ -17,6 +18,19 @@ async function main(): Promise<void> {
     const card = await open(args[0]!);
     await writeFile(args[2]!, card.readFile(args[1]!), { flag: 'wx' });
     console.log(`Wrote raw file bytes to ${args[2]}.`);
+  } else if (command === 'export-save' && args.length === 3) {
+    const card = await open(args[0]!);
+    await writeFile(args[2]!, encodePsu(card.extractSave(args[1]!)), { flag: 'wx' });
+    console.log(`Exported PSU to ${args[2]}. Input card is unchanged.`);
+  } else if (command === 'import-save' && (args.length === 3 || args.length === 4)) {
+    const card = await open(args[0]!);
+    if ((await stat(args[1]!)).size > MAX_PACKAGE_BYTES) throw new Error('Save package exceeds the 16 MiB input limit.');
+    const { save } = decodeSavePackage(await readFile(args[1]!));
+    const choice = args[3] ?? 'skip';
+    if (!['skip', 'replace', 'error'].includes(choice)) throw new Error('Conflict choice must be skip, replace, or error.');
+    const result = card.importSave(save, choice as 'skip' | 'replace' | 'error');
+    await writeFile(args[2]!, result.export(), { flag: 'wx' });
+    console.log(`${result === card ? 'Skipped existing save' : 'Imported PSU save'}; wrote ${args[2]}. Input files are unchanged.`);
   } else if (command === 'copy' && (args.length === 4 || args.length === 5)) {
     const [source, destination] = await Promise.all([open(args[0]!), open(args[1]!)]);
     const choice = args[4] ?? 'error';
@@ -53,6 +67,8 @@ async function main(): Promise<void> {
     console.log(`Wrote ${result.layout} card to ${args[2]}. Input card is unchanged.`);
   } else {
     throw new Error('Usage: npm run card -- inspect CARD\n' +
+      '       npm run card -- import-save CARD PACKAGE NEW_CARD [skip|replace|error]\n' +
+      '       npm run card -- export-save CARD SAVE_NAME NEW_PSU\n' +
       '       npm run card -- extract CARD /SAVE/FILE NEW_OUTPUT\n' +
       '       npm run card -- copy SOURCE DESTINATION SAVE_NAME NEW_OUTPUT [skip|replace|error]\n' +
       '       npm run card -- copy-batch SOURCE DESTINATION PLAN.json NEW_OUTPUT\n' +

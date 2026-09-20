@@ -189,4 +189,47 @@ with tempfile.TemporaryDirectory(prefix="ps2stk-reference-") as directory:
         assert [hashlib.sha256(p.read_bytes()).hexdigest() for p in (base, source)] == before_hashes
         print(json.dumps({"milestone": 2, "layout": layout, "mutation_and_conversion_checks": checks,
                           "structural_checks": "passed", "files_metadata_and_ecc": "matched"}))
+    # Milestone 3A: external PSU -> our cards -> external parser, and our
+    # package exports -> external PSU parser. No app decoder supplies expectations.
+    from mymcplus.save.ps2save import PS2SaveFile
+    from mymcplus.save import format_ems
+    for label in ('flat', 'empty'):
+        package = temp / f'{label}.psu'
+        package.write_bytes(gzip.decompress((root / f'tests/fixtures/{label}.psu.gz').read_bytes()))
+        reference = PS2SaveFile()
+        format_ems.load(reference, io.BytesIO(package.read_bytes()))
+        name = reference.dirent[8].decode('ascii')
+        for layout in ('data', 'ecc'):
+            base = temp / f'destination-{layout}.ps2'
+            output = temp / f'psu-{label}-{layout}.ps2'
+            run_cli('import-save', base, package, output)
+            expected = inspect(base)
+            ent = reference.dirent[:]
+            ent[2] += 2
+            expected['/' + name] = [ent[i] for i in (0, 1, 2, 3, 5, 6, 7, 8)]
+            for ent, payload in reference:
+                expected['/' + name + '/' + ent[8].decode('ascii')] = [ent[i] for i in (0, 1, 2, 3, 5, 6, 7, 8)] + [hashlib.sha256(payload).hexdigest()]
+            assert_card(output, expected)
+            exported = temp / f'psu-{label}-{layout}-export.psu'
+            run_cli('export-save', output, name, exported)
+            decoded = PS2SaveFile()
+            format_ems.load(decoded, io.BytesIO(exported.read_bytes()))
+            fields = (0, 1, 2, 3, 6, 7, 8)  # Ignore allocation addresses and parent locations.
+            assert [decoded.dirent[i] for i in fields] == [reference.dirent[i] for i in fields]
+            for (actual_ent, actual_data), (ref_ent, ref_data) in zip(decoded, reference, strict=True):
+                assert [actual_ent[i] for i in fields] == [ref_ent[i] for i in fields]
+                assert actual_data == ref_data
+            # Replacement must remove a destination-only file.
+            changed = temp / f'psu-{label}-{layout}-changed.ps2'
+            changed.write_bytes(output.read_bytes())
+            with changed.open('r+b') as stream:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    card = ps2mc(stream)
+                f = card.open('/' + name + '/destination-only', 'wb')
+                f.write(b'extra'); f.close(); card.close()
+            replaced = temp / f'psu-{label}-{layout}-replaced.ps2'
+            run_cli('import-save', changed, package, replaced, 'replace')
+            assert_card(replaced, expected)
+            print(json.dumps({'milestone': '3A', 'package': label, 'layout': layout,
+                              'import_export_replace': 'passed', 'files_metadata_and_ecc': 'matched'}))
 print("Independent checks passed. No emulator or hardware execution was performed.")

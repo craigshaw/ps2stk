@@ -1,6 +1,6 @@
 # PS2STK Implementation Plan
 
-Status: milestones 1 through 3 are implemented and tested. Save-format milestones 3A through 3C are planned next, followed by milestone 4 release validation and deployment. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records. The [save-format plan](./save-format-plan.md) records the scope expansion accepted on 2026-09-20.
+Status: milestones 1 through 3 are implemented and tested. Milestone 3A PSU import/export is implemented; save-format milestones 3B and 3C are planned next, followed by milestone 4 release validation and deployment. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records. The [save-format plan](./save-format-plan.md) records the scope expansion accepted on 2026-09-20.
 
 Product decisions: [planning.md](./planning.md). Domain terms: [CONTEXT.md](../CONTEXT.md).
 
@@ -112,7 +112,7 @@ These are new work, not part of the completed milestone 3 evidence. Follow [the 
 | 3B | MAX, SPS, XPS, CBS, and PS2 PSV imports; MAX export; per-format interoperability evidence | 3A |
 | 3C | Signed PS2 PSV export, independent signature checks, and PS3 acceptance testing | 3B |
 
-Start implementation with 3A. Keep raw dumps and whole-card operations intact. A package export does not save the whole card. No package code or compatibility results are implied by this planning update.
+Milestone 3A is implemented. See [its validation record](./milestone-3a-validation.md) for independent PSU/card checks and browser evidence. Milestones 3B and 3C remain planned. Keep raw dumps and whole-card operations intact. A package export does not save the whole card.
 
 ## Milestone 4: validate and release
 

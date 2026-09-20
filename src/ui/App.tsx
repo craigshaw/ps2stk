@@ -1,3 +1,6 @@
+import { decodeSavePackage } from "../formats/psu";
+import type { SaveContent } from "../core/index";
+import { ImportReview } from "./ImportReview";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import {
@@ -34,6 +37,7 @@ import {
   planDump,
   readCardFile,
   readReplacement,
+  readSavePackage,
   writeDump,
 } from "../browser/files";
 import {
@@ -48,6 +52,8 @@ import { IconPreview } from "./IconPreview";
 import { Dialog } from "./Dialog";
 
 type Modal =
+  | { type: "import"; slot: CardSlot; save: SaveContent; expected: MemoryCard }
+  | { type: "export"; output: { bytes: Uint8Array; filename: string }; name: string }
   | { type: "choose" }
   | { type: "close" | "open" | "save"; slot: CardSlot }
   | { type: "delete"; slot: CardSlot; names: string[] }
@@ -98,6 +104,8 @@ export function App() {
   const [filePath, setFilePath] = useState<string | null>(null);
   const openInput = useRef<HTMLInputElement>(null),
     replacementInput = useRef<HTMLInputElement>(null);
+  const packageInput = useRef<HTMLInputElement>(null);
+  const packageTarget = useRef<{ slot: CardSlot; expected: MemoryCard } | null>(null);
   const target = useRef<CardSlot>(0),
     replacement = useRef<{ slot: CardSlot; entry: CardEntry } | null>(null);
   const anchors = useRef<[string | null, string | null]>([null, null]);
@@ -214,6 +222,9 @@ export function App() {
       },
       `Card ${letter(slot)} download started. Keep the downloaded image to retain your edits.`,
     );
+  }
+  function exportSave(slot: CardSlot, name: string) {
+    act(() => setModal({ type: "export", name, output: session.prepareSaveExport(slot, name) }), "Prepared PSU export.");
   }
   function showSaveAs(slot: CardSlot) {
     const state = cards[slot]!;
@@ -416,6 +427,16 @@ export function App() {
             );
         }}
       />
+      <input ref={packageInput} type="file" hidden aria-label="Save package" onChange={(event) => {
+        const file = event.target.files?.[0], pending = packageTarget.current;
+        event.target.value = "";
+        if (!file || !pending) return;
+        void run(async () => {
+          const { save } = decodeSavePackage(await readSavePackage(file));
+          if (session.state(pending.slot).card !== pending.expected) throw new Error("The destination card changed. Import the package again.");
+          setModal({ type: "import", ...pending, save });
+        });
+      }} />
       <fieldset className="application-controls" disabled={busy}>
         <header className="app-header">
           <div className="brand">
@@ -609,6 +630,10 @@ export function App() {
                         />
                       </div>
                       <div className="card-actions">
+                        <button id={`import-save-${slot}`} onClick={() => {
+                          packageTarget.current = { slot, expected: session.state(slot).card };
+                          packageInput.current!.click();
+                        }}><Upload /> Import save</button>
                         <button onClick={() => saveCard(slot)}>
                           <Download /> Save card
                         </button>
@@ -699,7 +724,7 @@ export function App() {
                             <small>
                               {search
                                 ? "Try a different title or directory name."
-                                : "Copy a save here from the other card."}
+                                : "Import a PSU save or copy one from the other card."}
                             </small>
                           </div>
                         )}
@@ -723,6 +748,7 @@ export function App() {
                         </details>
                       )}
                       <footer className="pane-footer">
+                        <button disabled={count !== 1} onClick={() => exportSave(slot, selection[slot][0]!)}><Download /> Export save</button>
                         <button
                           disabled={!count || !cards[other(slot)]}
                           onClick={() => copySelection(slot)}
@@ -841,7 +867,7 @@ export function App() {
                       <p className="capability-note">
                         <Info />
                         Folder dumps require Chrome or Edge with directory
-                        access. Individual file and card downloads are available
+                        access. Save-package, individual file, and card downloads are available
                         here.
                       </p>
                     )}
@@ -935,6 +961,7 @@ export function App() {
       )}
       {modal && (
         <Dialog
+          returnFocus={modal.type === "import" ? document.getElementById(`import-save-${modal.slot}`) : null}
           title={
             {
               choose: "Both card slots are in use",
@@ -945,10 +972,31 @@ export function App() {
               replace: "Replace this file?",
               save: "Save memory card as",
               dump: "Dump save to a folder",
+              import: "Review save import",
+              export: "Export save package",
             }[modal.type]
           }
           onClose={() => setModal(null)}
         >
+          {modal.type === "import" && <ImportReview save={modal.save} card={modal.expected}
+            destination={`Card ${letter(modal.slot)}: ${cards[modal.slot]?.filename ?? 'Closed card'}`}
+            onApply={(choice) => act(() => {
+              const changed = session.importSave(modal.slot, modal.save, modal.expected, choice);
+              if (changed) {
+                setActive(modal.slot); setSearch("");
+                setSelection(old => { const next = [...old] as [string[], string[]]; next[modal.slot] = [modal.save.name]; return next; });
+              }
+              setModal(null);
+            }, choice === "skip" && modal.expected.entries.some(e => e.name === modal.save.name) ? "Skipped existing save. Card unchanged." : "Imported save. Download the card to retain this edit.")}
+          />}
+          {modal.type === "export" && <>
+            <p>Export <strong>{modal.name}</strong> as one save package.</p>
+            <label>Package format<select aria-label="Package format" defaultValue="psu"><option value="psu">EMS (.psu)</option></select></label>
+            <p>Contains the save files and their recorded metadata. This does not save the complete memory card.</p>
+            <div className="dialog-actions"><button className="primary" onClick={() => act(() => {
+              downloadBytes(modal.output.bytes, modal.output.filename); setModal(null);
+            }, "PSU download started. Whole-card download status is unchanged.")}>Download save</button></div>
+          </>}
           {modal.type === "choose" && (
             <>
               <p>

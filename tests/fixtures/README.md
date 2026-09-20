@@ -47,3 +47,28 @@ colour. Browser tests insert these generated assets into synthetic card images
 in memory. They are not personal save assets or application build inputs.
 The existing local OutRun/homebrew icons were checked separately and remain
 outside Git and public assets.
+
+## Synthetic PSU packages (milestone 3A)
+
+`flat.psu.gz` and `empty.psu.gz` are produced with the same pinned external
+mymc+ revision above. The application writer does not generate these inputs.
+`psu-manifest.json` records package hashes and expected names, lengths, flags,
+attributes, and file hashes. Names are encoded as hex so byte identities are
+unambiguous. Both packages use 2001-02-03 04:05:06 timestamps, directory mode
+0x8427, directory attributes 0x10203040, and a nonzero opaque 16-bit field.
+The flat package includes zero-, 513-, 1024-, and 1025-byte files, a 32-byte
+name, hidden/copy-protected modes, and nonzero file attributes. The empty
+package contains a directory and no files. All payloads are generated, with
+no personal or game assets; these fixtures can be distributed with the tests.
+
+```sh
+python3 scripts/reference-psu-fixtures.py /path/to/mymcplus
+npm run test:reference -- /path/to/mymcplus
+```
+
+Reference checks now cover package import and replacement in both card
+layouts, exact files/metadata/ECC, and application-produced PSU exports read
+by mymc+. New unit tests also mutate these fixtures to exercise high-byte
+names, opaque bytes, malformed records, bounds, and capacity. Browser preview
+tests use the existing synthetic icon model in an application-produced package;
+that is UI evidence, not independent PSU-format evidence.

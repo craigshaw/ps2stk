@@ -61,3 +61,32 @@ test('CLI failed batches and invalid conversion produce no output file', () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('PSU CLI import/export preserves inputs and refuses overwrites or partial output', async () => {
+  const { gunzipSync } = await import('node:zlib');
+  const { MemoryCard } = await import('../src/core/index');
+  const { decodePsu } = await import('../src/formats/psu');
+  const directory = mkdtempSync(join(tmpdir(), 'ps2stk-psu-cli-'));
+  try {
+    const card = join(directory, 'card.ps2'), psu = join(directory, 'save.psu'), result = join(directory, 'result.ps2'), output = join(directory, 'output.psu');
+    writeFileSync(card, fixture('destination'));
+    writeFileSync(psu, gunzipSync(readFileSync('tests/fixtures/flat.psu.gz')));
+    const run = (...args: string[]) => spawnSync(process.execPath, ['--import', 'tsx', 'scripts/card.ts', ...args], { encoding: 'utf8' });
+    assert.equal(run('import-save', card, psu, result).status, 0);
+    assert.equal(run('export-save', result, 'PSU-FLAT', output).status, 0);
+    const save = decodePsu(new Uint8Array(readFileSync(output)));
+    assert.deepEqual(new MemoryCard(new Uint8Array(readFileSync(result))).readFile('/PSU-FLAT/bytes-513'), save.readFile('/PSU-FLAT/bytes-513'));
+    for (const path of [card, psu, result, output]) {
+      const before = readFileSync(path);
+      assert.match(run('import-save', card, psu, path).stderr, /EEXIST/);
+      assert.match(run('export-save', result, 'PSU-FLAT', path).stderr, /EEXIST/);
+      assert.deepEqual(readFileSync(path), before);
+    }
+    const failed = join(directory, 'failed.ps2');
+    assert.equal(run('import-save', card, output, failed, 'merge').status, 1);
+    assert.equal(existsSync(failed), false);
+    writeFileSync(psu, new Uint8Array([1,2,3]));
+    assert.equal(run('import-save', card, psu, failed).status, 1);
+    assert.equal(existsSync(failed), false);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});

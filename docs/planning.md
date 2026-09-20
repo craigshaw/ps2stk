@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. New milestones 3A through 3C precede milestone 4 release validation, including the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. Milestone 3A is now implemented; 3B and 3C precede milestone 4 release validation, including the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -150,7 +150,7 @@ On 2026-09-20, the user accepted the recommendation to add imports for `.psu`, `
 - PS1 PSV and encrypted PS2 Classics whole-card formats such as VME remain outside this expansion.
 - Signed PSV output needs independent signature checks and PS3 destination testing. PS3 access is not assumed; unperformed tests remain explicit and require a release-scope decision if still unavailable.
 
-The detailed dependencies, engineering policies, reference sources, and acceptance checks are in [the save-format plan](./save-format-plan.md). Parser limits and missing-metadata defaults will be fixed and documented from reference evidence during 3A, before readers ship. New product trade-offs exposed by that audit require one focused discussion, not a new general feature interview.
+The detailed dependencies, engineering policies, reference sources, and acceptance checks are in [the save-format plan](./save-format-plan.md). Parser limits and missing-metadata defaults are now recorded in [3A validation](./milestone-3a-validation.md). New product trade-offs exposed by that audit require one focused discussion, not a new general feature interview.
 
 ## Agreed whole-card save defaults
 

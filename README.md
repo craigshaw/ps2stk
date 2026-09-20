@@ -8,9 +8,9 @@ The first version targets standard 8 MiB images with or without ECC spare bytes 
 
 ## Project status
 
-Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Save-format milestones 3A through 3C are planned next. Release validation and Cloudflare deployment remain in milestone 4.
+Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestone 3A PSU import/export is also implemented. Save-format milestones 3B and 3C are next. Release validation and Cloudflare deployment remain in milestone 4.
 
-The planned expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV imports, plus PSU/MAX exports followed by signed PSV export. These formats are not implemented yet. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported.
+PSU import/export is available now. MAX, SPS, XPS, CBS, and PS2 PSV imports, plus MAX and signed PSV exports, remain planned. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported. See [milestone 3A validation](docs/milestone-3a-validation.md) for evidence and limits.
 
 Milestone 1 is accepted for further development. Automated and independent-tool checks pass, and the user checked both prepared card images in existing tooling. Game-load tests on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 release validation. See the [validation record](docs/milestone-1-validation.md).
 
@@ -45,6 +45,8 @@ npm run dev
 5. Select an individual file in the inspector to dump its exact bytes or replace it. Chrome and Edge can also dump a whole save into a new folder within a chosen destination.
 6. Use **Save card** to retain the opened layout and filename, or **Save as** to choose an ECC layout and extension. Downloads leave the original image unchanged.
 
+**Import save** on a card opens a PSU review with its icon, file count, capacity, and conflict choice. **Export save** downloads one selected save as PSU in every supported browser. PSU supports flat saves; use raw folder dumps or whole-card downloads for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
+
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
 
 Firefox and Safari retain editing and individual file/card downloads. The interface explains when folder dumping is unavailable. Nothing is restored after a refresh. A browser leave-page warning is requested for undownloaded edits, but it is not recovery.
@@ -61,6 +63,8 @@ The suite uses synthetic card data and isolated browser profiles. Folder writes 
 ## Card harness
 
 ```sh
+npm run card -- import-save destination.ps2 save.psu edited.ps2
+npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.psu
 npm run card -- inspect source.ps2
 npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
 npm run card -- copy source.ps2 destination.mc2 SAVE-NAME edited.mc2
@@ -87,7 +91,7 @@ The whole batch succeeds or fails. Replace uses the entire source save, with no 
 
 ## Session API
 
-`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
+`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates a PSU without marking the card downloaded. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
 
 `prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared revision after initiating its download.
 

@@ -4,5 +4,5 @@
     "lib": ["ES2023"],
     "types": []
   },
-  "include": ["src/core/**/*.ts", "src/session/**/*.ts"]
+  "include": ["src/core/**/*.ts", "src/session/**/*.ts", "src/formats/**/*.ts"]
 }

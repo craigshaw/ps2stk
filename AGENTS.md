@@ -14,7 +14,7 @@
 - Read `docs/implementation-plan.md` for milestone work and acceptance criteria.
 - Follow the current user request. Do not start later milestones merely because they appear in the plan.
 
-Milestones 1 through 3 are implemented: the card engine, editing/session API, and browser explorer. The command-line harness remains usable. Save-format milestones 3A through 3C are planned next; read `docs/save-format-plan.md` before that work. Start only the milestone requested by the user. Release validation and deployment are milestone 4. The user deferred game-load tests to milestone 4. Read the three existing `docs/milestone-*-validation.md` records for evidence and remaining release tests.
+Milestones 1 through 3 are implemented: the card engine, editing/session API, and browser explorer. The command-line harness remains usable. Milestone 3A PSU import/export is implemented; 3B and 3C remain planned; read `docs/save-format-plan.md` before that work. Start only the milestone requested by the user. Release validation and deployment are milestone 4. The user deferred game-load tests to milestone 4. Read the existing `docs/milestone-*-validation.md` records, including milestone 3A, for evidence and remaining release tests.
 
 Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tests, and the production build. Individual commands are `npm run typecheck`, `npm test`, and `npm run build`. Run `npm run test:browser` for explorer regression tests in Playwright Chromium, Firefox, and WebKit. Install those engines with `npx playwright install chromium firefox webkit`. There is no separate lint command. `npm run test:reference -- /path/to/mymcplus` runs the optional independent checks against the pinned external tool documented in `tests/fixtures/README.md`.
 
@@ -25,7 +25,7 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Support up to two standard 8 MiB PS2 card images, with or without ECC spare bytes.
 - Keep cards, edits, and Undo/Redo history in memory for the current page session only.
 - Support complete-save copy and deletion, individual file replacement, raw file/save dumps, and complete edited-card downloads.
-- The approved expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV package imports; PSU/MAX export first, then signed PSV export. It is planned, not yet implemented. Follow the scope, metadata policy, bounds, and independent-validation requirements in `docs/save-format-plan.md`.
+- The approved expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV package imports; PSU/MAX export first, then signed PSV export. PSU import/export is implemented; the other formats remain planned. Follow the scope, metadata policy, bounds, and independent-validation requirements in `docs/save-format-plan.md`.
 - Preserve the source image's layout and extension by default. Explicit Save as can change the ECC layout and select .ps2, .mc2, or .bin.
 - Keep a save distinct from a save file and a whole memory card image, as defined in `CONTEXT.md`.
 - Do not add a backend, accounts, persistent workspaces, ZIP save packages, damaged-card recovery, or game-specific editing without a scope change from the user.

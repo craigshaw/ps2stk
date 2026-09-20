@@ -1374,3 +1374,8 @@ dialog::backdrop {
   color: #9eb2d5;
   text-underline-offset: 3px;
 }
+
+.package-preview { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+.package-preview > .icon-preview { width: 110px; height: 110px; flex: 0 0 110px; border-radius: 10px; background: #101623; }
+.package-preview > div { min-width: 0; overflow-wrap: anywhere; }
+.package-preview code { overflow-wrap: anywhere; }

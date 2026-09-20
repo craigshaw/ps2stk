@@ -1,3 +1,4 @@
+import { MAX_PACKAGE_BYTES } from '../formats/psu';
 import type { CardEntry, MemoryCard } from "../core/index";
 
 export async function readCardFile(file: File): Promise<Uint8Array> {
@@ -166,4 +167,9 @@ export async function writeDump(
   } catch (error) {
     throw new FolderDumpError(completed, plan.files.length, started, error);
   }
+}
+
+export async function readSavePackage(file: File): Promise<Uint8Array> {
+  if (file.size > MAX_PACKAGE_BYTES) throw new Error('Save package exceeds the 16 MiB input limit.');
+  return new Uint8Array(await file.arrayBuffer());
 }

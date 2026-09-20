@@ -1,6 +1,6 @@
 # Save-format implementation plan
 
-Status: planned, not implemented. On 2026-09-20, the user accepted the recommended format expansion and requested an executable plan. These milestones follow the completed milestone 3 explorer and precede milestone 4 release validation. They are labelled 3A, 3B, and 3C to preserve existing milestone numbers and validation records.
+Status: milestone 3A is implemented; 3B and 3C remain planned. See [3A validation](./milestone-3a-validation.md). On 2026-09-20, the user accepted the recommended format expansion and requested an executable plan. These milestones follow the completed milestone 3 explorer and precede milestone 4 release validation. They are labelled 3A, 3B, and 3C to preserve existing milestone numbers and validation records.
 
 Product scope is recorded in [planning.md](./planning.md). The terms save, save file, save dump, and save package are defined in [CONTEXT.md](../CONTEXT.md).
 
@@ -126,7 +126,7 @@ For each implementation increment run `npm run check`; run `npm run test:browser
 
 Milestone 4 still covers installed-browser permission/download behaviour, minimum browser versions, broader icon/performance checks, PCSX2 and PS2/MemCard PRO2 game-load tests, and Cloudflare Pages Git deployment. Expand its game-load matrix to saves imported from the supported package formats, with both card layouts checked as appropriate to each destination. Include export and re-import through independent tooling. Native hardware/emulator acceptance must be recorded separately from parser checks.
 
-The next implementation task is **3A**. Do not begin 3B, 3C, or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
+Milestone **3A** is complete. The next implementation task is **3B**, when requested. Do not begin 3B, 3C, or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
 
 ## Research basis
 

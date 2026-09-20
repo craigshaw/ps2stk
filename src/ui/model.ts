@@ -24,7 +24,7 @@ export interface SaveInfo {
   iconPath: string | null;
   issue: string | null;
 }
-export function saveInfo(card: MemoryCard, entry: CardEntry): SaveInfo {
+export function saveInfo(card: Pick<MemoryCard, "readFile">, entry: CardEntry): SaveInfo {
   let sys: IconSys | null = null;
   try {
     const config = entry.children.find(

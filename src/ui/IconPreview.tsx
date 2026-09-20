@@ -9,7 +9,7 @@ export function IconPreview({
   info,
   animate,
 }: {
-  card: MemoryCard;
+  card: Pick<MemoryCard, "readFile">;
   info: SaveInfo;
   animate: boolean;
 }) {
