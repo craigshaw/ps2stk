@@ -107,3 +107,34 @@ test('legacy CLI content detection and acknowledged MAX export preserve input an
     assert.deepEqual(new Uint8Array(readFileSync(card)),fixture('destination'));
   } finally {rmSync(directory,{recursive:true,force:true});}
 });
+
+test('PSV CLI requires acknowledgement, preserves source bytes and refuses overwrites', async () => {
+  const { gunzipSync } = await import('node:zlib');
+  const { MemoryCard } = await import('../src/core/index');
+  const { decodePsu } = await import('../src/formats/psu');
+  const { psvDigest } = await import('./psv-helper');
+  const directory = mkdtempSync(join(tmpdir(), 'ps2stk-psv-cli-'));
+  try {
+    const card = join(directory, 'card.ps2'), output = join(directory, 'output.PSV');
+    const source = new MemoryCard(fixture('destination', 'ecc')).importSave(decodePsu(new Uint8Array(gunzipSync(readFileSync('tests/fixtures/flat.psu.gz')))));
+    writeFileSync(card, source.export());
+    const run = (...args: string[]) => spawnSync(process.execPath, ['--import', 'tsx', 'scripts/card.ts', ...args], { encoding: 'utf8' });
+    assert.match(run('export-save', card, 'PSU-FLAT', output, 'psv').stderr, /Acknowledge/);
+    assert.equal(existsSync(output), false);
+    assert.match(run('export-save', card, 'PSU-FLAT', output, 'psv', '--unknown').stderr, /Unknown export option/);
+    assert.equal(existsSync(output), false);
+    assert.equal(run('export-save', card, 'PSU-FLAT', output, 'psv', '--allow-metadata-loss').status, 0);
+    const exported = readFileSync(output);
+    assert.deepEqual(exported.subarray(28, 48), psvDigest(exported));
+    for (const existing of [card, output]) {
+      const original = readFileSync(existing);
+      assert.match(run('export-save', card, 'PSU-FLAT', existing, 'psv', '--allow-metadata-loss').stderr, /EEXIST/);
+      assert.deepEqual(readFileSync(existing), original);
+    }
+    const reimported = join(directory, 'reimported.ps2');
+    assert.equal(run('import-save', card, output, reimported, 'replace').status, 0);
+    const restored = new MemoryCard(readFileSync(reimported));
+    for (const entry of source.extractSave('PSU-FLAT').entry.children) assert.deepEqual(restored.readFile(entry.path), source.readFile(entry.path));
+    assert.deepEqual(new Uint8Array(readFileSync(card)), source.export());
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});

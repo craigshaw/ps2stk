@@ -97,7 +97,9 @@ CompuServe    74050,1022
 `0e142d2e1a83788dcdd3f4066f6d13b2c1beb467`, is an external fixture producer
 and format reference. Its PSV integrity scheme derives a 20-byte HMAC key
 from the header seed using AES-CBC, then hashes the package with the signature
-field zeroed. The application implements that scheme with noble libraries;
+field zeroed. The PSV writer also follows the documented metadata tables,
+icon references, and filename convention. It uses its own fixed public seed.
+The application implements the format and signing scheme with noble libraries;
 it does not copy the converter's GPL-3.0 application code. This reference
 credits Bucanero, dots_tb's ps3-psvresigner, PMStanley's PSV-Exporter, and
 root670's CheatDevicePS2. Its file-level LZARI notice is reproduced above.

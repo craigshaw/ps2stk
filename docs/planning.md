@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. Milestone 3A is now implemented; 3B and 3C precede milestone 4 release validation, including the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. Milestones 3A and 3B are implemented. Milestone 3C signed PSV export is implemented with PS3 validation pending. Milestone 4 release validation includes the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -141,7 +141,7 @@ The user confirmed on 2026-09-19 that dumping a complete save extracts all its f
 
 On 2026-09-20, the user accepted the recommendation to add imports for `.psu`, `.max`, `.sps`, `.xps`, `.cbs`, and PS2 `.psv`, with PSU and MAX exports first and signed PSV export as a separate step. This changes the original package-import exclusion. It does not replace raw dumps or whole-card output.
 
-- PSU is the default save-package export. MAX export must explain metadata it cannot preserve. Unsupported structures must be rejected rather than silently omitted or flattened.
+- PSU is the default save-package export. MAX and PSV exports must explain metadata they cannot preserve. Unsupported structures must be rejected rather than silently omitted or flattened.
 - Import into an existing open card uses the established capacity, Skip/Replace entire save, and atomic Undo rules. Exporting a package does not mark the whole card as downloaded.
 - Add Import save per card and Export save for one selected save. The implementation plan starts with one package per action and one save per download to keep the workflow bounded.
 - Package downloads are available in Chrome, Edge, Firefox, and Safari. Only raw complete-save folder dumps require folder-write support.
@@ -290,14 +290,31 @@ Signed PSV export remains milestone 3C, and game-load testing remains milestone 
 ## Unified save export
 
 The user approved a single Export save action for package and raw-folder output.
-The dialog offers EMS package (.psu), MAX Drive package (.max), and Raw files to
-folder. PSU remains the default. Raw folder export changes the final action to
+The dialog offers EMS package (.psu), MAX Drive package (.max), PS2 PSV package
+(.PSV), and Raw files to folder. PSU remains the default. Raw folder export changes the final action to
 Choose folder, supports nested saves, and explains the Chrome/Edge directory
 access requirement when unavailable. Package downloads remain available in
-other browsers. MAX keeps its metadata-loss acknowledgement.
+other browsers. MAX and PSV require their own metadata-loss acknowledgement.
 
 The separate Dump save to folder button is removed. Save card remains separate
 because it exports a complete memory card image. Raw folder export keeps the
 existing safe-path checks, new-folder-only writes, partial-write reporting, and
 unchanged card/history state. Cancelling the directory picker keeps the export
 review open. All output choices use the selected save snapshot.
+
+## Milestone 3C implementation details
+
+Signed PS2 PSV export is implemented in the format layer, CLI, and existing
+export selector. It uses the current package worker and crypto dependencies.
+The fixed public seed makes exports reproducible. No user keys, accounts,
+network requests, or new runtime dependencies are required.
+
+PSV preserves file bytes, byte-oriented names, timestamps, and mode flags.
+It omits extended attributes, opaque card fields, and dot-entry records.
+The export review explains this loss and requires acknowledgement. Changing
+the output type resets acknowledgement. PSU remains the default.
+
+Independent conversion, extraction, and signature tests are recorded in
+[3C validation](milestone-3c-validation.md). The user confirmed access to a PS3
+on 2026-09-20. USB import, game loading, and saving new progress remain pending;
+the export dialog states that PS3 compatibility has not yet been verified.

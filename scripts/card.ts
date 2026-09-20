@@ -19,10 +19,11 @@ async function main(): Promise<void> {
     const card = await open(args[0]!);
     await writeFile(args[2]!, card.readFile(args[1]!), { flag: 'wx' });
     console.log(`Wrote raw file bytes to ${args[2]}.`);
-  } else if (command === 'export-save' && (args.length === 3 || args.length === 5)) {
+  } else if (command === 'export-save' && args.length >= 3 && args.length <= 5) {
     const card = await open(args[0]!);
     const format = args[3] ?? 'psu';
-    if (format !== 'psu' && format !== 'max') throw new Error('Export format must be psu or max.');
+    if (format !== 'psu' && format !== 'max' && format !== 'psv') throw new Error('Export format must be psu, max, or psv.');
+    if (args[4] !== undefined && args[4] !== '--allow-metadata-loss') throw new Error('Unknown export option. Use --allow-metadata-loss to acknowledge format limits.');
     const output = exportSavePackage(card.extractSave(args[1]!), format, args[4] === '--allow-metadata-loss');
     await writeFile(args[2]!, output.bytes, { flag: 'wx' });
     console.log(`Exported ${format.toUpperCase()} to ${args[2]}. Input card is unchanged.`);
@@ -73,7 +74,7 @@ async function main(): Promise<void> {
   } else {
     throw new Error('Usage: npm run card -- inspect CARD\n' +
       '       npm run card -- import-save CARD PACKAGE NEW_CARD [skip|replace|error]\n' +
-      '       npm run card -- export-save CARD SAVE_NAME NEW_PACKAGE [max --allow-metadata-loss]\n' +
+      '       npm run card -- export-save CARD SAVE_NAME NEW_PACKAGE [psu|max|psv] [--allow-metadata-loss]\n' +
       '       npm run card -- extract CARD /SAVE/FILE NEW_OUTPUT\n' +
       '       npm run card -- copy SOURCE DESTINATION SAVE_NAME NEW_OUTPUT [skip|replace|error]\n' +
       '       npm run card -- copy-batch SOURCE DESTINATION PLAN.json NEW_OUTPUT\n' +

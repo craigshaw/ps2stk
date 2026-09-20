@@ -1,0 +1,8 @@
+{
+  "psvConverterRevision": "0e142d2e1a83788dcdd3f4066f6d13b2c1beb467",
+  "source": "flat.psu.gz",
+  "seedHex": "50533253544b20505356206578706f7274207631",
+  "bytes": 2962,
+  "signatureHex": "01c29b0bf3bc5f7601ea0705bf65772d3a7e718c",
+  "sha256": "04ed5ebd3c8b2d30dae0349cb004fc053e9b28cf9af1e17646b0f585c1d5652e"
+}

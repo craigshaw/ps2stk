@@ -43,7 +43,7 @@ export function encodePsu(save: SaveContent): Uint8Array {
   }
   return output;
 }
-export function packageFilename(name: string, format: 'psu' | 'max' = 'psu'): string {
+export function packageFilename(name: string, format: 'psu' | 'max' | 'psv' = 'psu'): string {
   let stem = name.replace(/[\x00-\x1f\x7f-\xff<>:"/\\|?*]/g, '_').replace(/[. ]+$/, '');
   if (!stem || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(stem)) stem = `save_${stem}`;
   return `${stem}.${format}`;

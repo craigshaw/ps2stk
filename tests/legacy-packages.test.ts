@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { gunzipSync, deflateSync } from 'node:zlib';
-import { createHash, createHmac, createDecipheriv } from 'node:crypto';
+import { createHash } from 'node:crypto';
+import { psvDigest } from './psv-helper';
 import { MemoryCard, SaveContent } from '../src/core/index';
 import { recordView } from '../src/core/save';
 import { decodeSavePackage, exportSavePackage } from '../src/formats/index';
@@ -103,14 +104,6 @@ test('CBS rejects output bombs, invalid deflate, truncation, trailing streams an
   view(changed).setUint32(16,data.length,true); assert.throws(() => decodeSavePackage(changed), /range/);
 });
 
-// Independent Node/OpenSSL verification and signing of malformed structural test vectors.
-function psvDigest(bytes: Uint8Array): Buffer {
-  const input = bytes.slice(); input.fill(0,28,48);
-  const seed = Buffer.alloc(64); seed.set(input.subarray(8,28));
-  const cipher = createDecipheriv('aes-128-cbc', Buffer.from('ea02ceef5bb4d2998f611910d77f51c6','hex'), Buffer.from('b30ffeedb7dc5eb7133da60d1b6b2cdc','hex')); cipher.setAutoPadding(false);
-  const key = Buffer.concat([cipher.update(seed), cipher.final()]).subarray(0,20);
-  return createHmac('sha1',key).update(input).digest();
-}
 test('PSV external signature agrees with OpenSSL; bad signature, PS1, counts, overlaps and icon offsets fail', () => {
   const original = packed('flat.psv'); assert.deepEqual(original.subarray(28,48), new Uint8Array(psvDigest(original))); assert.ok(verifyPsv(original));
   for (const at of [8, 28, 64, 128, original.length-1]) { const bad = original.slice(); bad[at]! ^= 1; assert.equal(verifyPsv(bad),false); assert.throws(() => decodePsv(bad), /signature/); }

@@ -5,10 +5,10 @@ import { decodePsu, encodePsu, MAX_PACKAGE_BYTES, packageFilename } from './psu'
 import { decodeMax, encodeMax, MAX_LOSS_NOTICE } from './max';
 import { decodeSharkport } from './sharkport';
 import { decodeCbs } from './cbs';
-import { decodePsv } from './psv';
-export { MAX_PACKAGE_BYTES, packageFilename, MAX_LOSS_NOTICE };
+import { decodePsv, encodePsv, psvFilename, PSV_LOSS_NOTICE } from './psv';
+export { MAX_PACKAGE_BYTES, packageFilename, MAX_LOSS_NOTICE, PSV_LOSS_NOTICE };
 export type ImportFormat = 'psu' | 'max' | 'sharkport' | 'cbs' | 'psv';
-export type ExportFormat = 'psu' | 'max';
+export type ExportFormat = 'psu' | 'max' | 'psv';
 export const FORMAT_LABELS: Record<ImportFormat, string> = {
   psu: 'EMS (.psu)', max: 'MAX Drive (.max)', sharkport: 'SharkPort / X-Port (.sps / .xps)', cbs: 'Code Breaker (.cbs)', psv: 'PS2 PSV (.psv), signature verified',
 };
@@ -23,6 +23,10 @@ export function decodeSavePackage(bytes: Uint8Array): { format: ImportFormat; sa
 }
 export function exportSavePackage(save: SaveContent, format: ExportFormat = 'psu', acknowledgeLoss = false): { bytes: Uint8Array; filename: string } {
   if (format === 'max' && !acknowledgeLoss) throw new CardError('invalid-operation', MAX_LOSS_NOTICE + ' Acknowledge metadata loss before export.');
+  if (format === 'psv') {
+    if (!acknowledgeLoss) throw new CardError('invalid-operation', PSV_LOSS_NOTICE + ' Acknowledge metadata loss before export.');
+    return { bytes: encodePsv(save), filename: psvFilename(save.name) };
+  }
   if (format !== 'psu' && format !== 'max') throw new CardError('unsupported', 'Unsupported save export format.');
   return { bytes: format === 'max' ? encodeMax(save) : encodePsu(save), filename: packageFilename(save.name, format) };
 }

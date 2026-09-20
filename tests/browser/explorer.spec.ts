@@ -639,3 +639,62 @@ test('unified export explains folder support while retaining package downloads',
   await expect(button).toBeFocused();
   await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
 });
+
+test('signed PSV downloads preserve contents and history, with keyboard review at narrow widths', async ({ page, baseURL }, testInfo) => {
+  const { gunzipSync } = await import('node:zlib');
+  const { SaveContent } = await import('../../src/core/index');
+  const { decodePsu, encodePsu } = await import('../../src/formats/psu');
+  const { decodePsv } = await import('../../src/formats/psv');
+  const { psvDigest } = await import('../psv-helper');
+  const root = decodePsu(new Uint8Array(gunzipSync(await readFile('tests/fixtures/flat.psu.gz')))).snapshot();
+  root.record.fill(0, 64, 96); root.record.set(Buffer.from('BASLUS-20370-02'), 64);
+  const source = new SaveContent(root), errors: string[] = [], remoteRequests: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => { if (/^https?:/.test(request.url()) && new URL(request.url()).origin !== new URL(baseURL!).origin) remoteRequests.push(request.url()); });
+  await page.goto('/');
+  await open(page, fixture('destination'), 'psv-export.ps2');
+  const pane = page.getByRole('region', { name: 'Card A', exact: true });
+  await pane.getByRole('button', { name: 'Import save', exact: true }).click();
+  await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'source.psu', mimeType: 'application/octet-stream', buffer: Buffer.from(encodePsu(source)) });
+  await page.getByRole('dialog').getByRole('button', { name: 'Import save', exact: true }).click();
+  await expect(pane.getByText('● Download needed')).toBeVisible();
+  const exportButton = pane.getByRole('button', { name: 'Export save', exact: true });
+  await exportButton.click();
+  const dialog = page.getByRole('dialog'), outputType = page.getByLabel('Output type');
+  await expect(outputType).toHaveValue('psu');
+  await outputType.selectOption('psv');
+  await expect(dialog).toContainText('PS3 import and game loading have not yet been verified');
+  await expect(dialog).toContainText('does not store extended attributes');
+  const download = page.getByRole('button', { name: 'Download save', exact: true });
+  await expect(download).toBeDisabled();
+  const accept = page.getByRole('checkbox', { name: 'I accept the metadata loss in this PSV export.' });
+  await accept.focus(); await page.keyboard.press('Space');
+  // Changing the format never reuses an acknowledgement for another format.
+  await outputType.selectOption('max'); await expect(download).toBeDisabled();
+  await outputType.selectOption('psv'); await expect(accept).not.toBeChecked();
+  await accept.focus(); await page.keyboard.press('Space');
+  for (const width of [850, 400]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+  }
+  await page.screenshot({ path: testInfo.outputPath('psv-export-review.png') });
+  const pending = page.waitForEvent('download');
+  await download.focus(); await page.keyboard.press('Enter');
+  const result = await pending, bytes = await downloaded(result);
+  expect(result.suggestedFilename()).toBe('BASLUS-203702D3032.PSV');
+  expect(bytes.subarray(28, 48)).toEqual(new Uint8Array(psvDigest(bytes)));
+  const save = decodePsv(bytes);
+  for (const child of source.entry.children) expect(save.readFile(child.path)).toEqual(source.readFile(child.path));
+  await expect(dialog).toHaveCount(0);
+  await expect(exportButton).toBeFocused();
+  await expect(pane.getByText('● Download needed')).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await pane.getByRole('button', { name: 'Undo card A' }).click();
+  await expect(pane.getByRole('button', { name: 'Select BASLUS-20370-02 (BASLUS-20370-02)', exact: true })).toHaveCount(0);
+  await expect(pane.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+  await pane.getByRole('button', { name: 'Redo card A' }).click();
+  const whole = page.waitForEvent('download');
+  await pane.getByRole('button', { name: 'Save card', exact: true }).click();
+  expect(await downloaded(await whole)).toEqual(new MemoryCard(fixture('destination')).importSave(source).export());
+  expect(errors).toEqual([]); expect(remoteRequests).toEqual([]);
+});

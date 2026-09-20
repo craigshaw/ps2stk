@@ -1,6 +1,6 @@
 # Save-format implementation plan
 
-Status: milestone 3A is implemented; 3B and 3C remain planned. See [3A validation](./milestone-3a-validation.md). On 2026-09-20, the user accepted the recommended format expansion and requested an executable plan. These milestones follow the completed milestone 3 explorer and precede milestone 4 release validation. They are labelled 3A, 3B, and 3C to preserve existing milestone numbers and validation records.
+Status: milestones 3A and 3B are implemented. Milestone 3C implementation and independent checks are complete; PS3 import and game-load validation remain pending. See [3C validation](./milestone-3c-validation.md). On 2026-09-20, the user accepted the recommended format expansion and requested an executable plan. These milestones follow the completed milestone 3 explorer and precede milestone 4 release validation. They are labelled 3A, 3B, and 3C to preserve existing milestone numbers and validation records.
 
 Product scope is recorded in [planning.md](./planning.md). The terms save, save file, save dump, and save package are defined in [CONTEXT.md](../CONTEXT.md).
 
@@ -126,7 +126,7 @@ For each implementation increment run `npm run check`; run `npm run test:browser
 
 Milestone 4 still covers installed-browser permission/download behaviour, minimum browser versions, broader icon/performance checks, PCSX2 and PS2/MemCard PRO2 game-load tests, and Cloudflare Pages Git deployment. Expand its game-load matrix to saves imported from the supported package formats, with both card layouts checked as appropriate to each destination. Include export and re-import through independent tooling. Native hardware/emulator acceptance must be recorded separately from parser checks.
 
-Milestones **3A and 3B** are complete. See [3B validation](./milestone-3b-validation.md) for the format policy, worker decision, and independent evidence. The next implementation task is **3C**, when requested. Do not begin 3C or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
+Milestones **3A and 3B** are complete. See [3B validation](./milestone-3b-validation.md) for the format policy, worker decision, and independent evidence. Milestone **3C** signed export is implemented with independent checks; its PS3 acceptance tests remain pending. The user confirmed access to a PS3 on 2026-09-20. Complete and record those tests before claiming destination compatibility. Milestone 4 is next when requested; do not begin release work or deployment merely because this document exists. These are delivery milestones, not calendar estimates; refine effort after the 3A fixture and metadata audit.
 
 ## Research basis
 

@@ -8,9 +8,9 @@ The first version targets standard 8 MiB images with or without ECC spare bytes 
 
 ## Project status
 
-Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestones 3A and 3B save-package support are also implemented. Signed PSV export is next in milestone 3C. Release validation and Cloudflare deployment remain in milestone 4.
+Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestones 3A and 3B save-package support are also implemented. Milestone 3C signed PSV export is implemented; PS3 import and game-load validation remain pending. Release validation and Cloudflare deployment remain in milestone 4.
 
-PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV imports are available, with PSU/MAX exports. Signed PSV export remains planned. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported. See [milestone 3A validation](docs/milestone-3a-validation.md) and [milestone 3B validation](docs/milestone-3b-validation.md) for evidence and limits.
+PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV imports are available, with PSU/MAX and signed PSV exports. PS3 compatibility is not yet verified. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported. See [milestone 3A validation](docs/milestone-3a-validation.md), [milestone 3B validation](docs/milestone-3b-validation.md), and [milestone 3C validation](docs/milestone-3c-validation.md) for evidence and the PS3 test procedure.
 
 Milestone 1 is accepted for further development. Automated and independent-tool checks pass, and the user checked both prepared card images in existing tooling. Game-load tests on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 release validation. See the [validation record](docs/milestone-1-validation.md).
 
@@ -45,7 +45,7 @@ npm run dev
 5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export save → Raw files to folder**.
 6. Use **Save card** to retain the opened layout and filename, or **Save as** to choose an ECC layout and extension. Downloads leave the original image unchanged.
 
-**Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export save** offers PSU (default), MAX, and **Raw files to folder** for one selected save. PSU/MAX downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
+**Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export save** offers PSU (default), MAX, signed PS2 PSV, and **Raw files to folder** for one selected save. PSU/MAX/PSV downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV export requires acknowledgement because it omits extended attributes, opaque card metadata, and dot entries. It preserves file bytes, names, timestamps, and mode flags. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
 
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
 
@@ -66,6 +66,7 @@ The suite uses synthetic card data and isolated browser profiles. Folder writes 
 npm run card -- import-save destination.ps2 save.psu edited.ps2
 npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.psu
 npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.max max --allow-metadata-loss
+npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.PSV psv --allow-metadata-loss
 npm run card -- inspect source.ps2
 npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
 npm run card -- copy source.ps2 destination.mc2 SAVE-NAME edited.mc2
@@ -92,7 +93,7 @@ The whole batch succeeds or fails. Replace uses the entire source save, with no 
 
 ## Session API
 
-`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
+`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
 
 `prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared revision after initiating its download.
 

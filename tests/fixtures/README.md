@@ -109,3 +109,36 @@ remain release work. Real Apollo samples remain outside Git and public assets.
 with a zero-key animation track and an immediately following RLE texture. It
 covers the compact static layout found while inspecting a local Kingdom Hearts
 SPS, without including any bytes from that game's icon or save.
+
+## PSV export vector and independent checks (milestone 3C)
+
+`psv-export-vector.json` records the SHA-256, size, seed, and signature of
+`flat.psu.gz` converted by the pinned PSV Save Converter, then re-signed by
+that same external implementation using our public seed. The application
+writer does not generate the expected vector. Only hashes and metadata are
+added; the payload remains the existing synthetic flat-save fixture.
+
+```sh
+python3 scripts/reference-psv-export.py /path/to/mymcplus /path/to/psv-save-converter
+```
+
+Add `--write-vector` only when intentionally regenerating the recorded vector.
+The script requires the same pinned revisions listed above and a C compiler.
+It builds unmodified external sources in a temporary directory, invokes the
+reference signer through a small adapter, and compares the saved signature
+with the independently calculated value. Altered seeds, signatures, headers,
+and payloads must fail comparison. Reference checkouts remain unchanged.
+
+Three cases run from both card layouts: the existing flat and empty packages,
+and a synthetic package with a 976-byte icon.sys, distinct view/copy icons,
+and shared copy/delete references. Our PSV output must match the independent
+converter byte for byte after selecting the same seed. Both mymc+ and the
+external converter extract it; names, payloads, modes, and timestamps must
+match. Extended attributes and opaque metadata are intentionally absent.
+The synthetic icon payloads test container references, not PS2 rendering.
+
+The normal test suite checks the recorded vector with Node/OpenSSL as a second
+crypto implementation. It also covers full-width/high-byte names, empty files,
+missing/broken icons, nested rejection, near-capacity data, output filename
+safety, acknowledgement, and unchanged source/history. Hardware results are
+separate in [3C validation](../../docs/milestone-3c-validation.md).
