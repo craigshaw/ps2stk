@@ -8,7 +8,7 @@ The first version targets standard 8 MiB images with or without ECC spare bytes 
 
 ## Project status
 
-Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestones 3A and 3B save-package support are also implemented. Milestone 3C signed PSV export is implemented; PS3 import and game-load validation remain pending. Release validation and Cloudflare deployment remain in milestone 4.
+Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestones 3A and 3B save-package support are also implemented. Milestone 3C signed PSV export is implemented; PS3 import and game-load validation remain pending. Cloudflare Pages hosting is live, confirmed by the user on 2026-09-22. Milestone 4 release validation remains open.
 
 PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV imports are available, with PSU/MAX and signed PSV exports. PS3 compatibility is not yet verified. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported. See [milestone 3A validation](docs/milestone-3a-validation.md), [milestone 3B validation](docs/milestone-3b-validation.md), and [milestone 3C validation](docs/milestone-3c-validation.md) for evidence and the PS3 test procedure.
 
@@ -24,6 +24,8 @@ Implementation decisions and test evidence are in the [milestone 2](docs/milesto
 
 The agreed stack is React, TypeScript, Vite, Three.js, and Lucide, deployed as a static SPA on Cloudflare Pages through Git integration.
 
+Open [PS2STK](https://ps2stk.craigshaw.com). See [deployment notes](docs/deployment.md) for the Pages build settings, setup record, and remaining hosted checks.
+
 ## Development
 
 Use Node.js 24 and npm. Dependencies are pinned in `package-lock.json`.
@@ -38,7 +40,7 @@ npm run dev
 
 ## Use the explorer
 
-1. Run `npm run dev`, then open the local URL printed by Vite.
+1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
 2. Choose **Open memory card** and select a complete 8 MiB image, with or without ECC. Open a second image to copy between cards.
 3. Select a save to inspect its icon and files. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
 4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.

@@ -83,5 +83,5 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 ## Hosting
 
 - The GitHub repository is `https://github.com/craigshaw/ps2stk`.
-- Cloudflare Pages Git integration is agreed. Account, project name, production configuration, and custom domain are deployment-time details.
-- Initial repository setup does not require creating a Cloudflare project or changing DNS.
+- Cloudflare Pages Git hosting is live at `https://ps2stk.craigshaw.com`, confirmed by the user on 2026-09-22. Use the existing project in the account that manages `craigshaw.com`; do not create a duplicate project for routine changes.
+- Read `docs/deployment.md` for setup values, user-reported hosting evidence, and remaining hosted checks. Dashboard configuration and the deployed commit have not been independently recorded. Milestone 4 release validation and destination game-load tests remain open.

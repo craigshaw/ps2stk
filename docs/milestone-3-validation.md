@@ -2,6 +2,8 @@
 
 Implemented on 2026-09-19. Release validation and deployment remain milestone 4.
 
+Deployment update, 2026-09-22: the user confirmed the Pages site working at [ps2stk.craigshaw.com](https://ps2stk.craigshaw.com). This supersedes the pending deployment status in the original record below. Detailed hosted and destination checks remain open; see [deployment notes](./deployment.md).
+
 ## Delivered
 
 - Dark desktop explorer with up to two cards, comfortable icon grid, list view, title/directory search, batch selection, and a collapsible right inspector.

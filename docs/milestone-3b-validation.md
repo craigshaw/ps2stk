@@ -5,6 +5,8 @@ and signed PS2 PSV imports, plus MAX export. PSU remains the default export.
 Signed PSV export remains milestone 3C. Game-load and hardware tests remain
 milestone 4; this record claims format and tool interoperability only.
 
+Deployment update, 2026-09-22: the user confirmed the Pages site working at [ps2stk.craigshaw.com](https://ps2stk.craigshaw.com). This supersedes the pending deployment status in the original record below. Detailed hosted and destination checks remain open; see [deployment notes](./deployment.md).
+
 ## Delivered behaviour
 
 - Import save detects binary contents, including renamed packages. The review

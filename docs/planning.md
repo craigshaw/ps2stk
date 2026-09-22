@@ -1,6 +1,6 @@
 # PS2 Memory Card Application Planning
 
-Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. Milestones 3A and 3B are implemented. Milestone 3C signed PSV export is implemented with PS3 validation pending. Milestone 4 release validation includes the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
+Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted save-format expansion and requested a delivery plan. Milestones 3A and 3B are implemented. Milestone 3C signed PSV export is implemented with PS3 validation pending. Cloudflare Pages hosting is live, confirmed by the user on 2026-09-22. Milestone 4 release validation includes the deferred destination game-load tests. See [the implementation plan](./implementation-plan.md) and [the save-format plan](./save-format-plan.md). Explicit proposals and unresolved details below are not accepted product decisions.
 
 ## Confirmed requirements
 
@@ -252,13 +252,15 @@ The user approved this stack on 2026-09-19:
 
 Checked official guidance on 2026-09-19: [React documents building with Vite](https://react.dev/learn/build-a-react-app-from-scratch), [Vite offers a React and TypeScript template](https://vite.dev/guide/), and [Cloudflare documents deployment of Vite builds to Pages](https://developers.cloudflare.com/pages/framework-guides/deploy-a-vite3-project/). The historical title of Cloudflare's Vite guide does not set the project's Vite version; verify and pin supported dependency versions when scaffolding.
 
-## Hosting setup timing
+## Hosting status
 
-The stack is agreed, and the user has created [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk). No Cloudflare project, domain, or deployment has been created during planning. A custom domain is not needed to start development. Cloudflare Pages supplies a pages.dev address, and a custom domain or subdomain can be attached later through the project's domain settings.
+On 2026-09-22, the user requested and completed Cloudflare Pages setup at [ps2stk.craigshaw.com](https://ps2stk.craigshaw.com). The user selected the Cloudflare account that already manages `craigshaw.com`, completed the Pages Git setup, and confirmed that the site is working.
 
-The user confirmed Git integration on 2026-09-19. Create a Pages project linked to the GitHub repository so builds and preview deployments follow the Git workflow. Choose the Cloudflare account and project name and confirm the production branch at that point. Decide the public domain before launch. The choice between Git integration and Direct Upload is now resolved; Cloudflare does not support freely switching between the project types afterward.
+Git integration with [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk) remains the agreed deployment method. The setup instructions used project name `ps2stk`, production branch `main`, Node.js 24, build command `npm ci && npm run check`, and output directory `dist`. These values have not been independently compared with the final dashboard configuration. See [deployment notes](./deployment.md) for the setup record and remaining hosted checks.
 
-References checked on 2026-09-19: [custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/), [Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/), and [Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/).
+Hosting is complete on the user's confirmation. Milestone 4 remains open for detailed hosted-browser validation and the deferred destination tests. The report that the site works does not establish that individual card operations, native folder permissions, or game loads passed.
+
+References checked during setup: [custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/), [Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/), and [build configuration](https://developers.cloudflare.com/pages/configuration/build-image/).
 
 ## Remaining details
 

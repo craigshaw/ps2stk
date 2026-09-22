@@ -1,6 +1,6 @@
 # PS2STK Implementation Plan
 
-Status: milestones 1 through 3 are implemented and tested. Milestones 3A and 3B package import/export are implemented; signed PSV export is implemented in 3C, with PS3 destination validation pending. Milestone 4 covers release validation and deployment. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records. The [save-format plan](./save-format-plan.md) records the scope expansion accepted on 2026-09-20.
+Status: milestones 1 through 3 are implemented and tested. Milestones 3A and 3B package import/export are implemented; signed PSV export is implemented in 3C, with PS3 destination validation pending. Milestone 4 hosting is complete on the user's confirmation of 2026-09-22; release validation remains open. The user deferred PCSX2 and PS2/MemCard PRO2 game-load tests to milestone 4. See the [milestone 1](./milestone-1-validation.md), [milestone 2](./milestone-2-validation.md), and [milestone 3](./milestone-3-validation.md) validation records. The [save-format plan](./save-format-plan.md) records the scope expansion accepted on 2026-09-20.
 
 Product decisions: [planning.md](./planning.md). Domain terms: [CONTEXT.md](../CONTEXT.md).
 
@@ -116,13 +116,16 @@ Milestone 3A is implemented. See [its validation record](./milestone-3a-validati
 
 ## Milestone 4: validate and release
 
+Hosting is complete: the user confirmed the Pages site working at [ps2stk.craigshaw.com](https://ps2stk.craigshaw.com) on 2026-09-22. See [deployment evidence and remaining hosted checks](./deployment.md). Release validation remains open.
+
 - Run the complete workflow on the supported desktop browser families. Set and document minimum versions based on tested dependencies and required features.
 - Complete the deferred game-load tests on PCSX2 and a PS2 through MemCard PRO2, including images with and without spare bytes as appropriate to each destination. Check copied progress, unrelated saves, and saving new progress back to the edited card.
 - Extend the destination matrix to saves imported from the supported packages, and verify exported packages through independent tools. Include package downloads in installed-browser checks and carry forward the separate PS3 validation result from 3C.
 - Check responsiveness with full cards and representative icon complexity. Measure before adding background-thread or caching complexity.
-- Connect the user-created [craigshaw/ps2stk repository](https://github.com/craigshaw/ps2stk) to a Cloudflare Pages project when ready for hosting. Confirm the Cloudflare account, production branch, and project name at setup time.
-- Use the agreed Pages Git integration. Ensure required checks pass before changes reach the production branch. Configure the static build and verify the deployed download and folder-permission flows over HTTPS.
-- Choose a custom domain before public launch if desired; the default pages.dev address is sufficient for initial hosted testing.
+- [x] Complete Cloudflare Pages Git setup and the first deployment for [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk). Completed by the user on 2026-09-22.
+- [x] Configure `ps2stk.craigshaw.com`. The user reported the site working on 2026-09-22.
+- [ ] Record the deployed commit, assigned Pages hostname, and final dashboard settings. Verify required GitHub checks and preview configuration.
+- [ ] Verify deployed downloads, package workers, folder permissions, and local-only card processing over HTTPS. Follow [the hosted checklist](./deployment.md).
 
 Release requires evidence for the agreed compatibility targets, no known data-loss defects in supported operations, and clear statements of the format and browser limits.
 
