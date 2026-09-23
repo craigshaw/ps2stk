@@ -53,6 +53,8 @@ results, and leave. It is not a persistent workspace.
 - Support up to two standard 8 MiB PS2 card images, with or without ECC spare
   bytes. Preserve the input layout and filename extension by default. Save as
   supports explicit layout selection and `.ps2`, `.mc2`, or `.bin` output.
+- Create a formatted empty card in an available slot for save imports or copying.
+  New cards start without ECC and need a download even before their first edit.
 - Treat each save directory and its contents as one save, including when several
   saves belong to the same game. Keep save files distinct from complete saves.
 - Support complete-save copy and deletion, individual file replacement, exact

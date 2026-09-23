@@ -77,6 +77,9 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
   padding: 18px 32px; border-bottom: 1px solid #202e47;
 }
 .brand { display: flex; align-items: center; gap: 14px; margin-right: auto; }
+.header-actions, .welcome-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.header-actions { flex-shrink: 0; }
+.welcome-actions { margin: 30px 0 16px; }
 .brand-mark { display: block; width: 45px; height: 45px; color: var(--accent); }
 .brand-mark svg { width: 100%; height: 100%; }
 .brand-type { display: flex; flex-direction: column; gap: 6px; }
@@ -224,8 +227,7 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .welcome { display: grid; grid-template-columns: 1.1fr 1fr; column-gap: 70px; align-content: center; align-items: center; max-width: 1160px; margin: 0 auto; min-height: calc(100dvh - 212px); padding: 38px 32px 42px; outline: 0; }
 .welcome-copy h2 { font-family: Sora, sans-serif; font-size: 42px; font-weight: 400; line-height: 1.2; letter-spacing: -.035em; margin: 0 0 24px; }
 .welcome-copy > p { color: #b2c1db; font-size: 14px; line-height: 1.85; max-width: 48ch; }
-.welcome-copy > .primary { margin: 30px 0 15px; }
-.welcome-copy > .primary svg:last-child { margin-left: 20px; }
+.welcome-actions > .primary svg:last-child { margin-left: 20px; }
 .welcome-formats { display: block; font-size: 11px; color: var(--muted); }
 .welcome-formats > span { margin: 0 6px; }
 .card-bays { position: relative; display: grid; gap: 16px; padding: 55px 14px; }
@@ -346,6 +348,8 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .card-bay { padding: 18px; gap: 12px; }
 }
 @media (max-width: 760px) {
+  .app-header { flex-wrap: wrap; }
+  .header-actions { margin-left: auto; }
   .workspace { grid-template-columns: 1fr; }
   .inspector { border-left: 0; border-top: 1px solid var(--border); }
   .large-preview { max-width: 320px; }
@@ -368,6 +372,8 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .statusbar { padding: 12px 16px; }
 }
 @media (max-width: 520px) {
+  .header-actions { width: 100%; }
+  .header-actions button { flex: 1; font-size: 11px; }
   .card-panes { grid-template-columns: 1fr; }
   .workspace-tools > button span { display: none; }
   .save-items.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

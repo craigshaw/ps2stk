@@ -17,6 +17,60 @@ async function downloaded(download: Download) {
   return new Uint8Array(await readFile((await download.path())!));
 }
 
+test('create an empty card, import a package, undo and download both layouts', async ({ page }) => {
+  const { gunzipSync } = await import('node:zlib');
+  const { decodePsu } = await import('../../src/formats/psu');
+  const bytes = gunzipSync(await readFile('tests/fixtures/flat.psu.gz'));
+  await page.goto('/');
+  await page.getByRole('main').getByRole('button', { name: 'New memory card', exact: true }).click();
+  const a = page.getByRole('region', { name: 'Card A', exact: true });
+  await expect(a.getByRole('heading', { name: 'new-card-a.ps2' })).toBeVisible();
+  await expect(a.getByText('No saves on this card.', { exact: true })).toBeVisible();
+  await expect(a.getByText('● Download needed', { exact: true })).toBeVisible();
+  await expect(a.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+  await a.getByRole('button', { name: 'Close card A' }).click();
+  await expect(page.getByRole('button', { name: 'Discard and close' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await a.getByRole('button', { name: 'Import save', exact: true }).click();
+  await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'save.psu', mimeType: 'application/octet-stream', buffer: bytes });
+  await page.getByRole('dialog').getByRole('button', { name: 'Import save', exact: true }).click();
+  await expect(a.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toBeVisible();
+  await a.getByRole('button', { name: 'Undo card A' }).click();
+  await expect(a.getByText('No saves on this card.', { exact: true })).toBeVisible();
+  await expect(a.getByText('● Download needed', { exact: true })).toBeVisible();
+  const emptyDownload = page.waitForEvent('download');
+  await a.getByRole('button', { name: 'Save card', exact: true }).click();
+  const empty = await emptyDownload;
+  expect(empty.suggestedFilename()).toBe('new-card-a.ps2');
+  expect(new MemoryCard(await downloaded(empty)).entries).toHaveLength(0);
+  await expect(a.getByText('Download offered', { exact: true })).toBeVisible();
+  await a.getByRole('button', { name: 'Redo card A' }).click();
+  await a.getByRole('button', { name: 'Save as', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Binary layout', exact: true }).selectOption('ecc');
+  const editedDownload = page.waitForEvent('download');
+  await page.getByRole('dialog').getByRole('button', { name: 'Download card', exact: true }).click();
+  const edited = new MemoryCard(await downloaded(await editedDownload));
+  expect(edited.layout).toBe('ecc');
+  expect(edited.readFile('/PSU-FLAT/bytes-513')).toEqual(decodePsu(bytes).readFile('/PSU-FLAT/bytes-513'));
+});
+
+test('new cards use only empty slots and remain keyboard accessible at narrow widths', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await open(page, fixture(), 'existing.ps2');
+  const create = page.getByRole('banner').getByRole('button', { name: 'New memory card', exact: true });
+  await create.focus();
+  await page.keyboard.press('Enter');
+  const b = page.getByRole('region', { name: 'Card B', exact: true });
+  await expect(b.getByRole('heading', { name: 'new-card-b.ps2' })).toBeVisible();
+  await expect(create).toBeDisabled();
+  await expect(page.getByRole('heading', { name: 'existing.ps2' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await b.getByRole('button', { name: 'Close card B' }).click();
+  await page.getByRole('button', { name: 'Discard and close', exact: true }).click();
+  await expect(create).toBeEnabled();
+});
+
 test("two-card copy, replace, raw dump, Undo/Redo and converted download preserve bytes", async ({
   page,
 }) => {

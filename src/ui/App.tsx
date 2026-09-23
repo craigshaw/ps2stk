@@ -6,12 +6,14 @@ import { ImportReview } from "./ImportReview";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronRight,
   Copy,
   Download,
   File,
+  FilePlus2,
   FolderOpen,
   HardDrive,
   Info,
@@ -224,6 +226,16 @@ export function App() {
       },
       `Card ${letter(slot)} download started. Keep the downloaded image to retain your edits.`,
     );
+  }
+  function createCard() {
+    const slot = slots.find((s) => !cards[s]);
+    if (slot === undefined) return;
+    act(() => {
+      session.create(slot, `new-card-${letter(slot).toLowerCase()}.ps2`);
+      setActive(slot);
+      setSearch("");
+      setFilePath(null);
+    }, `Created an empty 8 MiB card in slot ${letter(slot)}. Import saves or copy from the other card, then download your card to keep it.`);
   }
   function exportSave(slot: CardSlot, name: string) {
     act(() => setModal({ type: "export", save: session.state(slot).card.extractSave(name) }), "Choose an export output type.");
@@ -445,6 +457,11 @@ export function App() {
           <span className="local-label">
             <LockKeyhole /> Local to your browser
           </span>
+          <div className="header-actions">
+          <button onClick={createCard} disabled={openCount === 2}
+            title={openCount === 2 ? "Close a card to create a new one" : "Create an empty 8 MiB memory card"}>
+            <FilePlus2 /> New memory card
+          </button>
           <button
             className="primary"
             id="open-card"
@@ -452,6 +469,7 @@ export function App() {
           >
               <Plus /> Open memory card
           </button>
+          </div>
         </header>
         <div className={`workspace-toolbar ${!openCount ? "empty-toolbar" : ""}`}>
           <div>
@@ -505,13 +523,16 @@ export function App() {
             <div className="welcome-copy">
             <h2>Pick up where<br />you left off.</h2>
             <p>
-              Open a PS2 memory card to explore its saves.
+              Open a PS2 memory card or create an empty one.
               <br />
               Bring a second card to copy between them.
             </p>
+            <div className="welcome-actions">
             <button className="primary large" onClick={() => requestOpen()}>
               <FolderOpen /> Open memory card <ArrowRight />
             </button>
+            <button className="large" onClick={createCard}><FilePlus2 /> New memory card</button>
+            </div>
             <span className="welcome-formats">PS2 / MC2 / BIN <span>·</span> Standard 8 MiB images</span>
             </div>
             <div className="card-bays" aria-label="Available card slots">
@@ -715,7 +736,7 @@ export function App() {
                             <small>
                               {search
                                 ? "Try a different title or directory name."
-                                : "Import a PSU save or copy one from the other card."}
+                                : "Use Import save above or copy saves from the other card."}
                             </small>
                           </div>
                         )}
@@ -744,8 +765,9 @@ export function App() {
                           disabled={!count || !cards[other(slot)]}
                           onClick={() => copySelection(slot)}
                         >
-                          <Copy /> Copy to {letter(other(slot))}
-                          <ArrowRight />
+                          {slot === 1 && <ArrowLeft aria-hidden="true" />}
+                          Copy to {letter(other(slot))}
+                          {slot === 0 && <ArrowRight aria-hidden="true" />}
                         </button>
                         <button
                           disabled={!count}
@@ -1002,11 +1024,10 @@ export function App() {
           {(modal.type === "close" || modal.type === "open") && (
             <>
               <p>
-                Card {letter(modal.slot)} has edits that have not been
-                downloaded.{" "}
+                Card {letter(modal.slot)} has not been downloaded in its current state.{" "}
                 {modal.type === "open"
-                  ? "They will be discarded after a valid replacement card is opened."
-                  : "Closing it discards those edits and its Undo history."}
+                  ? "It will be discarded after a valid replacement card is opened."
+                  : "Closing it discards this card and its Undo history."}
               </p>
               <p className="directory-name">{cards[modal.slot]!.filename}</p>
               <div className="dialog-actions">

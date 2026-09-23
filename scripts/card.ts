@@ -12,7 +12,11 @@ async function open(path: string): Promise<MemoryCard> {
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
-  if (command === 'inspect' && args.length === 1) {
+  if (command === 'create' && (args.length === 1 || args.length === 2)) {
+    const card = MemoryCard.create((args[1] ?? 'data') as CardLayout);
+    await writeFile(args[0]!, card.export(), { flag: 'wx' });
+    console.log(`Created an empty 8 MiB card at ${args[0]} (${card.layout} layout).`);
+  } else if (command === 'inspect' && args.length === 1) {
     const card = await open(args[0]!);
     console.log(JSON.stringify({ layout: card.layout, freeBytes: card.freeBytes, entries: card.entries }, null, 2));
   } else if (command === 'extract' && args.length === 3) {
@@ -72,7 +76,8 @@ async function main(): Promise<void> {
     await writeFile(args[2]!, result.export(), { flag: 'wx' });
     console.log(`Wrote ${result.layout} card to ${args[2]}. Input card is unchanged.`);
   } else {
-    throw new Error('Usage: npm run card -- inspect CARD\n' +
+    throw new Error('Usage: npm run card -- create NEW_CARD [data|ecc]\n' +
+      '       npm run card -- inspect CARD\n' +
       '       npm run card -- import-save CARD PACKAGE NEW_CARD [skip|replace|error]\n' +
       '       npm run card -- export-save CARD SAVE_NAME NEW_PACKAGE [psu|max|psv] [--allow-metadata-loss]\n' +
       '       npm run card -- extract CARD /SAVE/FILE NEW_OUTPUT\n' +

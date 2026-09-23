@@ -45,7 +45,7 @@ npm run dev
 ## Use the explorer
 
 1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
-2. Choose **Open memory card** and select a complete 8 MiB image, with or without ECC. Open a second image to copy between cards.
+2. Choose **Open memory card** and select a complete 8 MiB image, with or without ECC, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
 3. Select a save to inspect its icon and files. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
 4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
 5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export save → Raw files to folder**.
@@ -54,6 +54,8 @@ npm run dev
 **Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export save** offers PSU (default), MAX, signed PS2 PSV, and **Raw files to folder** for one selected save. PSU/MAX/PSV downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV export requires acknowledgement because it omits extended attributes, opaque card metadata, and dot entries. It preserves file bytes, names, timestamps, and mode flags. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
 
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
+
+New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`, without ECC spare bytes. Save as can change the output layout and extension. A new card shows Download needed until a whole-card download is offered, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
 
 Firefox and Safari retain editing and individual file/card downloads. The interface explains when folder dumping is unavailable. Nothing is restored after a refresh. A browser leave-page warning is requested for undownloaded edits, but it is not recovery.
 
@@ -69,6 +71,8 @@ The suite uses synthetic card data and isolated browser profiles. Folder writes 
 ## Card harness
 
 ```sh
+npm run card -- create new-card.ps2
+npm run card -- create new-card-ecc.ps2 ecc
 npm run card -- import-save destination.ps2 save.psu edited.ps2
 npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.psu
 npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.max max --allow-metadata-loss
@@ -99,7 +103,7 @@ The whole batch succeeds or fails. Replace uses the entire source save, with no 
 
 ## Session API
 
-`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
+`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, or use `create(slot, filename)` for an empty card, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
 
 `prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared revision after initiating its download.
 

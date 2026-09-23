@@ -7,6 +7,7 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Build a single page web application for opening, viewing, managing, and editing PS2 memory card image contents.
 - Support two memory card images concurrently in the first release, including copying content between them. Two is the initial maximum.
 - Open complete binary PS2 memory card images as the primary input.
+- Create a formatted empty standard 8 MiB card as a starting point for save imports or copying, added by user request on 2026-09-23.
 - Dump selected files as raw binary data. Dumping a complete save extracts its contained files separately, preserving their names, directory structure, and exact bytes.
 - Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
 - Save complete edited memory cards as binary PS2 memory card images, with or without ECC spare bytes, using a selected filename extension such as .ps2, .mc2, or .bin.
@@ -52,6 +53,19 @@ The user confirmed on 2026-09-19 that all memory card processing happens locally
 - Apply edits to a working copy in the browser.
 - Download modified memory card images through an explicit user action.
 - Leave original input files unchanged.
+
+## Agreed empty card creation
+
+On 2026-09-23, the user requested creation of empty cards for importing saves.
+New memory card fills the first available slot without replacing an open card.
+It creates a formatted 8 MiB data-only image, named `new-card-a.ps2` or
+`new-card-b.ps2` for its slot. Save as can select ECC output and another supported
+extension. Creation needs no source file and does not add an Undo step.
+Imports and copies use the existing history rules. A new card needs a download
+even before its first edit, or after Undo returns it to empty, until a whole-card
+download is offered. Existing close and leave-page protection applies.
+Both occupied slots disable creation; close a card to make space.
+See [validation](empty-card-validation.md) for independent format checks and limits.
 
 ## Agreed session lifetime
 

@@ -133,7 +133,9 @@ Release requires evidence for the agreed compatibility targets, no known data-lo
 
 Do not add persistent workspaces, accounts, a backend, ZIP save packages, damaged-card recovery, game-specific editors, a hex editor, dedicated phone workflows, more than two open cards, or larger card capacities to version 1.
 
-Blank-card creation, arbitrary file/folder import, save renaming, direct device synchronisation, and advanced icon-editing tools were not requested or agreed. They are not prerequisites for the first milestone.
+Empty-card creation was added by user request on 2026-09-23. It creates a formatted standard 8 MiB image in an available slot, ready for import or copying. Acceptance covers independent format bytes and ECC, empty root and capacity, import/copy, exact Undo restoration, download status, occupied-slot protection, and keyboard/narrow layouts. See [validation](empty-card-validation.md). Destination game-load tests remain in milestone 4.
+
+Arbitrary file/folder import, save renaming, direct device synchronisation, and advanced icon-editing tools remain outside the agreed scope.
 
 Established save-package import/export is now in scope as specified in the save-format plan. This does not authorise arbitrary folder import, ZIP support, PS1/native PS3 saves, or encrypted PS2 Classics whole-card support.
 
