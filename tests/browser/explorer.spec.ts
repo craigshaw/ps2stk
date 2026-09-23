@@ -87,6 +87,8 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
     .getByRole("button", { name: "Select SAVE-A (SAVE-A)", exact: true })
     .click();
   await a.getByRole("button", { name: "Copy to B", exact: true }).click();
+  await expect(page.getByRole('dialog')).not.toContainText('Replace removes');
+  await expect(page.getByRole('dialog')).toContainText('Insufficient space leaves both cards unchanged.');
   await page.getByRole("button", { name: "Apply copy choices" }).click();
   await expect(
     b.getByRole("button", { name: "Select SAVE-A (SAVE-A)", exact: true }),
@@ -167,6 +169,25 @@ test("conflicts default to Skip and explicit Replace can be undone; close protec
     .click();
   await a.getByRole("button", { name: "Copy to B" }).click();
   await expect(page.getByLabel("Conflict for SAVE-A")).toHaveValue("skip");
+  await expect(page.getByRole('dialog')).toContainText('Replace removes the entire destination save.');
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const conflict = page.getByLabel('Conflict for SAVE-A');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).focus();
+    await page.keyboard.press('Shift+Tab');
+    await expect(conflict).toBeFocused();
+    // The complete keyboard focus ring must fit within the scroll container.
+    expect(await conflict.evaluate((element) => {
+      const plan = element.closest('.copy-plan')!;
+      const bounds = plan.getBoundingClientRect();
+      const control = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const ring = parseFloat(style.outlineWidth) + Math.max(0, parseFloat(style.outlineOffset));
+      return style.outlineStyle !== 'none' && control.left - ring >= bounds.left &&
+        control.right + ring <= bounds.left + plan.clientWidth;
+    })).toBe(true);
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Apply copy choices" }).click();
   await expect(b.getByRole("button", { name: "Undo card B" })).toBeDisabled();
   await b

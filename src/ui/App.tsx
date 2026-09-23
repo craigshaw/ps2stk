@@ -1161,8 +1161,10 @@ export function App() {
                 })}
               </div>
               <p className="small muted">
-                Replace removes the entire destination save. Files are not
-                merged. Insufficient space leaves both cards unchanged.
+                {modal.names.some((name) => cards[other(modal.slot)]!.card.entries.some((entry) => entry.name === name)) && (
+                  <>Replace removes the entire destination save. Files are not merged. </>
+                )}
+                Insufficient space leaves both cards unchanged.
               </p>
               <div className="dialog-actions">
                 <button onClick={() => setModal(null)}>Cancel</button>
