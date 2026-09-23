@@ -96,8 +96,9 @@ later milestones.
   Explain actions and limits with direct, familiar language.
 - On 2026-09-23, the user selected a new Orbital browser identity inspired by
   the PS2 system browser: deep space, luminous blue selection, calm motion,
-  and original save icons. Keep PS2STK with its original paired-orbit symbol
-  and geometric wordmark. This replaces the earlier generic dark explorer
+  and original save icons. Keep PS2STK with its geometric wordmark. The user
+  then selected the Relay symbol, two memory cards linked by a transfer path,
+  for the header and favicon. This replaces the earlier generic dark explorer
   treatment. The built design system is recorded in [DESIGN.md](DESIGN.md).
 - Preserve the approved one- or two-card explorer, comfortable icon grid with a
   list alternative, and shared collapsible inspector on the right.

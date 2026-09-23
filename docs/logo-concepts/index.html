@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS2STK icon concepts</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #060914; color: #e9efff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 48px clamp(20px, 5vw, 80px) 64px; background: radial-gradient(ellipse at 50% 0%, #142d5a77, transparent 62%); }
+  main { max-width: 1260px; margin: auto; }
+  h1 { margin: 0; font-size: clamp(28px, 3.3vw, 42px); font-weight: 500; letter-spacing: -.035em; }
+  .intro { max-width: 65ch; color: #b7c6e2; line-height: 1.6; margin: 14px 0 42px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; }
+  article { min-width: 0; border: 1px solid #273550; background: #0d1425; border-radius: 12px; padding: 26px; }
+  .preview { height: 178px; display: grid; place-items: center; border-radius: 7px; background: radial-gradient(ellipse at 50% 70%, #17325f 0%, #090f1c 60%); }
+  .preview img { width: 116px; height: 116px; }
+  h2 { font-size: 21px; font-weight: 550; margin: 24px 0 6px; }
+  p { color: #b7c6e2; line-height: 1.5; margin: 0; }
+  .header-label { margin: 27px 0 9px; font-size: 11px; color: #9daecb; letter-spacing: .12em; text-transform: uppercase; }
+  .header { display: flex; align-items: center; gap: 12px; min-height: 76px; padding: 11px 18px; border: 1px solid #273550; border-radius: 6px; background: #101722; }
+  .header img { width: 42px; height: 42px; }
+  .type { display: flex; flex-direction: column; gap: 3px; }
+  .type svg { width: 142px; height: 23px; color: #e9efff; }
+  .caption { color: #9daecb; font-size: 11px; letter-spacing: .08em; }
+  .small { display: flex; align-items: center; gap: 16px; margin-top: 14px; color: #9daecb; font-size: 12px; }
+  .small img { width: 29px; height: 29px; }
+  @media (max-width: 760px) { body { padding-top: 30px; } .grid { grid-template-columns: 1fr; } article { padding: 20px; } }
+</style>
+<main>
+  <h1>Four directions for the PS2STK icon</h1>
+  <p class="intro">Original vector concepts for the top-left brand mark. Each is shown large, at the desktop header size, and at the narrow header size. The existing PS2STK wordmark and full-name caption provide the same context for every option.</p>
+  <div class="grid">
+    <article>
+      <div class="preview"><img src="01-relay.svg" alt="Relay icon enlarged"></div>
+      <h2>Relay</h2><p>Two card forms and one decisive transfer line. The clearest link to the app's two-card workflow.</p>
+      <div class="header-label">In the header</div><div class="header"><img src="01-relay.svg" alt=""><div class="type"></div></div>
+      <div class="small"><img src="01-relay.svg" alt="">29 px mark</div>
+    </article>
+    <article>
+      <div class="preview"><img src="02-prism.svg" alt="Prism icon enlarged"></div>
+      <h2>Prism</h2><p>A solid memory block, drawn with the clean perspective and cool light of the PS2 era.</p>
+      <div class="header-label">In the header</div><div class="header"><img src="02-prism.svg" alt=""><div class="type"></div></div>
+      <div class="small"><img src="02-prism.svg" alt="">29 px mark</div>
+    </article>
+    <article>
+      <div class="preview"><img src="03-orbit-key.svg" alt="Orbit Key icon enlarged"></div>
+      <h2>Orbit Key</h2><p>An orbital nod to the existing visual system, anchored by a small save key at the centre.</p>
+      <div class="header-label">In the header</div><div class="header"><img src="03-orbit-key.svg" alt=""><div class="type"></div></div>
+      <div class="small"><img src="03-orbit-key.svg" alt="">29 px mark</div>
+    </article>
+    <article>
+      <div class="preview"><img src="04-data-glyph.svg" alt="Data Glyph icon enlarged"></div>
+      <h2>Data Glyph</h2><p>A custom, stepped S made from data lanes. The most typographic and compact option.</p>
+      <div class="header-label">In the header</div><div class="header"><img src="04-data-glyph.svg" alt=""><div class="type"></div></div>
+      <div class="small"><img src="04-data-glyph.svg" alt="">29 px mark</div>
+    </article>
+  </div>
+</main>
+<template id="brand-type">
+  <svg viewBox="0 0 187 30" fill="none" aria-label="PS2STK"><g stroke="currentColor" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="round"><path d="M3 27V3h16l4 4v7l-4 4H3M53 3H36l-4 4v5l4 3h13l4 3v5l-4 4H32M63 3h15l5 5v4L63 27h20"/><path d="M116 3H99l-4 4v5l4 3h13l4 3v5l-4 4H95M126 3h23m-11.5 0v24M160 3v24m23-24-16 12 16 12m-23-12h7"/></g></svg>
+  <span class="caption">PS2 Save Toolkit</span>
+</template>
+<script>document.querySelectorAll('.type').forEach(el => el.append(document.getElementById('brand-type').content.cloneNode(true)))</script>
+</html>

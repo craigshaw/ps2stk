@@ -1,11 +1,11 @@
-/** Original PS2STK identity: two open orbits sharing a transfer path. */
+/** Relay identity: two memory cards linked by a transfer path. */
 export function BrandSymbol() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M34 9H23A15 15 0 0 0 8 24v1M14 39h11a15 15 0 0 0 15-15v-1" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      <path d="m13 30 9-12h13M35 18l-9 12H13" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
-      <circle cx="8" cy="31" r="2" fill="currentColor" />
-      <circle cx="40" cy="17" r="2" fill="currentColor" />
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <path d="M10 12h17v40H10zM37 12h17v40H37z" stroke="#8EAFFF" strokeWidth="3.5" strokeLinejoin="round" />
+      <path d="M16 45h5M43 19h5" stroke="#8EAFFF" strokeWidth="3.5" strokeLinecap="square" />
+      <path d="m21 39 22-17" stroke="#E9EFFF" strokeWidth="5" strokeLinecap="square" />
+      <path d="m36 20 9 1-2 9" stroke="#E9EFFF" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter" />
     </svg>
   );
 }

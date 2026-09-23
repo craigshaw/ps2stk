@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Orbit Key</title>
+  <desc>One tilted orbit encloses a square save key and a paired satellite.</desc>
+  <ellipse cx="32" cy="32" rx="27" ry="17" transform="rotate(-26 32 32)" stroke="#8EAFFF" stroke-width="3.5"/>
+  <path d="m24 24 16 0v16H24z" fill="#08152F" stroke="#E9EFFF" stroke-width="3.5"/>
+  <path d="M29 31h6M32 28v9" stroke="#8EAFFF" stroke-width="3" stroke-linecap="square"/>
+  <circle cx="54" cy="19" r="4" fill="#C4D6FF"/>
+</svg>

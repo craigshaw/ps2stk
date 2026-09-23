@@ -63,3 +63,22 @@ has not been deployed as part of this task.
 
 The current visual system is recorded in [DESIGN.md](../DESIGN.md). Formal
 accessibility conformance and console-exact icon rendering are not claimed.
+
+## Relay brand follow-up, 2026-09-23
+
+The user selected Relay from four original vector concepts. The header symbol
+and favicon now use its two-card geometry and diagonal transfer path. The
+geometric PS2STK wordmark and visible PS2 Save Toolkit caption remain.
+
+| Check | Result |
+| --- | --- |
+| Node.js and dependencies | Node 24.21.0; `npm ci` passed on the feature branch. |
+| `npm run check` | TypeScript checks, 135 unit/CLI tests, and production build passed. The test count includes the separately committed empty-card work. |
+| Header render | Chromium captures at 1440 × 900 and 390 × 844 were inspected. Relay renders at the existing 45 px desktop and 29 px narrow mark widths. The caption remains visible, and neither viewport has horizontal overflow. |
+| Favicon | The local server returned the new SVG with status 200; its Relay paths and colours match the selected vector. A 16 px browser-tab rendering was not captured. |
+| Independent visual review | A fresh Impeccable finish review of the two captures and source files returned `ship`, with no material fixes for this logo change. |
+| Diff hygiene | `git diff --check` passed. |
+
+This follow-up validates the logo integration on the feature branch. It does
+not repeat the full browser regression suite or change the remaining release
+and destination tests above.

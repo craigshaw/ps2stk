@@ -107,7 +107,7 @@ components:
 
 **Creative North Star: "Orbital browser"**
 
-Orbital browser draws on the PS2 system browser: deep space, luminous blue selection, calm motion, and original save icons. The original paired-orbit symbol and geometric PS2STK wordmark identify the tool. PS2 Save Toolkit remains visible beneath the wordmark at narrow widths.
+Orbital browser draws on the PS2 system browser: deep space, luminous blue selection, calm motion, and original save icons. The Relay symbol links two memory card forms with a transfer path beside the geometric PS2STK wordmark. PS2 Save Toolkit remains visible beneath the wordmark at narrow widths.
 
 Open galleries give save icons room. Thin lines, pale controls, and a darker inspector organise the working surface. Shape and colour clarify selection without competing with the original save artwork.
 
@@ -198,7 +198,7 @@ save animation retains its own pause and reduced-motion controls.
 
 Controls have small rounded corners. Save tiles, large previews, card bays,
 and dialogs use the larger surface radius. Ellipses belong to icon floors and
-bay decoration; the brand uses two open orbits with a shared transfer path.
+bay decoration; the brand uses two upright card outlines and a diagonal transfer path.
 Card panes remain open, with a top edge and tonal fill rather than a repeated
 rounded outer shell. Most boundaries use a single thin line.
 
@@ -250,7 +250,7 @@ close action; status and session information sit in the footer.
 
 - Do use original save assets with a clear fallback when an icon cannot render.
 - Do retain visible keyboard focus, pause controls, and reduced-motion behaviour.
-- Do use Lucide SVG icons for interface actions and the original paired-orbit identity for the brand.
+- Do use Lucide SVG icons for interface actions and Relay for the brand.
 - Do use the blue scrollbar theme for page, gallery, inspector, file, and dialog overflow.
 
 ### Don't:
