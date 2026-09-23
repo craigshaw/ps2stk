@@ -10,7 +10,7 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Create a formatted empty standard 8 MiB card as a starting point for save imports or copying, added by user request on 2026-09-23.
 - Dump selected files as raw binary data. Dumping a complete save extracts its contained files separately, preserving their names, directory structure, and exact bytes.
 - Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
-- Save complete edited memory cards as binary PS2 memory card images, with or without ECC spare bytes, using a selected filename extension such as .ps2, .mc2, or .bin.
+- Save complete edited memory cards as binary PS2 memory card images. `.ps2` output includes calculated ECC spare bytes; `.mc2` and `.bin` output omit them.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
 - Use the modern Orbital browser identity agreed on 2026-09-23: deep space, luminous blue selection, calm motion, and original save icons. This supersedes the earlier charcoal, translucent, blue-and-purple treatment.
 - Host on Cloudflare Pages.
@@ -58,9 +58,9 @@ The user confirmed on 2026-09-19 that all memory card processing happens locally
 
 On 2026-09-23, the user requested creation of empty cards for importing saves.
 New memory card fills the first available slot without replacing an open card.
-It creates a formatted 8 MiB data-only image, named `new-card-a.ps2` or
-`new-card-b.ps2` for its slot. Save as can select ECC output and another supported
-extension. Creation needs no source file and does not add an Undo step.
+It creates a formatted 8 MiB working image, named `new-card-a.ps2` or
+`new-card-b.ps2` for its slot. Save as can select another supported extension.
+Creation needs no source file and does not add an Undo step.
 Imports and copies use the existing history rules. A new card needs a download
 even before its first edit, or after Undo returns it to empty, until a whole-card
 download is offered. Existing close and leave-page protection applies.
@@ -145,8 +145,8 @@ The user clarified on 2026-09-19 that opening complete binary card images and sa
 - "Open memory card" accepts a supported complete binary PS2 memory card image. It is not restricted to images produced by this application.
 - Dumping an individual save file exports its exact bytes without an added header, metadata file, or archive wrapper.
 - "Save memory card" produces a complete edited binary card image, including its file system.
-- Whole-card output supports layouts with and without ECC spare bytes and filename extensions .ps2, .mc2, and .bin. Verify destination compatibility and select suitable defaults during implementation planning.
-- The filename extension and the binary layout are separate properties. Renaming a file does not add or remove ECC spare bytes.
+- Whole-card output supports layouts with and without ECC spare bytes. `.ps2` output includes ECC; `.mc2` and `.bin` output omit it. Verify destination compatibility during release validation.
+- Input layout is detected from bytes, not the filename. Output converts to the selected extension's layout.
 - No custom save-package format is planned. The 2026-09-20 expansion below adds established transfer formats to the original card and raw-dump workflows.
 
 The user confirmed on 2026-09-19 that dumping a complete save extracts all its files separately with their original names and exact bytes, as ps2mcd does. Preserve its directory structure. Do not concatenate files into an undefined binary format or add package metadata. Folder dumping uses a selected destination directory in supported browsers. It creates a fresh save folder, rejects existing destinations and unsafe or colliding names, and reports completed file counts if writes fail. Individual file downloads remain available independently.
@@ -168,15 +168,20 @@ The detailed dependencies, engineering policies, reference sources, and acceptan
 
 ## Agreed whole-card save defaults
 
-The user confirmed on 2026-09-19 that saving an edited card preserves its input binary layout and filename extension by default.
+On 2026-09-23, the user revised the 2026-09-19 layout default. Save card keeps the
+opened filename. Its extension determines the downloaded layout for supported
+types, even when the opened image uses a different layout.
 
-- Images opened with ECC spare bytes save with ECC spare bytes by default.
-- Images opened without ECC spare bytes save without them by default.
-- Preserve the input extension by default.
-- Provide "Save as" for explicit ECC layout conversion and extension selection among .ps2, .mc2, and .bin.
+- `.ps2` downloads include ECC spare bytes, calculated for converted or changed pages.
+- `.mc2` and `.bin` downloads omit ECC spare bytes.
+- Save as selects only the extension. The UI does not show an ECC control or layout label.
+- An unknown opened extension keeps its filename and current binary layout on Save card. Save as can select a supported extension.
 - Saving still produces a download and leaves the original input file unchanged.
 
-Preserving an ECC layout requires generating valid ECC values for changed data. It does not mean retaining stale ECC values from the input.
+Input layout remains a property of the bytes, not proof from the filename. The
+working card retains its detected layout; download conversion does not add an Undo
+step. Preserving an existing ECC image still requires fresh ECC values on changed
+pages rather than retaining stale values.
 
 ## Agreed desktop layout
 

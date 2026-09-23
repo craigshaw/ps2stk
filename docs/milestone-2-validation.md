@@ -1,5 +1,11 @@
 # Milestone 2 implementation and validation
 
+Follow-up, 2026-09-23: the user replaced the original independent extension and
+layout choice for whole-card downloads. Current Save and Save as output uses the
+filename extension to determine layout. `.ps2` includes ECC; `.mc2` and `.bin`
+omit it. The original validation statements below describe the policy tested at
+milestone 2. See [current product decisions](./planning.md#agreed-whole-card-save-defaults).
+
 Status: implemented and validated on 2026-09-19. Browser controls are milestone 3 work. Game-load tests remain deferred to milestone 4.
 
 Subsequent integration is recorded in [milestone 3 validation](./milestone-3-validation.md). The limits below describe the milestone 2 delivery.

@@ -37,8 +37,9 @@ results, and leave. It is not a persistent workspace.
   copy saves between cards, import packages, delete saves, or replace files with
   versions edited elsewhere.
 - Save card downloads the complete edited image. Save as can select another
-  supported ECC layout or extension. Export save produces a save package or
-  separate raw files. Package exports and raw dumps do not save the whole card.
+  supported extension, which determines the output layout. Export save produces
+  a save package or separate raw files. Package exports and raw dumps do not
+  save the whole card.
 - Chrome and Edge support raw save-folder output when directory access is
   available. Firefox and Safari retain editing, package output, and individual
   file and whole-card downloads. Minimum browser versions remain undecided.
@@ -51,10 +52,11 @@ results, and leave. It is not a persistent workspace.
 ## Capabilities and Constraints
 
 - Support up to two standard 8 MiB PS2 card images, with or without ECC spare
-  bytes. Preserve the input layout and filename extension by default. Save as
-  supports explicit layout selection and `.ps2`, `.mc2`, or `.bin` output.
+  bytes. Preserve the input filename by default. Whole-card `.ps2` downloads
+  include calculated ECC; `.mc2` and `.bin` downloads omit it. Save as selects
+  the extension without exposing the binary layout.
 - Create a formatted empty card in an available slot for save imports or copying.
-  New cards start without ECC and need a download even before their first edit.
+  New cards need a download even before their first edit.
 - Treat each save directory and its contents as one save, including when several
   saves belong to the same game. Keep save files distinct from complete saves.
 - Support complete-save copy and deletion, individual file replacement, exact

@@ -99,7 +99,6 @@ export function App() {
   const [conflicts, setConflicts] = useState<Map<string, "skip" | "replace">>(
     () => new Map(),
   );
-  const [saveLayout, setSaveLayout] = useState<"data" | "ecc">("data");
   const [saveExtension, setSaveExtension] = useState<CardExtension>(".ps2");
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(
@@ -242,7 +241,6 @@ export function App() {
   }
   function showSaveAs(slot: CardSlot) {
     const state = cards[slot]!;
-    setSaveLayout(state.card.layout);
     const extension = state.filename.match(/\.[^.]+$/)?.[0].toLowerCase();
     setSaveExtension(
       extension === ".mc2" || extension === ".bin" ? extension : ".ps2",
@@ -593,10 +591,6 @@ export function App() {
                         <div className="card-identity">
                           <h2 title={state.filename}>{state.filename}</h2>
                           <span className="muted">
-                            {state.card.layout === "ecc"
-                              ? "With ECC"
-                              : "Without ECC"}{" "}
-                            <span className="dot-separator">·</span>{" "}
                             {infos[slot]!.length} {infos[slot]!.length === 1 ? "save" : "saves"}
                           </span>
                         </div>
@@ -1256,19 +1250,7 @@ export function App() {
                 original file stays unchanged.
               </p>
               <label className="form-field">
-                Binary layout
-                <select
-                  value={saveLayout}
-                  onChange={(e) =>
-                    setSaveLayout(e.target.value as "data" | "ecc")
-                  }
-                >
-                  <option value="data">Without ECC spare bytes (8 MiB)</option>
-                  <option value="ecc">With ECC spare bytes (8.25 MiB)</option>
-                </select>
-              </label>
-              <label className="form-field">
-                Filename extension
+                Card file type
                 <select
                   value={saveExtension}
                   onChange={(e) =>
@@ -1281,9 +1263,8 @@ export function App() {
                 </select>
               </label>
               <p className="small muted">
-                The extension does not determine the layout. Save as converts
-                this download only; normal Save keeps the opened card's layout
-                and filename.
+                Save as changes this download only. Save card keeps the opened
+                filename.
               </p>
               <div className="dialog-actions">
                 <button onClick={() => setModal(null)}>Cancel</button>
@@ -1291,7 +1272,6 @@ export function App() {
                   className="primary"
                   onClick={() => {
                     saveCard(modal.slot, {
-                      layout: saveLayout,
                       extension: saveExtension,
                     });
                     setModal(null);

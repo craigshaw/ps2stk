@@ -4,8 +4,9 @@ Date: 2026-09-23.
 
 The user requested empty cards as a starting point for save imports. New memory
 card now creates a formatted standard 8 MiB image in the first available slot.
-It uses a `.ps2` filename and no ECC spare bytes by default. Save as retains the
-existing layout/extension options. Both occupied slots disable creation.
+It uses a `.ps2` filename and an 8 MiB data-only working image. Under the later
+2026-09-23 save policy, Save card downloads it with calculated ECC spare bytes.
+Save as selects the output extension. Both occupied slots disable creation.
 New cards need a download until one is offered, including after Undo returns
 them to empty. Creation itself is not a content-history step.
 

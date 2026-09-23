@@ -80,6 +80,6 @@ test('ECC faults are rejected on the header, FAT and second page of a live data 
   for (const offset of [0, get32(data, 80) * 2 * 528, (fileCluster * 2 + 1) * 528 + 99, (fileCluster * 2 + 1) * 528 + 512]) {
     const bytes = fixture('source', 'ecc');
     bytes[offset]! ^= 1;
-    assert.throws(() => new MemoryCard(bytes), /ECC mismatch/);
+    assert.throws(() => new MemoryCard(bytes), /Card data is damaged/);
   }
 });

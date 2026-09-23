@@ -17,7 +17,7 @@ async function downloaded(download: Download) {
   return new Uint8Array(await readFile((await download.path())!));
 }
 
-test('create an empty card, import a package, undo and download both layouts', async ({ page }) => {
+test('create an empty card, import a package, undo and download both layouts', async ({ page }, testInfo) => {
   const { gunzipSync } = await import('node:zlib');
   const { decodePsu } = await import('../../src/formats/psu');
   const bytes = gunzipSync(await readFile('tests/fixtures/flat.psu.gz'));
@@ -42,15 +42,26 @@ test('create an empty card, import a package, undo and download both layouts', a
   await a.getByRole('button', { name: 'Save card', exact: true }).click();
   const empty = await emptyDownload;
   expect(empty.suggestedFilename()).toBe('new-card-a.ps2');
-  expect(new MemoryCard(await downloaded(empty)).entries).toHaveLength(0);
+  const emptyCard = new MemoryCard(await downloaded(empty));
+  expect(emptyCard.layout).toBe('ecc');
+  expect(emptyCard.entries).toHaveLength(0);
   await expect(a.getByText('Download offered', { exact: true })).toBeVisible();
   await a.getByRole('button', { name: 'Redo card A' }).click();
   await a.getByRole('button', { name: 'Save as', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Binary layout', exact: true }).selectOption('ecc');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).not.toContainText('ECC');
+  await expect(dialog).not.toContainText('Binary layout');
+  await page.screenshot({ path: testInfo.outputPath('save-as-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('save-as-narrow.png') });
+  await page.getByLabel('Card file type').selectOption('.bin');
   const editedDownload = page.waitForEvent('download');
   await page.getByRole('dialog').getByRole('button', { name: 'Download card', exact: true }).click();
-  const edited = new MemoryCard(await downloaded(await editedDownload));
-  expect(edited.layout).toBe('ecc');
+  const editedFile = await editedDownload;
+  expect(editedFile.suggestedFilename()).toBe('new-card-a.bin');
+  const edited = new MemoryCard(await downloaded(editedFile));
+  expect(edited.layout).toBe('data');
   expect(edited.readFile('/PSU-FLAT/bytes-513')).toEqual(decodePsu(bytes).readFile('/PSU-FLAT/bytes-513'));
 });
 
@@ -143,8 +154,8 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
     }),
   ).toBe(false);
   await b.getByRole("button", { name: "Save as", exact: true }).click();
-  await page.getByLabel("Binary layout").selectOption("data");
-  await page.getByLabel("Filename extension").selectOption(".mc2");
+  await expect(page.getByRole('dialog')).not.toContainText('ECC');
+  await page.getByLabel("Card file type").selectOption(".mc2");
   const converted = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download card", exact: true })
@@ -770,6 +781,9 @@ test('signed PSV downloads preserve contents and history, with keyboard review a
   await pane.getByRole('button', { name: 'Redo card A' }).click();
   const whole = page.waitForEvent('download');
   await pane.getByRole('button', { name: 'Save card', exact: true }).click();
-  expect(await downloaded(await whole)).toEqual(new MemoryCard(fixture('destination')).importSave(source).export());
+  const wholeBytes = await downloaded(await whole);
+  const expectedCard = new MemoryCard(fixture('destination')).importSave(source).export('ecc');
+  expect(wholeBytes.length).toBe(expectedCard.length);
+  expect(Buffer.compare(Buffer.from(wholeBytes), Buffer.from(expectedCard))).toBe(0);
   expect(errors).toEqual([]); expect(remoteRequests).toEqual([]);
 });

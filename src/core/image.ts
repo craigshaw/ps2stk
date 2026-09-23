@@ -16,7 +16,7 @@ export class CardImage {
 
   constructor(bytes: Uint8Array) {
     if (bytes.length !== PAGE_COUNT * 512 && bytes.length !== PAGE_COUNT * 528) {
-      throw new CardError('unsupported', 'Expected a complete 8 MiB card: 8388608 data bytes or 8650752 bytes with ECC.');
+      throw new CardError('unsupported', 'Expected a complete standard PS2 memory card image (8388608 or 8650752 bytes).');
     }
     this.layout = bytes.length === PAGE_COUNT * 512 ? 'data' : 'ecc';
     this.#stride = this.layout === 'data' ? 512 : 528;
@@ -30,7 +30,7 @@ export class CardImage {
     if (this.layout === 'ecc' && !this.#checked.has(page)) {
       const spare = this.#bytes.subarray(offset + 512, offset + 528);
       const erased = data.every(b => b === 255) && spare.every(b => b === 255);
-      requireValid(erased || pageEcc(data).every((b, i) => b === spare[i]), `ECC mismatch on page ${page}. Repair is not supported.`);
+      requireValid(erased || pageEcc(data).every((b, i) => b === spare[i]), `Card data is damaged on page ${page}. Repair is not supported.`);
       this.#checked.add(page);
     }
     return data;

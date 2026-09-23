@@ -4,7 +4,7 @@ import type { CardEntry, MemoryCard } from "../core/index";
 export async function readCardFile(file: File): Promise<Uint8Array> {
   if (file.size !== 8388608 && file.size !== 8650752)
     throw new Error(
-      "Open a standard 8 MiB PS2 memory card image, with or without ECC spare bytes.",
+      "Open a complete standard PS2 memory card image.",
     );
   return new Uint8Array(await file.arrayBuffer());
 }

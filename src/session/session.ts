@@ -5,7 +5,7 @@ import type { CardLayout, SaveSelection } from '../core/index';
 
 export type CardSlot = 0 | 1;
 export type CardExtension = '.ps2' | '.mc2' | '.bin';
-export interface SaveOptions { readonly layout?: CardLayout; readonly extension?: CardExtension }
+export interface SaveOptions { readonly extension?: CardExtension }
 export interface CardDownload {
   readonly bytes: Uint8Array;
   readonly filename: string;
@@ -168,7 +168,9 @@ export class CardSession {
       const stem = filename.replace(/\.[^.]*$/, '') || 'memory-card';
       filename = stem + options.extension;
     }
-    const download = Object.freeze({ bytes: card.card.export(options.layout), filename, revision: card.revision });
+    const extension = filename.match(/\.[^.]+$/)?.[0].toLowerCase();
+    const layout = extension === '.ps2' ? 'ecc' : extension === '.mc2' || extension === '.bin' ? 'data' : card.card.layout;
+    const download = Object.freeze({ bytes: card.card.export(layout), filename, revision: card.revision });
     this.#downloads.set(download, { slot, identity: card.identity, revision: card.revision });
     return download;
   }

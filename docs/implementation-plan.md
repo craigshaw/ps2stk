@@ -65,7 +65,7 @@ Implemented in the card engine, session API, and CLI harness. Browser controls b
 - Add complete-save deletion, copy with explicit Skip/Replace choices, and individual file replacement, including different-size replacements.
 - Calculate required destination space using allocation and directory overhead, including space reclaimed by an approved replacement.
 - Plan a batch before mutation, then apply it to a candidate working copy. Commit only after the whole operation succeeds and the candidate validates.
-- Add ECC layout conversion and the agreed Save/Save as defaults. Treat filename extensions separately from binary layout.
+- Add ECC layout conversion and the agreed Save/Save as defaults. The 2026-09-23 revision maps output extension to layout: `.ps2` includes ECC; `.mc2` and `.bin` omit it. Input layout is still detected from bytes.
 - Add session-only Undo/Redo with one step per successful user action. Bound memory use and document the limit before implementing it.
 - Track each card's current revision and the revision last offered as a complete-card download. A raw file dump does not save the card. Browser download initiation must not be represented as verified disk persistence.
 - Resolve timestamp, attribute, copy-protection, and unusual allocation cases against the format and compatibility evidence. Propose conservative preservation of unrelated metadata; do not silently strip flags or rename saves to avoid conflicts.
