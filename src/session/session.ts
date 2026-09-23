@@ -26,7 +26,7 @@ interface OpenCard {
   filename: string;
   identity: number;
   revision: number;
-  baselineRevision: number;
+  baselineRevision: number | null;
   lastOfferedRevision: number | null;
   undo: Snapshot[];
   redo: Snapshot[];
@@ -78,6 +78,13 @@ export class CardSession {
   close(slot: CardSlot, discardChanges = false): void {
     if (this.#dirty(this.#get(slot)) && !discardChanges) throw new CardError('conflict', 'This card has changes that have not been offered as a download.');
     this.#cards.delete(slot);
+  }
+
+  /** Creation starts a new session card, not an edit to an existing card. */
+  create(slot: CardSlot, filename = 'memory-card.ps2'): void {
+    this.open(slot, MemoryCard.create().export(), filename);
+    // Unlike an opened image, a new card has no existing file to return to.
+    this.#get(slot).baselineRevision = null;
   }
 
   state(slot: CardSlot): SessionCard {

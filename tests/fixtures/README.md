@@ -1,5 +1,20 @@
 # Synthetic card fixtures
 
+## Empty-card format vectors
+
+`empty-card-vectors.json` records SHA-256 values for empty cards formatted by
+the pinned mymc+ revision below at `2001-02-03T04:05:06Z`. The data-only vector
+strips spare bytes from the external ECC output, as for the existing fixtures.
+These are independently generated expected values, not hashes from our writer.
+No new binary fixture is bundled. Reproduce the format comparison, independent
+structure/ECC checks, and package-import payload checks with:
+
+```sh
+python3 scripts/reference-empty-card.py /path/to/mymcplus
+```
+
+## Existing source and destination images
+
 These four compressed images contain only generated test bytes. They contain no game saves, personal data, or PS2 icon assets. They are test inputs only and are not imported by the browser build.
 
 `manifest.json` records the source tool revision, image layout, decompressed size and SHA-256, and expected entry metadata and file hashes. Compression keeps each 8 MiB card small in Git. The files are named `.ps2.gz` to distinguish them from local card images, which `.gitignore` excludes.

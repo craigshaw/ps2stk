@@ -7,11 +7,12 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Build a single page web application for opening, viewing, managing, and editing PS2 memory card image contents.
 - Support two memory card images concurrently in the first release, including copying content between them. Two is the initial maximum.
 - Open complete binary PS2 memory card images as the primary input.
+- Create a formatted empty standard 8 MiB card as a starting point for save imports or copying, added by user request on 2026-09-23.
 - Dump selected files as raw binary data. Dumping a complete save extracts its contained files separately, preserving their names, directory structure, and exact bytes.
 - Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
 - Save complete edited memory cards as binary PS2 memory card images, with or without ECC spare bytes, using a selected filename extension such as .ps2, .mc2, or .bin.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
-- Use a modern file explorer interface with deep charcoal and black, translucent surfaces, subtle blue and purple accents, and gentle animation.
+- Use the modern Orbital browser identity agreed on 2026-09-23: deep space, luminous blue selection, calm motion, and original save icons. This supersedes the earlier charcoal, translucent, blue-and-purple treatment.
 - Host on Cloudflare Pages.
 - Use Lucide for interface icons where needed.
 - Treat the application as a short-session tool: open cards, perform actions, download results, and leave. Do not persist cards or edits across sessions in version 1.
@@ -52,6 +53,19 @@ The user confirmed on 2026-09-19 that all memory card processing happens locally
 - Apply edits to a working copy in the browser.
 - Download modified memory card images through an explicit user action.
 - Leave original input files unchanged.
+
+## Agreed empty card creation
+
+On 2026-09-23, the user requested creation of empty cards for importing saves.
+New memory card fills the first available slot without replacing an open card.
+It creates a formatted 8 MiB data-only image, named `new-card-a.ps2` or
+`new-card-b.ps2` for its slot. Save as can select ECC output and another supported
+extension. Creation needs no source file and does not add an Undo step.
+Imports and copies use the existing history rules. A new card needs a download
+even before its first edit, or after Undo returns it to empty, until a whole-card
+download is offered. Existing close and leave-page protection applies.
+Both occupied slots disable creation; close a card to make space.
+See [validation](empty-card-validation.md) for independent format checks and limits.
 
 ## Agreed session lifetime
 
@@ -165,6 +179,19 @@ The user confirmed on 2026-09-19 that saving an edited card preserves its input 
 Preserving an ECC layout requires generating valid ECC values for changed data. It does not mean retaining stale ECC values from the input.
 
 ## Agreed desktop layout
+
+Visual identity update, 2026-09-23: the user requested a contemporary SPA inspired
+by the PlayStation 2 system browser and a distinctive brand. They confirmed
+keeping PS2STK, short for PS2 Save Toolkit, with a new original symbol and wordmark,
+and chose the Orbital
+browser direction. The new identity uses midnight-blue space, clear blue active
+states, open save-icon galleries, and a distinct inspection stage. The empty
+view introduces two directly selectable card slots. Existing card operations,
+local processing, original icon rendering, and the two-card workflow remain
+the product requirements. This is visual work, not milestone 4 release approval.
+See [the design system](../DESIGN.md) and
+[redesign validation](design-redesign-validation.md) for the implementation and
+checks. The layout agreement below remains in force.
 
 The user approved the interactive layout study on 2026-09-19, with two cards visible, the icon grid at comfortable density, and the shared inspector on the right. Use this as the first-version desktop design direction.
 

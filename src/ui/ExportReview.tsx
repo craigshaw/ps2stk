@@ -18,7 +18,7 @@ export function ExportReview({ save, busy, supportedFolders, onDownload, onFolde
   const blocked = folder ? !supportedFolders : nested || (losesMetadata && !acknowledged);
   return <fieldset className="package-export-controls" disabled={busy}>
     <p>Export <strong>{save.name}</strong>.</p>
-    <label>Output type<select aria-label="Output type" value={format} onChange={e => { setFormat(e.target.value as ExportFormat | 'folder'); setAcknowledged(false); }}>
+    <label className="form-field">Output type<select aria-label="Output type" value={format} onChange={e => { setFormat(e.target.value as ExportFormat | 'folder'); setAcknowledged(false); }}>
       <option value="psu">EMS package (.psu)</option>
       <option value="max">MAX Drive package (.max)</option>
       <option value="psv">PS2 PSV package (.PSV)</option>

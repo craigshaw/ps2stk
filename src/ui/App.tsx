@@ -6,12 +6,14 @@ import { ImportReview } from "./ImportReview";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronRight,
   Copy,
   Download,
   File,
+  FilePlus2,
   FolderOpen,
   HardDrive,
   Info,
@@ -52,6 +54,7 @@ import {
 import type { SaveInfo } from "./model";
 import { IconPreview } from "./IconPreview";
 import { Dialog } from "./Dialog";
+import { Brand } from "./Brand";
 
 type Modal =
   | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard }
@@ -223,6 +226,16 @@ export function App() {
       },
       `Card ${letter(slot)} download started. Keep the downloaded image to retain your edits.`,
     );
+  }
+  function createCard() {
+    const slot = slots.find((s) => !cards[s]);
+    if (slot === undefined) return;
+    act(() => {
+      session.create(slot, `new-card-${letter(slot).toLowerCase()}.ps2`);
+      setActive(slot);
+      setSearch("");
+      setFilePath(null);
+    }, `Created an empty 8 MiB card in slot ${letter(slot)}. Import saves or copy from the other card, then download your card to keep it.`);
   }
   function exportSave(slot: CardSlot, name: string) {
     act(() => setModal({ type: "export", save: session.state(slot).card.extractSave(name) }), "Choose an export output type.");
@@ -440,38 +453,34 @@ export function App() {
       }} />
       <fieldset className="application-controls" disabled={busy}>
         <header className="app-header">
-          <div className="brand">
-            <span className="brand-mark">
-              <HardDrive />
-            </span>
-            <div>
-              <div className="wordmark">
-                PS2<span>STK</span>
-              </div>
-              <div className="eyebrow">Memory card explorer</div>
-            </div>
-          </div>
+          <Brand />
           <span className="local-label">
             <LockKeyhole /> Local to your browser
           </span>
+          <div className="header-actions">
+          <button onClick={createCard} disabled={openCount === 2}
+            title={openCount === 2 ? "Close a card to create a new one" : "Create an empty 8 MiB memory card"}>
+            <FilePlus2 /> New memory card
+          </button>
           <button
             className="primary"
             id="open-card"
             onClick={() => requestOpen()}
           >
-            <Plus /> Open memory card
+              <Plus /> Open memory card
           </button>
+          </div>
         </header>
-        <div className="workspace-toolbar">
+        <div className={`workspace-toolbar ${!openCount ? "empty-toolbar" : ""}`}>
           <div>
             <h1>Memory cards</h1>
             <span className="muted">
               {openCount
                 ? `${openCount} of 2 slots in use`
-                : "A little space for your saved worlds."}
+                : "Your saves. Your cards."}
             </span>
           </div>
-          <div className="workspace-tools">
+          {!!openCount && <div className="workspace-tools">
             {!!openCount && (
               <label className="search">
                 <Search />
@@ -507,43 +516,45 @@ export function App() {
               <PanelRight />
               <span>Inspector</span>
             </button>
-          </div>
+          </div>}
         </div>
         {!openCount ? (
           <main id="workspace" className="welcome" tabIndex={-1}>
-            <div className="card-art" aria-hidden="true">
-              <div className="card-shell">
-                <span>MEMORY CARD</span>
-                <HardDrive />
-                <b>8 MB</b>
-                <small>PlayStation 2</small>
-              </div>
-              <div className="orbital-ring" />
-            </div>
-            <p className="eyebrow">Your saves. Your cards.</p>
-            <h2>Pick up where you left off.</h2>
+            <div className="welcome-copy">
+            <h2>Pick up where<br />you left off.</h2>
             <p>
-              Open a PS2 memory card to explore its saves.
+              Open a PS2 memory card or create an empty one.
               <br />
               Bring a second card to copy between them.
             </p>
+            <div className="welcome-actions">
             <button className="primary large" onClick={() => requestOpen()}>
-              <FolderOpen /> Open memory card
+              <FolderOpen /> Open memory card <ArrowRight />
             </button>
-            <div className="welcome-details">
-              <span>
-                <Check /> Standard 8 MiB images
-              </span>
-              <span>
-                <Check /> With or without ECC
-              </span>
-              <span>
-                <LockKeyhole /> Files stay on this device
-              </span>
+            <button className="large" onClick={createCard}><FilePlus2 /> New memory card</button>
             </div>
-            <p className="session-note">
-              Edits last for this session. Download your card before you leave.
-            </p>
+            <span className="welcome-formats">PS2 / MC2 / BIN <span>·</span> Standard 8 MiB images</span>
+            </div>
+            <div className="card-bays" aria-label="Available card slots">
+              <svg className="bay-orbits" viewBox="0 0 500 400" fill="none" aria-hidden="true">
+                <ellipse cx="250" cy="200" rx="236" ry="128" transform="rotate(-28 250 200)" />
+                <ellipse cx="250" cy="200" rx="236" ry="128" transform="rotate(28 250 200)" />
+                <circle cx="69" cy="95" r="4" />
+                <circle cx="429" cy="305" r="3" />
+              </svg>
+              {slots.map((slot) => (
+                <button className="card-bay" key={slot} onClick={() => requestOpen(slot)} aria-label={`Open memory card in slot ${letter(slot)}`}>
+                  <span className="bay-letter">{letter(slot)}</span>
+                  <span className="bay-copy"><strong>Card {letter(slot)}</strong><span>No card open</span></span>
+                  <Plus aria-hidden="true" />
+                </button>
+              ))}
+              <span className="bay-caption">Two cards. A world of saves.</span>
+            </div>
+            <div className="welcome-notes">
+              <p><LockKeyhole /><span><strong>On your device. In your hands.</strong>Files stay in your browser. Original images stay unchanged.</span></p>
+              <p><Download /><span><strong>Keep what you change.</strong>Edits last for this session. Download your card before you leave.</span></p>
+            </div>
           </main>
         ) : (
           <main
@@ -577,7 +588,7 @@ export function App() {
                           aria-pressed={active === slot}
                           onClick={() => setActive(slot)}
                         >
-                          {letter(slot)}
+                          <span className="slot-label">Card</span>{letter(slot)}
                         </button>
                         <div className="card-identity">
                           <h2 title={state.filename}>{state.filename}</h2>
@@ -586,7 +597,7 @@ export function App() {
                               ? "With ECC"
                               : "Without ECC"}{" "}
                             <span className="dot-separator">·</span>{" "}
-                            {infos[slot]!.length} saves
+                            {infos[slot]!.length} {infos[slot]!.length === 1 ? "save" : "saves"}
                           </span>
                         </div>
                         <button
@@ -725,7 +736,7 @@ export function App() {
                             <small>
                               {search
                                 ? "Try a different title or directory name."
-                                : "Import a PSU save or copy one from the other card."}
+                                : "Use Import save above or copy saves from the other card."}
                             </small>
                           </div>
                         )}
@@ -754,8 +765,9 @@ export function App() {
                           disabled={!count || !cards[other(slot)]}
                           onClick={() => copySelection(slot)}
                         >
-                          <Copy /> Copy to {letter(other(slot))}
-                          <ArrowRight />
+                          {slot === 1 && <ArrowLeft aria-hidden="true" />}
+                          Copy to {letter(other(slot))}
+                          {slot === 0 && <ArrowRight aria-hidden="true" />}
                         </button>
                         <button
                           disabled={!count}
@@ -786,7 +798,7 @@ export function App() {
             {inspector && (
               <aside className="inspector" aria-label="Save inspector">
                 <div className="inspector-heading">
-                  <span className="eyebrow">Inspector</span>
+                  <span className="inspector-label">Inspector</span>
                   <span className="tag">Card {letter(active)}</span>
                 </div>
                 {inspected && current ? (
@@ -1012,11 +1024,10 @@ export function App() {
           {(modal.type === "close" || modal.type === "open") && (
             <>
               <p>
-                Card {letter(modal.slot)} has edits that have not been
-                downloaded.{" "}
+                Card {letter(modal.slot)} has not been downloaded in its current state.{" "}
                 {modal.type === "open"
-                  ? "They will be discarded after a valid replacement card is opened."
-                  : "Closing it discards those edits and its Undo history."}
+                  ? "It will be discarded after a valid replacement card is opened."
+                  : "Closing it discards this card and its Undo history."}
               </p>
               <p className="directory-name">{cards[modal.slot]!.filename}</p>
               <div className="dialog-actions">
@@ -1150,8 +1161,10 @@ export function App() {
                 })}
               </div>
               <p className="small muted">
-                Replace removes the entire destination save. Files are not
-                merged. Insufficient space leaves both cards unchanged.
+                {modal.names.some((name) => cards[other(modal.slot)]!.card.entries.some((entry) => entry.name === name)) && (
+                  <>Replace removes the entire destination save. Files are not merged. </>
+                )}
+                Insufficient space leaves both cards unchanged.
               </p>
               <div className="dialog-actions">
                 <button onClick={() => setModal(null)}>Cancel</button>

@@ -4,6 +4,7 @@ import type { SaveNode, SaveDirectory } from './save';
 import { CardWriter } from './writer';
 import { CardImage, CLUSTER_SIZE } from './image';
 import type { CardLayout } from './image';
+import { formatCard } from './format';
 
 const END = 0xffffffff;
 const ALLOCATED = 0x80000000;
@@ -61,6 +62,11 @@ function publicEntry(node: Node): CardEntry {
 
 /** Validated, immutable memory card. Mutations return a new card. No browser APIs. */
 export class MemoryCard {
+  /** A formatted, empty standard card, ready for save imports and copying. */
+  static create(layout: CardLayout = 'data', createdAt = new Date()): MemoryCard {
+    return new MemoryCard(formatCard(layout, createdAt));
+  }
+
   readonly #image: CardImage;
   readonly #offset: number;
   readonly #limit: number;

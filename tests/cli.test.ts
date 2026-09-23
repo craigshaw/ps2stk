@@ -17,6 +17,7 @@ test('CLI refuses to overwrite input cards or an existing raw dump', () => {
     writeFileSync(replacement, new Uint8Array([1, 2, 3]));
     writeFileSync(plan, JSON.stringify([{ name: 'SAVE-A' }]));
     for (const args of [
+      ['create', source],
       ['copy', source, destination, 'SAVE-A', destination],
       ['copy', source, destination, 'SAVE-A', source],
       ['extract', source, '/SAVE-A/bytes-513', source],

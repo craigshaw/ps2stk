@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Data Glyph</title>
+  <desc>A stepped S path built from data lanes and a bright central link.</desc>
+  <path d="M51 13H20l-8 8v8l8 5h24l8 5v5l-8 8H13" stroke="#B8CEFF" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M26 21h20M18 44h20" stroke="#698FE5" stroke-width="3.5" stroke-linecap="square"/>
+  <path d="m27 34 10 0" stroke="#E9EFFF" stroke-width="5" stroke-linecap="square"/>
+</svg>

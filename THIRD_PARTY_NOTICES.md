@@ -112,3 +112,11 @@ Runtime dependencies added for these formats:
 
 The complete installed runtime license texts, including pako's zlib notice,
 are included in `public/third-party-notices.txt`.
+
+## Sora typeface
+
+The locally served `public/fonts/Sora-Variable.ttf` is the unmodified Sora
+variable font from the [Google Fonts repository](https://github.com/google/fonts/tree/main/ofl/sora),
+retrieved on 2026-09-23. Copyright 2020 The Sora Project Authors. It is licensed
+under the SIL Open Font License 1.1. The complete licence is in
+`public/fonts/OFL-Sora.txt` and the distributed third-party notices.

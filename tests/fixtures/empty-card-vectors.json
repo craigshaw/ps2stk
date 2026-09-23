@@ -1,0 +1,8 @@
+{
+  "producer": "mymc+",
+  "repository": "https://git.sr.ht/~thestr4ng3r/mymcplus",
+  "revision": "5e58891fd036d9f39a6c3076f998514c8f1cb8f9",
+  "createdAt": "2001-02-03T04:05:06Z",
+  "data": { "bytes": 8388608, "sha256": "efa836cd616ed57497b22fcf6346076d4e55baadde9460cc7d61786cbab88d70" },
+  "ecc": { "bytes": 8650752, "sha256": "9a00efcc68e8d56943fc28c99d6ef7d2cd5776f4179bdccc8ca4bef06a75a5ef" }
+}
