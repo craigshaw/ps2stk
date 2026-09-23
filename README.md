@@ -1,5 +1,7 @@
 # PS2STK
 
+PS2 Save Toolkit.
+
 A local browser application for managing PS2 memory card images. Open up to two cards, browse their original save icons, copy or delete saves, replace individual files, dump raw contents, and download edited card images.
 
 Repository: [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk).
@@ -20,6 +22,8 @@ Implementation decisions and test evidence are in the [milestone 2](docs/milesto
 - [Implementation plan and acceptance criteria](docs/implementation-plan.md)
 - [Save-format milestones 3A through 3C](docs/save-format-plan.md)
 - [Domain glossary](CONTEXT.md)
+- [Visual design system](DESIGN.md)
+- [Orbital browser redesign validation](docs/design-redesign-validation.md)
 - [Project instructions for coding agents](AGENTS.md)
 
 The agreed stack is React, TypeScript, Vite, Three.js, and Lucide, deployed as a static SPA on Cloudflare Pages through Git integration.

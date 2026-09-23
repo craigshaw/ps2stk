@@ -27,7 +27,7 @@ export function ImportReview({ save, format, card, destination, onApply }: {
     </dl>
     <p className="capability-note">{format === 'psu' ? 'File contents, names, timestamps, and attributes will be preserved.' : 'File contents and names will be preserved. Metadata available in this format will be retained; defaults are listed below.'}</p>
     {save.notices.map(notice => <p key={notice}>{notice}</p>)}
-    {existing && <><p>A save with this directory name already exists: {flattenFiles(existing).length} files, {bytesLabel(fileBytes(existing))}. Replacement removes all of it.</p><label>Existing save<select aria-label="Import conflict" value={choice} onChange={e => setChoice(e.target.value as 'skip' | 'replace')}><option value="skip">Skip</option><option value="replace">Replace entire save</option></select></label></>}
+    {existing && <><p>A save with this directory name already exists: {flattenFiles(existing).length} files, {bytesLabel(fileBytes(existing))}. Replacement removes all of it.</p><label className="form-field">Existing save<select aria-label="Import conflict" value={choice} onChange={e => setChoice(e.target.value as 'skip' | 'replace')}><option value="skip">Skip</option><option value="replace">Replace entire save</option></select></label></>}
     {plan.error && <p role="alert">{plan.error}</p>}
     {!!plan.result?.shortageBytes && <p role="alert">Need {bytesLabel(plan.result.shortageBytes)} more space, including directory allocation. No changes will be made.</p>}
     <div className="dialog-actions"><button className="primary" disabled={blocked} onClick={() => onApply(choice)}>{skipped ? 'Skip import' : choice === 'replace' && existing ? 'Replace entire save' : 'Import save'}</button></div>

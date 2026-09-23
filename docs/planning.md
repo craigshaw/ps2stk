@@ -11,7 +11,7 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
 - Save complete edited memory cards as binary PS2 memory card images, with or without ECC spare bytes, using a selected filename extension such as .ps2, .mc2, or .bin.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
-- Use a modern file explorer interface with deep charcoal and black, translucent surfaces, subtle blue and purple accents, and gentle animation.
+- Use the modern Orbital browser identity agreed on 2026-09-23: deep space, luminous blue selection, calm motion, and original save icons. This supersedes the earlier charcoal, translucent, blue-and-purple treatment.
 - Host on Cloudflare Pages.
 - Use Lucide for interface icons where needed.
 - Treat the application as a short-session tool: open cards, perform actions, download results, and leave. Do not persist cards or edits across sessions in version 1.
@@ -165,6 +165,19 @@ The user confirmed on 2026-09-19 that saving an edited card preserves its input 
 Preserving an ECC layout requires generating valid ECC values for changed data. It does not mean retaining stale ECC values from the input.
 
 ## Agreed desktop layout
+
+Visual identity update, 2026-09-23: the user requested a contemporary SPA inspired
+by the PlayStation 2 system browser and a distinctive brand. They confirmed
+keeping PS2STK, short for PS2 Save Toolkit, with a new original symbol and wordmark,
+and chose the Orbital
+browser direction. The new identity uses midnight-blue space, clear blue active
+states, open save-icon galleries, and a distinct inspection stage. The empty
+view introduces two directly selectable card slots. Existing card operations,
+local processing, original icon rendering, and the two-card workflow remain
+the product requirements. This is visual work, not milestone 4 release approval.
+See [the design system](../DESIGN.md) and
+[redesign validation](design-redesign-validation.md) for the implementation and
+checks. The layout agreement below remains in force.
 
 The user approved the interactive layout study on 2026-09-19, with two cards visible, the icon grid at comfortable density, and the shared inspector on the right. Use this as the first-version desktop design direction.
 

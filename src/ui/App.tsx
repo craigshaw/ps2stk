@@ -52,6 +52,7 @@ import {
 import type { SaveInfo } from "./model";
 import { IconPreview } from "./IconPreview";
 import { Dialog } from "./Dialog";
+import { Brand } from "./Brand";
 
 type Modal =
   | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard }
@@ -440,17 +441,7 @@ export function App() {
       }} />
       <fieldset className="application-controls" disabled={busy}>
         <header className="app-header">
-          <div className="brand">
-            <span className="brand-mark">
-              <HardDrive />
-            </span>
-            <div>
-              <div className="wordmark">
-                PS2<span>STK</span>
-              </div>
-              <div className="eyebrow">Memory card explorer</div>
-            </div>
-          </div>
+          <Brand />
           <span className="local-label">
             <LockKeyhole /> Local to your browser
           </span>
@@ -459,19 +450,19 @@ export function App() {
             id="open-card"
             onClick={() => requestOpen()}
           >
-            <Plus /> Open memory card
+              <Plus /> Open memory card
           </button>
         </header>
-        <div className="workspace-toolbar">
+        <div className={`workspace-toolbar ${!openCount ? "empty-toolbar" : ""}`}>
           <div>
             <h1>Memory cards</h1>
             <span className="muted">
               {openCount
                 ? `${openCount} of 2 slots in use`
-                : "A little space for your saved worlds."}
+                : "Your saves. Your cards."}
             </span>
           </div>
-          <div className="workspace-tools">
+          {!!openCount && <div className="workspace-tools">
             {!!openCount && (
               <label className="search">
                 <Search />
@@ -507,43 +498,42 @@ export function App() {
               <PanelRight />
               <span>Inspector</span>
             </button>
-          </div>
+          </div>}
         </div>
         {!openCount ? (
           <main id="workspace" className="welcome" tabIndex={-1}>
-            <div className="card-art" aria-hidden="true">
-              <div className="card-shell">
-                <span>MEMORY CARD</span>
-                <HardDrive />
-                <b>8 MB</b>
-                <small>PlayStation 2</small>
-              </div>
-              <div className="orbital-ring" />
-            </div>
-            <p className="eyebrow">Your saves. Your cards.</p>
-            <h2>Pick up where you left off.</h2>
+            <div className="welcome-copy">
+            <h2>Pick up where<br />you left off.</h2>
             <p>
               Open a PS2 memory card to explore its saves.
               <br />
               Bring a second card to copy between them.
             </p>
             <button className="primary large" onClick={() => requestOpen()}>
-              <FolderOpen /> Open memory card
+              <FolderOpen /> Open memory card <ArrowRight />
             </button>
-            <div className="welcome-details">
-              <span>
-                <Check /> Standard 8 MiB images
-              </span>
-              <span>
-                <Check /> With or without ECC
-              </span>
-              <span>
-                <LockKeyhole /> Files stay on this device
-              </span>
+            <span className="welcome-formats">PS2 / MC2 / BIN <span>·</span> Standard 8 MiB images</span>
             </div>
-            <p className="session-note">
-              Edits last for this session. Download your card before you leave.
-            </p>
+            <div className="card-bays" aria-label="Available card slots">
+              <svg className="bay-orbits" viewBox="0 0 500 400" fill="none" aria-hidden="true">
+                <ellipse cx="250" cy="200" rx="236" ry="128" transform="rotate(-28 250 200)" />
+                <ellipse cx="250" cy="200" rx="236" ry="128" transform="rotate(28 250 200)" />
+                <circle cx="69" cy="95" r="4" />
+                <circle cx="429" cy="305" r="3" />
+              </svg>
+              {slots.map((slot) => (
+                <button className="card-bay" key={slot} onClick={() => requestOpen(slot)} aria-label={`Open memory card in slot ${letter(slot)}`}>
+                  <span className="bay-letter">{letter(slot)}</span>
+                  <span className="bay-copy"><strong>Card {letter(slot)}</strong><span>No card open</span></span>
+                  <Plus aria-hidden="true" />
+                </button>
+              ))}
+              <span className="bay-caption">Two cards. A world of saves.</span>
+            </div>
+            <div className="welcome-notes">
+              <p><LockKeyhole /><span><strong>On your device. In your hands.</strong>Files stay in your browser. Original images stay unchanged.</span></p>
+              <p><Download /><span><strong>Keep what you change.</strong>Edits last for this session. Download your card before you leave.</span></p>
+            </div>
           </main>
         ) : (
           <main
@@ -577,7 +567,7 @@ export function App() {
                           aria-pressed={active === slot}
                           onClick={() => setActive(slot)}
                         >
-                          {letter(slot)}
+                          <span className="slot-label">Card</span>{letter(slot)}
                         </button>
                         <div className="card-identity">
                           <h2 title={state.filename}>{state.filename}</h2>
@@ -586,7 +576,7 @@ export function App() {
                               ? "With ECC"
                               : "Without ECC"}{" "}
                             <span className="dot-separator">·</span>{" "}
-                            {infos[slot]!.length} saves
+                            {infos[slot]!.length} {infos[slot]!.length === 1 ? "save" : "saves"}
                           </span>
                         </div>
                         <button
@@ -786,7 +776,7 @@ export function App() {
             {inspector && (
               <aside className="inspector" aria-label="Save inspector">
                 <div className="inspector-heading">
-                  <span className="eyebrow">Inspector</span>
+                  <span className="inspector-label">Inspector</span>
                   <span className="tag">Card {letter(active)}</span>
                 </div>
                 {inspected && current ? (
