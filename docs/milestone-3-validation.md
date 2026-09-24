@@ -82,3 +82,20 @@ independent mymc+ reference suite passed structural, metadata, file-byte, and
 ECC checks in both layouts. The Save as dialog was visually inspected at 1440
 and 390 pixels; the narrow dialog had no horizontal overflow. Destination
 game-load tests remain part of milestone 4.
+
+## Follow-up: inline card filename editing
+
+On 2026-09-24, the card pane gained an inline filename editor. It edits the
+filename stem and keeps the extension fixed. Save card uses the displayed name;
+Save as uses that stem with the selected extension. A rename changes download
+status and close protection, but leaves card bytes and Undo history unchanged.
+The editor supports keyboard entry, Enter to apply, Escape to cancel, and
+inline validation of unsafe filenames.
+
+Validation after the change: `npm run check` passed 139 unit/CLI tests,
+TypeScript, and the production build. `npm run test:browser` passed 55 tests
+across Chromium, Firefox, and WebKit, with two expected folder-access skips.
+The new browser check verified both download filenames and the binary layout of
+`.ps2` and `.bin` downloads. The editor was visually inspected at 1440 and 390
+pixels; automated checks found no overflow at 390 and with two cards at 850
+pixels. Destination game-load tests remain part of milestone 4.

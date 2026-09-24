@@ -22,6 +22,7 @@ import {
   LockKeyhole,
   PanelRight,
   Pause,
+  Pencil,
   Play,
   Plus,
   Redo2,
@@ -33,7 +34,7 @@ import {
 } from "lucide-react";
 import { MemoryCard } from "../core/index";
 import type { CardEntry, SaveSelection } from "../core/index";
-import { CardSession } from "../session/session";
+import { CardSession, cardFilenameParts } from "../session/session";
 import type { CardSlot, CardExtension } from "../session/session";
 import {
   downloadBytes,
@@ -100,6 +101,8 @@ export function App() {
     () => new Map(),
   );
   const [saveExtension, setSaveExtension] = useState<CardExtension>(".ps2");
+  const [renaming, setRenaming] = useState<{ slot: CardSlot; stem: string; error: string | null } | null>(null);
+  const renameInput = useRef<HTMLInputElement>(null);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(
     () => matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -143,6 +146,12 @@ export function App() {
   useEffect(() => {
     setFilePath(null);
   }, [active, inspected?.entry.path]);
+  useEffect(() => {
+    if (renaming) {
+      renameInput.current?.focus();
+      renameInput.current?.select();
+    }
+  }, [renaming?.slot]);
   useEffect(() => {
     if (!busy && !cards.some((card) => card?.needsDownload)) return;
     const warn = (event: BeforeUnloadEvent) => {
@@ -202,6 +211,7 @@ export function App() {
   function chooseFile(slot: CardSlot) {
     target.current = slot;
     setModal(null);
+    setRenaming(null);
     openInput.current!.click();
   }
   function requestOpen(slot?: CardSlot) {
@@ -231,6 +241,7 @@ export function App() {
     if (slot === undefined) return;
     act(() => {
       session.create(slot, `new-card-${letter(slot).toLowerCase()}.ps2`);
+      setRenaming(null);
       setActive(slot);
       setSearch("");
       setFilePath(null);
@@ -246,6 +257,26 @@ export function App() {
       extension === ".mc2" || extension === ".bin" ? extension : ".ps2",
     );
     setModal({ type: "save", slot });
+  }
+  function finishRename(slot: CardSlot) {
+    setRenaming(null);
+    requestAnimationFrame(() => document.getElementById(`rename-card-${slot}`)?.focus({ preventScroll: true }));
+  }
+  function applyRename(slot: CardSlot) {
+    if (renaming?.slot !== slot) return;
+    try {
+      const changed = session.renameCard(slot, renaming.stem);
+      finishRename(slot);
+      if (changed) {
+        const state = session.state(slot);
+        refresh();
+        setStatus(`Card ${letter(slot)} renamed to ${state.filename}.${state.needsDownload ? " Download the card to keep this name." : ""}`);
+      }
+      setError(null);
+    } catch (error) {
+      setRenaming({ ...renaming, error: messageOf(error) });
+      renameInput.current?.focus();
+    }
   }
   function select(
     slot: CardSlot,
@@ -589,12 +620,47 @@ export function App() {
                           <span className="slot-label">Card</span>{letter(slot)}
                         </button>
                         <div className="card-identity">
-                          <h2 title={state.filename}>{state.filename}</h2>
+                          {renaming?.slot === slot ? (
+                            <form className="card-name-editor" onSubmit={(event) => { event.preventDefault(); applyRename(slot); }}>
+                              <div className="card-name-field">
+                                <input
+                                  ref={renameInput}
+                                  aria-label={`Card ${letter(slot)} name`}
+                                  aria-invalid={!!renaming.error}
+                                  aria-describedby={`${renaming.error ? `card-name-error-${slot} ` : ""}card-name-extension-${slot}`}
+                                  maxLength={120}
+                                  value={renaming.stem}
+                                  onChange={(event) => setRenaming({ slot, stem: event.target.value, error: null })}
+                                  onKeyDown={(event) => {
+                                    if (event.key === "Escape") {
+                                      event.preventDefault();
+                                      finishRename(slot);
+                                    }
+                                  }}
+                                />
+                                <span id={`card-name-extension-${slot}`}>{cardFilenameParts(state.filename).extension}</span>
+                              </div>
+                              <button className="card-name-action" type="submit" aria-label={`Apply card ${letter(slot)} name`} title="Apply name"><Check /></button>
+                              <button className="card-name-action" type="button" aria-label={`Cancel card ${letter(slot)} name`} title="Cancel" onClick={() => finishRename(slot)}><X /></button>
+                            </form>
+                          ) : (
+                            <div className="card-name-row">
+                              <h2 title={state.filename}>{state.filename}</h2>
+                              <button
+                                id={`rename-card-${slot}`}
+                                className="card-name-action"
+                                aria-label={`Rename card ${letter(slot)}`}
+                                title={`Rename card ${letter(slot)}`}
+                                onClick={() => setRenaming({ slot, stem: cardFilenameParts(state.filename).stem, error: null })}
+                              ><Pencil /></button>
+                            </div>
+                          )}
+                          {renaming?.slot === slot && renaming.error && <span id={`card-name-error-${slot}`} className="card-name-error" role="alert">{renaming.error}</span>}
                           <span className="muted">
                             {infos[slot]!.length} {infos[slot]!.length === 1 ? "save" : "saves"}
                           </span>
                         </div>
-                        <button
+                        {renaming?.slot !== slot && <button
                           className="icon-button"
                           aria-label={`Close card ${letter(slot)}`}
                           onClick={() =>
@@ -603,6 +669,7 @@ export function App() {
                               : act(
                                   () => {
                                     session.close(slot);
+                                    if (renaming?.slot === slot) setRenaming(null);
                                     if (cards[other(slot)])
                                       setActive(other(slot));
                                   },
@@ -611,7 +678,7 @@ export function App() {
                           }
                         >
                           <X />
-                        </button>
+                        </button>}
                       </header>
                       <div className="capacity">
                         <div>
@@ -640,10 +707,10 @@ export function App() {
                           packageTarget.current = { slot, expected: session.state(slot).card };
                           packageInput.current!.click();
                         }}><Upload /> Import save</button>
-                        <button onClick={() => saveCard(slot)}>
+                        <button onClick={() => saveCard(slot)} disabled={renaming?.slot === slot} title={renaming?.slot === slot ? "Apply or cancel the name first" : undefined}>
                           <Download /> Save card
                         </button>
-                        <button onClick={() => showSaveAs(slot)}>
+                        <button onClick={() => showSaveAs(slot)} disabled={renaming?.slot === slot} title={renaming?.slot === slot ? "Apply or cancel the name first" : undefined}>
                           Save as
                         </button>
                         <span className="spacer" />
@@ -1040,6 +1107,7 @@ export function App() {
                     else {
                       act(() => {
                         session.close(modal.slot, true);
+                        if (renaming?.slot === modal.slot) setRenaming(null);
                         if (cards[other(modal.slot)])
                           setActive(other(modal.slot));
                       }, "Closed card and discarded its edits.");
@@ -1263,8 +1331,8 @@ export function App() {
                 </select>
               </label>
               <p className="small muted">
-                Save as changes this download only. Save card keeps the opened
-                filename.
+                Save as changes this download only. Save card uses the name
+                shown on the card.
               </p>
               <div className="dialog-actions">
                 <button onClick={() => setModal(null)}>Cancel</button>

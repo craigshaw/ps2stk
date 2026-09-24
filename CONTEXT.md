@@ -8,6 +8,10 @@ This context describes PS2 memory card images and their contents.
 A file that represents a PS2 memory card, including its file system and stored contents. A physical memory card is the device represented by an image.
 _Avoid_: Save file when referring to the whole card.
 
+**Memory card image filename**:
+The host file name shown for an open card and suggested for a whole-card download. It is separate from the data stored inside the card image.
+_Avoid_: Save name when referring to this filename.
+
 **Save**:
 A directory on a memory card image, together with its contents, treated as one complete item. Separate save directories remain separate saves even when they belong to the same game.
 _Avoid_: Game when referring to one save; save file when referring to the complete directory.

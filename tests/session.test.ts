@@ -178,6 +178,55 @@ test('Save converts a mismatched opened filename to its file format', () => {
   assert.equal(s.historyBytes, 0);
 });
 
+test('renaming changes the download name without changing card bytes or Undo history', () => {
+  const s = session();
+  const before = s.state(0);
+  const bytes = before.card.export();
+  assert.equal(s.renameCard(0, 'My Memory Card'), true);
+  assert.equal(s.state(0).filename, 'My Memory Card.BIN');
+  assert.equal(s.state(0).needsDownload, true);
+  assert.equal(s.state(0).revision, before.revision);
+  assert.equal(s.state(0).canUndo, false);
+  assert.equal(s.historyBytes, 0);
+  assert.deepEqual(s.state(0).card.export(), bytes);
+  assert.equal(s.prepareDownload(0).filename, 'My Memory Card.BIN');
+  const saveAs = s.prepareDownload(0, { extension: '.ps2' });
+  assert.equal(saveAs.filename, 'My Memory Card.ps2');
+  assert.equal(saveAs.bytes.length, 8650752);
+  s.markDownloadOffered(saveAs);
+  assert.equal(s.state(0).needsDownload, false);
+  assert.equal(s.renameCard(0, 'Other Card'), true);
+  assert.equal(s.state(0).needsDownload, true);
+  assert.equal(s.renameCard(0, 'My Memory Card'), true);
+  assert.equal(s.state(0).needsDownload, false);
+  assert.equal(s.renameCard(0, 'My Memory Card'), false);
+});
+
+test('an old download does not acknowledge a later rename', () => {
+  const s = session();
+  const old = s.prepareDownload(0);
+  s.renameCard(0, 'Renamed');
+  s.markDownloadOffered(old);
+  assert.equal(s.state(0).needsDownload, true);
+  assert.throws(() => s.close(0), /not been offered/);
+  const current = s.prepareDownload(0);
+  assert.equal(current.filename, 'Renamed.BIN');
+  s.markDownloadOffered(current);
+  assert.equal(s.state(0).needsDownload, false);
+  s.close(0);
+});
+
+test('renaming rejects unsafe stems without changing the card state', () => {
+  const s = session();
+  const before = s.state(0);
+  for (const name of ['', ' leading', 'trailing ', 'bad/name', 'bad\\name', 'bad?', 'end.', 'CON', 'con.txt', 'a'.repeat(121)]) {
+    assert.throws(() => s.renameCard(0, name), /name|characters|reserved/i);
+    assert.deepEqual(s.state(0), before);
+  }
+  assert.equal(s.renameCard(0, 'Card 2026.09'), true);
+  assert.equal(s.state(0).filename, 'Card 2026.09.BIN');
+});
+
 test('a delayed download marks its prepared revision, not later edits', () => {
   const s = session();
   s.replaceFile(0, '/SAVE-A/bytes-1', new Uint8Array([23]));

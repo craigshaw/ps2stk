@@ -175,6 +175,7 @@ types, even when the opened image uses a different layout.
 - `.ps2` downloads include ECC spare bytes, calculated for converted or changed pages.
 - `.mc2` and `.bin` downloads omit ECC spare bytes.
 - Save as selects only the extension. The UI does not show an ECC control or layout label.
+- The displayed memory card image filename can be edited inline. Renaming keeps its extension, changes no card bytes, and adds no Undo step. A name changed after a download needs another download before closing or leaving without warning.
 - An unknown opened extension keeps its filename and current binary layout on Save card. Save as can select a supported extension.
 - Saving still produces a download and leaves the original input file unchanged.
 

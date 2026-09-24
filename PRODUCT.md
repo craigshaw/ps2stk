@@ -55,6 +55,9 @@ results, and leave. It is not a persistent workspace.
   bytes. Preserve the input filename by default. Whole-card `.ps2` downloads
   include calculated ECC; `.mc2` and `.bin` downloads omit it. Save as selects
   the extension without exposing the binary layout.
+- Let users edit the displayed card filename inline while retaining its extension.
+  A changed filename needs another whole-card download, without changing card
+  contents or adding an Undo step.
 - Create a formatted empty card in an available slot for save imports or copying.
   New cards need a download even before their first edit.
 - Treat each save directory and its contents as one save, including when several

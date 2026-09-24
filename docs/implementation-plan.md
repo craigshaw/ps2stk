@@ -87,6 +87,7 @@ Implemented. See the [milestone 3 validation record](./milestone-3-validation.md
 - Build the approved dark desktop layout: one or two card panes, comfortable icon grid with a list alternative, and a collapsible inspector on the right.
 - Connect save selection and batch selection to card operations. Make the active card and copy destination explicit.
 - Show capacity, changed status, directory identity, and file details without treating every save as a separate game.
+- Let users edit the whole-card download filename inline while keeping its extension. A name change affects download status and close protection, without changing card bytes or Undo history.
 - Adapt the icon parser/renderer. Animate the inspector and hovered or keyboard-focused tile only. Include pause, reduced motion, and fallback previews.
 - Check animation fidelity against the real icon format; the existing renderer simplifies keyframe playback. Dispose of unused rendering resources when cards or selections change.
 - Add direct binary file downloads and complete-card downloads. Add full-save folder dumping in browsers with directory write support.
