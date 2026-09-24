@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CardSession, DEFAULT_HISTORY_BYTES } from '../src/session/session';
 import type { CardSlot, CardDownload } from '../src/session/session';
+import { MemoryCard } from '../src/core/index';
 import { fixture, hash } from './helpers';
 
 function session(): CardSession {
@@ -128,12 +129,15 @@ test('minimum history budget retains the latest action and handles layout size c
   for (const limit of [0, -1, Infinity, 8650751, DEFAULT_HISTORY_BYTES + 1]) assert.throws(() => new CardSession(limit), /History limit/);
 });
 
-test('Save defaults preserve the actual layout and original extension independently', () => {
+test('Save uses the opened filename extension to choose the output layout', () => {
   const s = session();
   s.replaceFile(0, '/SAVE-A/bytes-1', new Uint8Array([44]));
   const download = s.prepareDownload(0);
   assert.equal(download.filename, 'source.BIN');
   assert.equal(download.bytes.length, 8388608);
+  const ps2 = s.prepareDownload(1);
+  assert.equal(ps2.filename, 'destination.ps2');
+  assert.equal(ps2.bytes.length, 8650752);
   assert.equal(s.state(0).needsDownload, true);
   s.state(0).card.readFile('/SAVE-A/bytes-1'); // A raw dump never marks the card as downloaded.
   assert.equal(s.state(0).needsDownload, true);
@@ -150,12 +154,77 @@ test('Save as converts output without editing the working card or history', () =
   const s = session();
   const before = s.state(0);
   for (const extension of ['.ps2', '.mc2', '.bin'] as const) {
-    const output = s.prepareDownload(0, { layout: 'ecc', extension });
+    const output = s.prepareDownload(0, { extension });
     assert.equal(output.filename, `source${extension}`);
-    assert.equal(output.bytes.length, 8650752);
+    assert.equal(output.bytes.length, extension === '.ps2' ? 8650752 : 8388608);
+    assert.deepEqual(new MemoryCard(output.bytes).export('data'), s.state(0).card.export('data'));
   }
   assert.deepEqual(s.state(0), before);
   assert.equal(s.historyBytes, 0);
+});
+
+test('Save converts a mismatched opened filename to its file format', () => {
+  const s = new CardSession();
+  s.open(0, fixture(), 'data.ps2');
+  s.open(1, fixture('destination', 'ecc'), 'spare.MC2');
+  const ps2 = s.prepareDownload(0);
+  const mc2 = s.prepareDownload(1);
+  assert.equal(ps2.filename, 'data.ps2');
+  assert.equal(ps2.bytes.length, 8650752);
+  assert.equal(mc2.filename, 'spare.MC2');
+  assert.deepEqual(mc2.bytes, fixture('destination'));
+  assert.equal(s.state(0).card.layout, 'data');
+  assert.equal(s.state(1).card.layout, 'ecc');
+  assert.equal(s.historyBytes, 0);
+});
+
+test('renaming changes the download name without changing card bytes or Undo history', () => {
+  const s = session();
+  const before = s.state(0);
+  const bytes = before.card.export();
+  assert.equal(s.renameCard(0, 'My Memory Card'), true);
+  assert.equal(s.state(0).filename, 'My Memory Card.BIN');
+  assert.equal(s.state(0).needsDownload, true);
+  assert.equal(s.state(0).revision, before.revision);
+  assert.equal(s.state(0).canUndo, false);
+  assert.equal(s.historyBytes, 0);
+  assert.deepEqual(s.state(0).card.export(), bytes);
+  assert.equal(s.prepareDownload(0).filename, 'My Memory Card.BIN');
+  const saveAs = s.prepareDownload(0, { extension: '.ps2' });
+  assert.equal(saveAs.filename, 'My Memory Card.ps2');
+  assert.equal(saveAs.bytes.length, 8650752);
+  s.markDownloadOffered(saveAs);
+  assert.equal(s.state(0).needsDownload, false);
+  assert.equal(s.renameCard(0, 'Other Card'), true);
+  assert.equal(s.state(0).needsDownload, true);
+  assert.equal(s.renameCard(0, 'My Memory Card'), true);
+  assert.equal(s.state(0).needsDownload, false);
+  assert.equal(s.renameCard(0, 'My Memory Card'), false);
+});
+
+test('an old download does not acknowledge a later rename', () => {
+  const s = session();
+  const old = s.prepareDownload(0);
+  s.renameCard(0, 'Renamed');
+  s.markDownloadOffered(old);
+  assert.equal(s.state(0).needsDownload, true);
+  assert.throws(() => s.close(0), /not been offered/);
+  const current = s.prepareDownload(0);
+  assert.equal(current.filename, 'Renamed.BIN');
+  s.markDownloadOffered(current);
+  assert.equal(s.state(0).needsDownload, false);
+  s.close(0);
+});
+
+test('renaming rejects unsafe stems without changing the card state', () => {
+  const s = session();
+  const before = s.state(0);
+  for (const name of ['', ' leading', 'trailing ', 'bad/name', 'bad\\name', 'bad?', 'end.', 'CON', 'con.txt', 'a'.repeat(121)]) {
+    assert.throws(() => s.renameCard(0, name), /name|characters|reserved/i);
+    assert.deepEqual(s.state(0), before);
+  }
+  assert.equal(s.renameCard(0, 'Card 2026.09'), true);
+  assert.equal(s.state(0).filename, 'Card 2026.09.BIN');
 });
 
 test('a delayed download marks its prepared revision, not later edits', () => {

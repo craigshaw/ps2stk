@@ -6,7 +6,7 @@ A local browser application for managing PS2 memory card images. Open up to two 
 
 Repository: [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk).
 
-The first version targets standard 8 MiB images with or without ECC spare bytes and compatibility with PCSX2 and MemCard PRO2. Card processing and Undo/Redo stay in memory during the current page session.
+The first version targets standard PS2 memory card images and compatibility with PCSX2 and MemCard PRO2. Card processing and Undo/Redo stay in memory during the current page session.
 
 ## Project status
 
@@ -45,17 +45,18 @@ npm run dev
 ## Use the explorer
 
 1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
-2. Choose **Open memory card** and select a complete 8 MiB image, with or without ECC, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
+2. Choose **Open memory card** and select a complete standard PS2 image, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
 3. Select a save to inspect its icon and files. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
 4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
 5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export save → Raw files to folder**.
-6. Use **Save card** to retain the opened layout and filename, or **Save as** to choose an ECC layout and extension. Downloads leave the original image unchanged.
+6. Select the pencil beside a card name to edit its filename in place. The extension stays fixed. Press Enter or select the check to apply the name; Escape cancels.
+7. Use **Save card** to download with the displayed filename, or **Save as** to choose `.ps2`, `.mc2`, or `.bin`. Each download uses the format that matches its extension. Downloads leave the original image unchanged.
 
 **Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export save** offers PSU (default), MAX, signed PS2 PSV, and **Raw files to folder** for one selected save. PSU/MAX/PSV downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV export requires acknowledgement because it omits extended attributes, opaque card metadata, and dot entries. It preserves file bytes, names, timestamps, and mode flags. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
 
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
 
-New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`, without ECC spare bytes. Save as can change the output layout and extension. A new card shows Download needed until a whole-card download is offered, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
+New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`. A new card shows Download needed until a whole-card download is offered, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
 
 Firefox and Safari retain editing and individual file/card downloads. The interface explains when folder dumping is unavailable. Nothing is restored after a refresh. A browser leave-page warning is requested for undownloaded edits, but it is not recovery.
 
@@ -103,8 +104,8 @@ The whole batch succeeds or fails. Replace uses the entire source save, with no 
 
 ## Session API
 
-`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, or use `create(slot, filename)` for an empty card, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
+`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, or use `create(slot, filename)` for an empty card, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `renameCard` changes only the download filename stem, with no card-byte or Undo-history change. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
 
-`prepareDownload` defaults to the original filename and current layout. Optional `layout` and `extension` produce Save as output without changing the working card. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared revision after initiating its download.
+`prepareDownload` defaults to the displayed filename and derives output layout from its supported extension. Its optional `extension` produces Save as output without changing the working card. Unknown input extensions retain the card's current layout. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision and displayed filename at preparation time, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared state after initiating its download.
 
 The engine has no dependency on the sibling repository, browser APIs, or reference tools. Personal cards and extracted files must remain outside Git. See [fixture provenance](tests/fixtures/README.md) for synthetic test data and independent verification commands.

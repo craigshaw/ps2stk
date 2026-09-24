@@ -7,7 +7,7 @@ Deployment update, 2026-09-22: the user confirmed the Pages site working at [ps2
 ## Delivered
 
 - Dark desktop explorer with up to two cards, comfortable icon grid, list view, title/directory search, batch selection, and a collapsible right inspector.
-- Visible card identity, layout, free capacity, download status, and per-card Undo/Redo. Copy names its destination explicitly. A batch review shows source/destination details and defaults conflicts to Skip.
+- Visible card identity, free capacity, download status, and per-card Undo/Redo. Copy names its destination explicitly. A batch review shows source/destination details and defaults conflicts to Skip.
 - Complete-save copy, replacement and deletion; individual file replacement; exact raw file downloads; and whole-card Save/Save as. These use the existing immutable engine and session API. No card mutation code was added to React.
 - File-tree folder dumps in browsers with `showDirectoryPicker`. Preflight rejects unsafe names and case/Unicode-normalization collisions. Dumps require a new save folder and never silently merge or overwrite. A failed write reports the number of completed files and whether partial output can remain.
 - Third-card slot choice, validation before replacing an open card, discard confirmation, download revision acknowledgement, and a leave-page warning request. Refresh starts a new, empty session.
@@ -63,3 +63,39 @@ installed Safari release has passed.
 - Folder writes are external side effects, cannot be undone by card Undo, and are not atomic. A failed dump can leave a partial new output folder. No automatic renaming or overwrite is attempted.
 - The build reports Lucide's client-directive warning in this client-only SPA and a size advisory for the lazy Three.js chunk (about 132 kB gzip). Neither is a build failure. Further performance work belongs to measured release validation.
 - PCSX2 and PS2/MemCard PRO2 game-load checks remain deferred as agreed. Cloudflare Pages configuration and deployment have not started.
+
+## Follow-up: card download formats
+
+On 2026-09-23, the user set the whole-card format by filename extension. Save card
+keeps the opened filename; Save as selects only `.ps2`, `.mc2`, or `.bin`.
+`.ps2` downloads include calculated ECC spare bytes. `.mc2` and `.bin` downloads
+omit them. Input layout is still detected from bytes. The working card, history,
+and original input file remain unchanged by download conversion. The card pane
+and Save as dialog no longer expose ECC or a layout control. Invalid image
+messages also avoid the ECC term.
+
+Validation after the change: `npm run check` passed 136 unit/CLI tests,
+TypeScript, and the production build. `npm run test:browser` passed 52 tests
+across Chromium, Firefox, and WebKit, with two expected folder-access skips.
+Six focused browser checks passed after the final Save as copy change. The
+independent mymc+ reference suite passed structural, metadata, file-byte, and
+ECC checks in both layouts. The Save as dialog was visually inspected at 1440
+and 390 pixels; the narrow dialog had no horizontal overflow. Destination
+game-load tests remain part of milestone 4.
+
+## Follow-up: inline card filename editing
+
+On 2026-09-24, the card pane gained an inline filename editor. It edits the
+filename stem and keeps the extension fixed. Save card uses the displayed name;
+Save as uses that stem with the selected extension. A rename changes download
+status and close protection, but leaves card bytes and Undo history unchanged.
+The editor supports keyboard entry, Enter to apply, Escape to cancel, and
+inline validation of unsafe filenames.
+
+Validation after the change: `npm run check` passed 139 unit/CLI tests,
+TypeScript, and the production build. `npm run test:browser` passed 55 tests
+across Chromium, Firefox, and WebKit, with two expected folder-access skips.
+The new browser check verified both download filenames and the binary layout of
+`.ps2` and `.bin` downloads. The editor was visually inspected at 1440 and 390
+pixels; automated checks found no overflow at 390 and with two cards at 850
+pixels. Destination game-load tests remain part of milestone 4.

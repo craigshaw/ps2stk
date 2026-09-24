@@ -26,7 +26,8 @@ Use Node.js 24 and `npm ci`. Run `npm run check` for TypeScript checks, unit tes
 - Keep cards, edits, and Undo/Redo history in memory for the current page session only.
 - Support complete-save copy and deletion, individual file replacement, raw file/save dumps, and complete edited-card downloads.
 - The approved expansion adds PSU, MAX, SPS, XPS, CBS, and PS2 PSV package imports; PSU/MAX export first, then signed PSV export. All listed imports and PSU/MAX/PSV exports are implemented; PS3 transfer and game-load tests remain pending. Follow the scope, metadata policy, bounds, and independent-validation requirements in `docs/save-format-plan.md`.
-- Preserve the source image's layout and extension by default. Explicit Save as can change the ECC layout and select .ps2, .mc2, or .bin.
+- Preserve the source filename by default. Whole-card downloads use the filename extension to select the layout: .ps2 includes ECC spare bytes, while .mc2 and .bin omit them. Save as selects among these extensions; do not expose ECC choices in the UI.
+- Allow inline editing of the memory card image filename stem. Keep its extension; a rename changes download status but not card bytes or Undo history.
 - Keep a save distinct from a save file and a whole memory card image, as defined in `CONTEXT.md`.
 - Do not add a backend, accounts, persistent workspaces, ZIP save packages, damaged-card recovery, or game-specific editing without a scope change from the user.
 

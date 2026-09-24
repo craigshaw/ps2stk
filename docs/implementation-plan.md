@@ -65,7 +65,7 @@ Implemented in the card engine, session API, and CLI harness. Browser controls b
 - Add complete-save deletion, copy with explicit Skip/Replace choices, and individual file replacement, including different-size replacements.
 - Calculate required destination space using allocation and directory overhead, including space reclaimed by an approved replacement.
 - Plan a batch before mutation, then apply it to a candidate working copy. Commit only after the whole operation succeeds and the candidate validates.
-- Add ECC layout conversion and the agreed Save/Save as defaults. Treat filename extensions separately from binary layout.
+- Add ECC layout conversion and the agreed Save/Save as defaults. The 2026-09-23 revision maps output extension to layout: `.ps2` includes ECC; `.mc2` and `.bin` omit it. Input layout is still detected from bytes.
 - Add session-only Undo/Redo with one step per successful user action. Bound memory use and document the limit before implementing it.
 - Track each card's current revision and the revision last offered as a complete-card download. A raw file dump does not save the card. Browser download initiation must not be represented as verified disk persistence.
 - Resolve timestamp, attribute, copy-protection, and unusual allocation cases against the format and compatibility evidence. Propose conservative preservation of unrelated metadata; do not silently strip flags or rename saves to avoid conflicts.
@@ -87,6 +87,7 @@ Implemented. See the [milestone 3 validation record](./milestone-3-validation.md
 - Build the approved dark desktop layout: one or two card panes, comfortable icon grid with a list alternative, and a collapsible inspector on the right.
 - Connect save selection and batch selection to card operations. Make the active card and copy destination explicit.
 - Show capacity, changed status, directory identity, and file details without treating every save as a separate game.
+- Let users edit the whole-card download filename inline while keeping its extension. A name change affects download status and close protection, without changing card bytes or Undo history.
 - Adapt the icon parser/renderer. Animate the inspector and hovered or keyboard-focused tile only. Include pause, reduced motion, and fallback previews.
 - Check animation fidelity against the real icon format; the existing renderer simplifies keyframe playback. Dispose of unused rendering resources when cards or selections change.
 - Add direct binary file downloads and complete-card downloads. Add full-save folder dumping in browsers with directory write support.

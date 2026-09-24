@@ -5,7 +5,11 @@ import type { CardLayout, SaveSelection } from '../core/index';
 
 export type CardSlot = 0 | 1;
 export type CardExtension = '.ps2' | '.mc2' | '.bin';
-export interface SaveOptions { readonly layout?: CardLayout; readonly extension?: CardExtension }
+export interface SaveOptions { readonly extension?: CardExtension }
+export function cardFilenameParts(filename: string): { stem: string; extension: string } {
+  const extension = filename.match(/\.[^.]+$/)?.[0] ?? '';
+  return { stem: filename.slice(0, filename.length - extension.length), extension };
+}
 export interface CardDownload {
   readonly bytes: Uint8Array;
   readonly filename: string;
@@ -24,6 +28,8 @@ interface Snapshot { revision: number; order: number; bytes: Uint8Array }
 interface OpenCard {
   card: MemoryCard;
   filename: string;
+  baselineFilename: string;
+  lastOfferedFilename: string | null;
   identity: number;
   revision: number;
   baselineRevision: number | null;
@@ -38,7 +44,7 @@ const MAX_CARD_BYTES = 8650752;
 /** Page-session state only. The UI owns confirmations and browser download I/O. */
 export class CardSession {
   readonly #cards = new Map<CardSlot, OpenCard>();
-  readonly #downloads = new WeakMap<CardDownload, { slot: CardSlot; identity: number; revision: number }>();
+  readonly #downloads = new WeakMap<CardDownload, { slot: CardSlot; identity: number; revision: number; cardFilename: string }>();
   readonly historyLimitBytes: number;
   #sequence = 0;
   #evictions = 0;
@@ -63,7 +69,8 @@ export class CardSession {
     return card;
   }
   #dirty(card: OpenCard): boolean {
-    return card.revision !== (card.lastOfferedRevision ?? card.baselineRevision);
+    return card.revision !== (card.lastOfferedRevision ?? card.baselineRevision) ||
+      card.filename !== (card.lastOfferedFilename ?? card.baselineFilename);
   }
 
   open(slot: CardSlot, bytes: Uint8Array, filename: string): void {
@@ -71,7 +78,8 @@ export class CardSession {
     if (this.#cards.has(slot)) throw new CardError('conflict', 'Close the existing card before opening another in this slot.');
     const card = new MemoryCard(bytes);
     const revision = ++this.#sequence;
-    this.#cards.set(slot, { card, filename: filename.split(/[\\/]/).at(-1) || 'memory-card.ps2',
+    const name = filename.split(/[\\/]/).at(-1) || 'memory-card.ps2';
+    this.#cards.set(slot, { card, filename: name, baselineFilename: name, lastOfferedFilename: null,
       identity: revision, revision, baselineRevision: revision, lastOfferedRevision: null, undo: [], redo: [] });
   }
 
@@ -143,6 +151,24 @@ export class CardSession {
     return this.#commit(slot, this.#get(slot).card.withLayout(layout));
   }
 
+  /** Change only the host filename stem. Save as remains the file type control. */
+  renameCard(slot: CardSlot, stem: string): boolean {
+    const card = this.#get(slot);
+    if (!stem || stem.length > 120 || stem.trim() !== stem) {
+      throw new CardError('invalid-operation', 'Use 1 to 120 characters without leading or trailing spaces.');
+    }
+    if (/[\x00-\x1f\x7f<>:"/\\|?*]/.test(stem) || stem.endsWith('.')) {
+      throw new CardError('invalid-operation', 'Remove reserved filename characters and any final dot.');
+    }
+    if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(stem)) {
+      throw new CardError('invalid-operation', 'Choose another name. This one is reserved by some systems.');
+    }
+    const filename = stem + cardFilenameParts(card.filename).extension;
+    if (filename === card.filename) return false;
+    card.filename = filename;
+    return true;
+  }
+
   #restore(slot: CardSlot, direction: 'undo' | 'redo'): boolean {
     const card = this.#get(slot);
     const from = card[direction], to = card[direction === 'undo' ? 'redo' : 'undo'];
@@ -168,8 +194,10 @@ export class CardSession {
       const stem = filename.replace(/\.[^.]*$/, '') || 'memory-card';
       filename = stem + options.extension;
     }
-    const download = Object.freeze({ bytes: card.card.export(options.layout), filename, revision: card.revision });
-    this.#downloads.set(download, { slot, identity: card.identity, revision: card.revision });
+    const extension = filename.match(/\.[^.]+$/)?.[0].toLowerCase();
+    const layout = extension === '.ps2' ? 'ecc' : extension === '.mc2' || extension === '.bin' ? 'data' : card.card.layout;
+    const download = Object.freeze({ bytes: card.card.export(layout), filename, revision: card.revision });
+    this.#downloads.set(download, { slot, identity: card.identity, revision: card.revision, cardFilename: card.filename });
     return download;
   }
 
@@ -179,7 +207,9 @@ export class CardSession {
     if (!prepared || this.#cards.get(prepared.slot)?.identity !== prepared.identity) {
       throw new CardError('invalid-operation', 'The download does not belong to a currently open card.');
     }
-    this.#get(prepared.slot).lastOfferedRevision = prepared.revision;
+    const card = this.#get(prepared.slot);
+    card.lastOfferedRevision = prepared.revision;
+    card.lastOfferedFilename = prepared.cardFilename;
     this.#downloads.delete(download);
   }
 }
