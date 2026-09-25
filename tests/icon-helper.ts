@@ -52,6 +52,9 @@ export function model(texture = false): Uint8Array {
 }
 
 import { MemoryCard } from "../src/core/index";
+import { SaveContent } from "../src/core/index";
+import type { SaveNode } from "../src/core/index";
+import { makeRecord } from "../src/core/save";
 import { fixture, raw } from "./helpers";
 /** Entirely synthetic card and preview assets, kept out of the application. */
 export function animatedCard(): Uint8Array {
@@ -70,6 +73,9 @@ export function animatedCard(): Uint8Array {
   sys.set(new TextEncoder().encode("PS2D"));
   sys.set(new TextEncoder().encode("Synthetic animated icon"), 192);
   sys.set(new TextEncoder().encode("icon.ico"), 260);
+  sysView.setUint32(12, 64, true);
+  for (const [corner, rgb] of [[10, 20, 30], [40, 50, 60], [70, 80, 90], [100, 110, 120]].entries())
+    rgb.forEach((value, channel) => sysView.setUint32(16 + corner * 16 + channel * 4, value, true));
   for (const at of [176, 180, 184]) sysView.setFloat32(at, 1, true);
   const icon = model(),
     view = new DataView(icon.buffer);
@@ -84,6 +90,59 @@ export function animatedCard(): Uint8Array {
     .replaceFile("/SAVE-A/icon.sys", sys)
     .replaceFile("/SAVE-A/icon.ico", icon)
     .export();
+}
+
+/** Synthetic save with three icon.sys roles and one extra icon model. */
+export function iconGalleryCard(): Uint8Array {
+  const sys = new Uint8Array(964);
+  const view = new DataView(sys.buffer);
+  sys.set(new TextEncoder().encode("PS2D"));
+  sys.set(new TextEncoder().encode("Synthetic icon gallery"), 192);
+  for (const [offset, name] of [[260, "icon.ico"], [324, "copy.ico"], [388, "del.ico"]] as const)
+    sys.set(new TextEncoder().encode(name), offset);
+  for (const at of [176, 180, 184]) view.setFloat32(at, 1, true);
+  const iconBytes = (index: number) => {
+    const bytes = model();
+    const iconView = new DataView(bytes.buffer);
+    for (let vertex = 0; vertex < 3; vertex++) {
+      for (let shape = 0; shape < 2; shape++) {
+        const at = 20 + vertex * 32 + shape * 8;
+        iconView.setInt16(at, vertex === 0 ? -4096 : vertex === 1 ? 4096 : 0, true);
+        iconView.setInt16(at + 2, vertex === 2 ? 4096 : -4096, true);
+        iconView.setInt16(at + 4, shape === 1 ? 4096 : 0, true);
+      }
+      bytes[20 + vertex * 32 + 28] = 32 + index * 32;
+    }
+    return bytes;
+  };
+  const file = (name: string, bytes: Uint8Array): SaveNode => {
+    const record = makeRecord(name, false);
+    new DataView(record.buffer).setUint32(4, bytes.length, true);
+    return { kind: "file" as const, record, bytes };
+  };
+  const children: SaveNode[] = [
+    file("icon.sys", sys),
+    ...["icon.ico", "copy.ico", "del.ico"].map((name, index) => file(name, iconBytes(index))),
+  ];
+  const extraDirectory = makeRecord("BONUS", true);
+  new DataView(extraDirectory.buffer).setUint32(4, 3, true);
+  children.push({
+    kind: "directory",
+    record: extraDirectory,
+    dot: makeRecord(".", true),
+    dotdot: makeRecord("..", true),
+    children: [file("extra.ico", iconBytes(3))],
+  });
+  const record = makeRecord("SAVE-ICONS", true);
+  new DataView(record.buffer).setUint32(4, children.length + 2, true);
+  const save = new SaveContent({
+    kind: "directory",
+    record,
+    dot: makeRecord(".", true),
+    dotdot: makeRecord("..", true),
+    children,
+  });
+  return MemoryCard.create().importSave(save).export();
 }
 
 /** One textured triangle with a zero-key static track and no reserved pair. */

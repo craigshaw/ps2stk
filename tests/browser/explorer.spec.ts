@@ -464,7 +464,7 @@ test("explicit whole-save replacement and capacity failure preserve the correct 
   expect(await downloaded(await output)).toEqual(changed.export());
 });
 
-test("icons animate only on demand, pause, and stop for reduced motion", async ({
+test("card icons stay still; inspector animation pauses and respects reduced motion", async ({
   page,
 }) => {
   const { animatedCard } = await import("../icon-helper");
@@ -484,9 +484,15 @@ test("icons animate only on demand, pause, and stop for reduced motion", async (
   await page.waitForTimeout(150);
   expect(await pixels(tile)).toBe(still);
   await page.locator(".save-select").hover();
-  await expect.poll(() => pixels(tile)).not.toBe(still);
+  await page.waitForTimeout(150);
+  expect(await pixels(tile)).toBe(still);
   await page.locator(".save-select").click();
+  expect(await pixels(tile)).toBe(still);
   const preview = page.locator(".large-preview canvas");
+  const background = page.locator(".large-preview .icon-sys-background");
+  await expect(background).toHaveCSS("opacity", "0.5");
+  await expect(background).toHaveCSS("background-image", /rgb\(10, 20, 30\).*rgb\(40, 50, 60\)/);
+  await expect(background.locator("span")).toHaveCSS("background-image", /rgb\(70, 80, 90\).*rgb\(100, 110, 120\)/);
   await expect
     .poll(() => preview.evaluate((c: HTMLCanvasElement) => c.width))
     .toBeGreaterThan(1);
@@ -507,6 +513,50 @@ test("icons animate only on demand, pause, and stop for reduced motion", async (
   await page.waitForTimeout(150);
   expect(await pixels(tile)).toBe(reduced);
   expect(errors).toEqual([]);
+});
+
+test("icon viewer shows each referenced icon and extra models", async ({ page }) => {
+  const { iconGalleryCard } = await import("../icon-helper");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await open(page, iconGalleryCard(), "icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  const openViewer = page.getByRole("button", { name: "View icons (4)" });
+  await openViewer.focus();
+  await page.keyboard.press("Enter");
+  const viewer = page.getByRole("dialog", { name: "View icons" });
+  await expect(viewer.getByRole("button", { name: "Normal icon.ico" })).toHaveAttribute("aria-pressed", "true");
+  const canvas = viewer.locator("canvas");
+  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.width)).toBeGreaterThan(1);
+  const moving = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement, before) => element.toDataURL() !== before, moving)).toBe(true);
+  await viewer.getByRole("button", { name: "Pause icon animation" }).click();
+  await page.waitForTimeout(100);
+  const normal = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+  await page.waitForTimeout(150);
+  expect(await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL())).toBe(normal);
+  await viewer.getByRole("button", { name: "Copy copy.ico" }).click();
+  await expect(viewer.getByText("copy.ico", { exact: true }).first()).toBeVisible();
+  await expect(viewer.getByRole("img", { name: /Copy icon/ })).toBeVisible();
+  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement, before) => element.toDataURL() !== before, normal)).toBe(true);
+  await viewer.getByRole("button", { name: "Delete del.ico" }).click();
+  await expect(viewer.getByRole("img", { name: /Delete icon/ })).toBeVisible();
+  await viewer.getByRole("button", { name: "Other BONUS/extra.ico" }).click();
+  await expect(viewer.getByRole("img", { name: /Other icon/ })).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(viewer.getByRole("button", { name: "Play icon animation" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(viewer).toHaveCount(0);
+  await expect(openViewer).toBeFocused();
+  await page.getByRole("button", { name: "copy.ico" }).click();
+  await page.getByRole("button", { name: "View icon", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "View icons" }).getByRole("button", { name: "Copy copy.ico" })).toHaveAttribute("aria-pressed", "true");
+  const resized = page.getByRole("dialog", { name: "View icons" }).locator("canvas");
+  const ratioError = () => resized.evaluate((element: HTMLCanvasElement) =>
+    Math.abs(element.width / element.height - element.clientWidth / element.clientHeight));
+  await expect.poll(ratioError).toBeLessThan(0.01);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(ratioError).toBeLessThan(0.01);
 });
 
 test("fuller card panes scroll without clipping save labels at a narrow desktop width", async ({

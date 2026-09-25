@@ -11,6 +11,7 @@ interface Preview {
   material: THREE.ShaderMaterial;
   texture: THREE.DataTexture;
   group: THREE.Group;
+  view: "overview" | "detail";
   model: IconModel;
   active: boolean;
   elapsed: number;
@@ -68,20 +69,12 @@ function tick(now: number): void {
 }
 function draw(p: Preview): void {
   const r = getRenderer();
-  const width = Math.max(
-    1,
-    Math.min(
-      640,
-      Math.round(p.canvas.clientWidth * Math.min(devicePixelRatio, 2)),
-    ),
-  );
-  const height = Math.max(
-    1,
-    Math.min(
-      640,
-      Math.round(p.canvas.clientHeight * Math.min(devicePixelRatio, 2)),
-    ),
-  );
+  const clientWidth = Math.max(1, p.canvas.clientWidth);
+  const clientHeight = Math.max(1, p.canvas.clientHeight);
+  // Cap both axes with one scale so the canvas and camera keep the same ratio.
+  const scale = Math.min(devicePixelRatio, 2, 640 / Math.max(clientWidth, clientHeight));
+  const width = Math.max(1, Math.round(clientWidth * scale));
+  const height = Math.max(1, Math.round(clientHeight * scale));
   if (p.canvas.width !== width || p.canvas.height !== height) {
     p.canvas.width = width;
     p.canvas.height = height;
@@ -103,7 +96,7 @@ function draw(p: Preview): void {
         output[i] = output[i]! + shape[i]! * w;
   });
   attr.needsUpdate = true;
-  p.group.rotation.y = 0.65 + p.elapsed * 0.4;
+  p.group.rotation.y = p.view === "overview" ? 0 : 0.65 + p.elapsed * 0.4;
   r.render(p.scene, p.camera);
   const ctx = p.canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
@@ -115,6 +108,7 @@ export function mountPreview(
   model: IconModel,
   sys: IconSys,
   fail: () => void,
+  view: "overview" | "detail" = "detail",
 ): { animate(value: boolean): void; dispose(): void } {
   getRenderer();
   const geometry = new THREE.BufferGeometry();
@@ -188,7 +182,11 @@ export function mountPreview(
   const scene = new THREE.Scene();
   scene.add(group);
   const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 200);
-  camera.position.set(0, radius * 0.1, radius * 3.4);
+  const distance = radius * 3.4;
+  // The overview angle was chosen by comparing the supplied PS2 screenshot.
+  const elevation =
+    view === "overview" ? THREE.MathUtils.degToRad(45) : Math.atan2(0.1, 3.4);
+  camera.position.set(0, Math.sin(elevation) * distance, Math.cos(elevation) * distance);
   camera.lookAt(0, 0, 0);
   const observer = new ResizeObserver(() => {
     preview.dirty = true;
@@ -203,6 +201,7 @@ export function mountPreview(
     scene,
     camera,
     group,
+    view,
     observer,
     fail,
     active: false,

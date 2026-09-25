@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  Eye,
   File,
   FilePlus2,
   FolderOpen,
@@ -54,10 +55,12 @@ import {
 } from "./model";
 import type { SaveInfo } from "./model";
 import { IconPreview } from "./IconPreview";
+import { IconViewer } from "./IconViewer";
 import { Dialog } from "./Dialog";
 import { Brand } from "./Brand";
 
 type Modal =
+  | { type: "icons"; card: MemoryCard; info: SaveInfo; initialPath: string; returnFocus: HTMLElement }
   | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard }
   | { type: "export"; save: SaveContent }
   | { type: "choose" }
@@ -780,7 +783,6 @@ export function App() {
                             card={state.card}
                             info={info}
                             selected={selection[slot].includes(info.entry.name)}
-                            animate={!reduced}
                             onSelect={(e, toggle) =>
                               select(slot, info.entry.name, visible, e, toggle)
                             }
@@ -870,6 +872,7 @@ export function App() {
                         card={current.card}
                         info={inspected}
                         animate={!paused && !reduced}
+                        showBackground
                       />
                     </div>
                     <div className="preview-caption">
@@ -890,6 +893,20 @@ export function App() {
                         {paused || reduced ? "Paused" : "Pause"}
                       </button>
                     </div>
+                    {inspected.icons.some((icon) => icon.path) && (
+                      <button
+                        className="view-icon-button"
+                        onClick={(event) => setModal({
+                          type: "icons",
+                          card: current.card,
+                          info: inspected,
+                          initialPath: inspected.iconPath ?? inspected.icons.find((icon) => icon.path)!.path!,
+                          returnFocus: event.currentTarget,
+                        })}
+                      >
+                        <Eye /> View icons{inspected.icons.length > 1 ? ` (${inspected.icons.length})` : ""}
+                      </button>
+                    )}
                     <h2>{inspected.title}</h2>
                     <p className="directory-name">{inspected.entry.name}</p>
                     {selected.length > 1 && (
@@ -955,6 +972,11 @@ export function App() {
                           0x{selectedFile.attributes.toString(16)}
                         </p>
                         <div className="file-actions">
+                          {inspected.icons.some((icon) => icon.path === selectedFile.path) && (
+                            <button onClick={(event) => setModal({ type: "icons", card: current.card, info: inspected, initialPath: selectedFile.path, returnFocus: event.currentTarget })}>
+                              <Eye /> View icon
+                            </button>
+                          )}
                           <button onClick={() => rawDump(active, selectedFile)}>
                             <Download />
                             Dump file
@@ -1014,7 +1036,8 @@ export function App() {
       )}
       {modal && (
         <Dialog
-          returnFocus={modal.type === "import" ? document.getElementById(`import-save-${modal.slot}`) : null}
+          className={modal.type === "icons" ? "icon-dialog" : undefined}
+          returnFocus={modal.type === "import" ? document.getElementById(`import-save-${modal.slot}`) : modal.type === "icons" ? modal.returnFocus : null}
           title={
             {
               choose: "Both card slots are in use",
@@ -1026,11 +1049,22 @@ export function App() {
               save: "Save memory card as",
               import: "Review save import",
               export: "Export save",
+              icons: "View icons",
             }[modal.type]
           }
           onClose={() => { if (!busyRef.current) setModal(null); }}
           busy={busy}
         >
+          {modal.type === "icons" && (
+            <IconViewer
+              card={modal.card}
+              info={modal.info}
+              initialPath={modal.initialPath}
+              paused={paused}
+              reduced={reduced}
+              onPauseChange={setPaused}
+            />
+          )}
           {modal.type === "import" && <ImportReview save={modal.save} format={modal.format} card={modal.expected}
             destination={`Card ${letter(modal.slot)}: ${cards[modal.slot]?.filename ?? 'Closed card'}`}
             onApply={(choice) => act(() => {
@@ -1361,35 +1395,28 @@ function SaveTile({
   card,
   info,
   selected,
-  animate,
   onSelect,
 }: {
   card: MemoryCard;
   info: SaveInfo;
   selected: boolean;
-  animate: boolean;
   onSelect(event: MouseEvent, toggle: boolean): void;
 }) {
-  const [hovered, setHovered] = useState(false),
-    [focused, setFocused] = useState(false);
   return (
     <div
       className={`save-tile ${selected ? "selected" : ""}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <button
         className="save-select"
         aria-label={`Select ${info.title} (${info.entry.name})`}
         aria-pressed={selected}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         onClick={(e) => onSelect(e, false)}
       >
         <IconPreview
           card={card}
           info={info}
-          animate={animate && (hovered || focused)}
+          animate={false}
+          view="overview"
         />
         <span className="save-label">
           <strong>{info.title}</strong>

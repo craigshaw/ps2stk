@@ -22,7 +22,13 @@ export interface SaveInfo {
   title: string;
   sys: IconSys | null;
   iconPath: string | null;
+  icons: IconChoice[];
   issue: string | null;
+}
+export interface IconChoice {
+  label: string;
+  filename: string;
+  path: string | null;
 }
 export function saveInfo(card: Pick<MemoryCard, "readFile">, entry: CardEntry): SaveInfo {
   let sys: IconSys | null = null;
@@ -32,20 +38,30 @@ export function saveInfo(card: Pick<MemoryCard, "readFile">, entry: CardEntry): 
     );
     if (!config) throw new Error("No icon.sys.");
     sys = parseIconSys(card.readFile(config.path));
-    const icon =
-      entry.children.find((e) => e.kind === "file" && e.name === sys!.normal) ??
-      entry.children.find(
-        (e) =>
-          e.kind === "file" &&
-          e.name.toLowerCase() === sys!.normal.toLowerCase(),
-      );
-    if (!icon) throw new Error("The icon model is missing.");
+    const files = entry.children.filter((e) => e.kind === "file");
+    const find = (name: string) =>
+      files.find((e) => e.name === name) ??
+      files.find((e) => e.name.toLowerCase() === name.toLowerCase());
+    const icons: IconChoice[] = ([
+      ["Normal", sys.normal],
+      ["Copy", sys.copy],
+      ["Delete", sys.delete],
+    ] as const)
+      .filter(([, name]) => !!name)
+      .map(([label, filename]) => ({ label, filename, path: find(filename)?.path ?? null }));
+    const referenced = new Set(icons.map((icon) => icon.path));
+    for (const file of flattenFiles(entry)) {
+      if (/\.(ico|icn)$/i.test(file.name) && !referenced.has(file.path))
+        icons.push({ label: "Other", filename: file.path.slice(entry.path.length + 1), path: file.path });
+    }
+    const iconPath = icons.find((icon) => icon.label === "Normal")?.path ?? null;
     return {
       entry,
       title: sys.title || entry.name,
       sys,
-      iconPath: icon.path,
-      issue: null,
+      iconPath,
+      icons,
+      issue: iconPath ? null : "The normal icon model is missing.",
     };
   } catch (error) {
     return {
@@ -53,6 +69,7 @@ export function saveInfo(card: Pick<MemoryCard, "readFile">, entry: CardEntry): 
       title: sys?.title || entry.name,
       sys,
       iconPath: null,
+      icons: [],
       issue: error instanceof Error ? error.message : "Preview unavailable.",
     };
   }

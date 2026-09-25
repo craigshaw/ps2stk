@@ -2,9 +2,13 @@
 export interface IconSys {
   title: string;
   normal: string;
+  copy: string;
+  delete: string;
   lightDirs: number[][];
   lightColors: number[][];
   ambient: number[];
+  backgroundOpacity: number;
+  backgroundColors: number[][];
 }
 export interface Track {
   shape: number;
@@ -50,20 +54,38 @@ export function parseIconSys(bytes: Uint8Array): IconSys {
     });
   const titleBytes = bytes.subarray(192, 260),
     split = dv.getUint16(6, true);
+  const backgroundOpacity = dv.getUint32(12, true);
+  const backgroundColors = Array.from({ length: 4 }, (_, corner) =>
+    Array.from({ length: 3 }, (_, channel) =>
+      dv.getUint32(16 + corner * 16 + channel * 4, true),
+    ),
+  );
+  valid(
+    backgroundOpacity <= 128 &&
+      backgroundColors.every((corner) => corner.every((value) => value <= 255)),
+    "Invalid icon background.",
+  );
   const title =
     split > 0 && split < 68
       ? [text(titleBytes.subarray(0, split)), text(titleBytes.subarray(split))]
           .filter(Boolean)
           .join(" ")
       : text(titleBytes);
-  const nameBytes = bytes.subarray(260, 324),
-    end = nameBytes.indexOf(0);
+  const iconName = (offset: number) => {
+    const nameBytes = bytes.subarray(offset, offset + 64);
+    const end = nameBytes.indexOf(0);
+    return String.fromCharCode(...nameBytes.subarray(0, end < 0 ? 64 : end));
+  };
   return {
     title,
-    normal: String.fromCharCode(...nameBytes.subarray(0, end < 0 ? 64 : end)),
+    normal: iconName(260),
+    copy: iconName(324),
+    delete: iconName(388),
     lightDirs: [80, 96, 112].map(vector),
     lightColors: [128, 144, 160].map(vector),
     ambient: vector(176),
+    backgroundOpacity,
+    backgroundColors,
   };
 }
 export function parseIcon(bytes: Uint8Array): IconModel {
@@ -143,7 +165,8 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     const shape = u32(),
       keyCount = u32();
     valid(
-      shape < count && !seen.has(shape) && keyCount <= 4096,
+      (shape < count || (count === 1 && shape === 1 && keyCount === 1)) &&
+        !seen.has(shape) && keyCount <= 4096,
       "Invalid icon animation track.",
     );
     seen.add(shape);
@@ -170,7 +193,9 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     }
     if (shape === 0 && !keys.some((k) => k.time === 0))
       keys.unshift({ time: 0, value: 1 });
-    tracks.push({ shape, keys });
+    // Burnout 3 uses shape ID 1 with one shape and no keyframes. The track
+    // cannot change geometry, so keep the one stored shape as the fallback.
+    if (shape < count) tracks.push({ shape, keys });
   }
   let texture: Uint8Array | null = null;
   if (textureType & 4) {

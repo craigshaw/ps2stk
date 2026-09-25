@@ -7,12 +7,14 @@ export function Dialog({
   onClose,
   returnFocus,
   busy = false,
+  className,
 }: {
   title: string;
   children: ReactNode;
   onClose(): void;
   busy?: boolean;
   returnFocus?: HTMLElement | null;
+  className?: string | undefined;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const close = useRef(onClose);
@@ -30,6 +32,7 @@ export function Dialog({
   return (
     <dialog
       ref={ref}
+      className={className}
       aria-labelledby="dialog-title"
       onCancel={(e) => {
         e.preventDefault();

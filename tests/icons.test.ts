@@ -50,8 +50,24 @@ test("icon.sys title split is a byte offset, trims NUL and preserves icon filena
   new DataView(bytes.buffer).setUint16(6, 2, true);
   bytes.set([0x82, 0xa0, 0x82, 0xa2, 0], 192);
   bytes.set(new TextEncoder().encode("ICON.ICN"), 260);
+  bytes.set(new TextEncoder().encode("COPY.ICN"), 324);
+  bytes.set(new TextEncoder().encode("DELETE.ICN"), 388);
   assert.equal(parseIconSys(bytes).title, "あ い");
   assert.equal(parseIconSys(bytes).normal, "ICON.ICN");
+  assert.equal(parseIconSys(bytes).copy, "COPY.ICN");
+  assert.equal(parseIconSys(bytes).delete, "DELETE.ICN");
+  const view = new DataView(bytes.buffer);
+  view.setUint32(12, 64, true);
+  view.setUint32(16, 20, true);
+  view.setUint32(20, 70, true);
+  view.setUint32(24, 90, true);
+  assert.equal(parseIconSys(bytes).backgroundOpacity, 64);
+  assert.deepEqual(parseIconSys(bytes).backgroundColors[0], [20, 70, 90]);
+  view.setUint32(12, 129, true);
+  assert.throws(() => parseIconSys(bytes), /background/);
+  view.setUint32(12, 64, true);
+  view.setUint32(16, 256, true);
+  assert.throws(() => parseIconSys(bytes), /background/);
   bytes[0] = 0;
   assert.throws(() => parseIconSys(bytes));
 });
@@ -75,4 +91,20 @@ test('zero-keyframe static tracks consume no reserved pair and retain the follow
   const parsed = parseIcon(mixed);
   assert.equal(parsed.tracks[1]!.keys.length, 5);
   assert.equal(parsed.texture!.length, 65536);
+});
+
+test('a single-shape icon can carry Burnout 3\'s unused shape ID 1 track', async () => {
+  const { staticModel } = await import('./icon-helper');
+  const original = staticModel();
+  const bytes = new Uint8Array(original.length + 8);
+  bytes.set(original.subarray(0, 120));
+  bytes.set(original.subarray(120), 128);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(112, 1, true);
+  view.setUint32(116, 1, true);
+  const icon = parseIcon(bytes);
+  assert.deepEqual(shapeWeights(icon, 0), [1]);
+  assert.equal(icon.texture!.length, 65536);
+  view.setUint32(112, 2, true);
+  assert.throws(() => parseIcon(bytes), /track/);
 });

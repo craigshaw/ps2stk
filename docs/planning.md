@@ -12,6 +12,8 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Import established PS2 save packages and export selected saves in the formats defined below, in addition to raw dumps and whole-card output.
 - Save complete edited memory cards as binary PS2 memory card images. `.ps2` output includes calculated ECC spare bytes; `.mc2` and `.bin` output omit them.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
+- Let users view the Normal, Copy, and Delete icon models named in `icon.sys` at a larger size, plus extra `.ico` or `.icn` files in the save. A save file can open its matching icon directly. Preserve pause and reduced-motion behaviour. Added by user request on 2026-09-24.
+- Match the PS2 Browser's card-overview view of each Normal icon in the card panes. When a save is selected, show its animated Normal icon in the inspector, including the selected-screen background specified by `icon.sys`. The 2026-09-24 investigation and remaining camera uncertainty are recorded in [icon Browser research](./icon-browser-research.md). Do this before returning to action-specific Copy and Delete animation.
 - Use the modern Orbital browser identity agreed on 2026-09-23: deep space, luminous blue selection, calm motion, and original save icons. This supersedes the earlier charcoal, translucent, blue-and-purple treatment.
 - Host on Cloudflare Pages.
 - Use Lucide for interface icons where needed.
@@ -222,7 +224,7 @@ The user confirmed on 2026-09-19 that the first release targets desktop and lapt
 
 ## Agreed icon animation behaviour
 
-The user confirmed on 2026-09-19 that the large inspector preview and the hovered or keyboard-focused save are the only icons that animate. Other save icons remain still so a full card is easy to scan.
+The user confirmed on 2026-09-19 that the large inspector preview and the hovered or keyboard-focused save were the only icons that animate. On 2026-09-24, they refined this direction: card-pane icons should use the PS2 Browser's overview view, and selecting a save should show its animated icon in the inspector. Card-pane previews should remain still, including on hover and keyboard focus.
 
 - Provide a pause control for the inspector preview.
 - Respect the user's reduced-motion setting.

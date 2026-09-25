@@ -235,6 +235,7 @@ and edge. Selection adds a stronger blue boundary, tinted fill, checkbox, and
 elliptical floor. Titles lead, directory names support, and byte/file counts
 follow. List mode uses the same information beside a smaller preview.
 The inspector enlarges the original icon and puts save actions before file rows.
+View icons opens a wider, bounded dialog with one large preview and compact model choices beneath it. The viewer and inspector blend the save's `icon.sys` background over their dark stages and share the pause state.
 
 ### Dialogs and feedback
 

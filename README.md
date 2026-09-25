@@ -46,7 +46,7 @@ npm run dev
 
 1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
 2. Choose **Open memory card** and select a complete standard PS2 image, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
-3. Select a save to inspect its icon and files. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
+3. Select a save to inspect its icon and files. Choose **View icons** to see a larger animated icon and switch between Normal, Copy, Delete, and extra icon files. You can also select an icon save file and choose **View icon**. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
 4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
 5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export save → Raw files to folder**.
 6. Select the pencil beside a card name to edit its filename in place. The extension stays fixed. Press Enter or select the check to apply the name; Escape cancels.
@@ -55,6 +55,8 @@ npm run dev
 **Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export save** offers PSU (default), MAX, signed PS2 PSV, and **Raw files to folder** for one selected save. PSU/MAX/PSV downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV export requires acknowledgement because it omits extended attributes, opaque card metadata, and dot entries. It preserves file bytes, names, timestamps, and mode flags. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
 
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
+
+The icon viewer uses the same local PS2 model renderer as the gallery. Its Pause control stops animation and rotation. Missing or unsupported models show a fallback; they do not affect card operations. Icon playback and lighting remain previews rather than a claim of console-exact rendering.
 
 New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`. A new card shows Download needed until a whole-card download is offered, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
 

@@ -99,3 +99,83 @@ The new browser check verified both download filenames and the binary layout of
 `.ps2` and `.bin` downloads. The editor was visually inspected at 1440 and 390
 pixels; automated checks found no overflow at 390 and with two cards at 850
 pixels. Destination game-load tests remain part of milestone 4.
+
+## Follow-up: expanded icon viewing
+
+On 2026-09-24, the explorer gained a larger icon viewer. It reads the Normal,
+Copy, and Delete filenames from `icon.sys`, as defined by the
+[icon.sys format](https://www.ps2savetools.com/documents/iconsys-format/).
+It also offers extra `.ico` and `.icn` files in the save. The inspector retains
+the Normal preview; View icons opens the viewer, and a selected icon save file
+can open directly in it. Choices with missing files show a fallback. The viewer
+uses the existing shared renderer, pause state, and reduced-motion setting.
+Card bytes, history, and download state are unchanged.
+
+`npm run check` passed TypeScript, 139 unit/CLI tests, and the production build.
+The full `npm run test:browser` run passed 58 tests across Chromium, Firefox,
+and WebKit, with the two existing folder-access skips. A final focused run
+passed in all three engines after adding nested extra-file discovery. A
+synthetic save checked three `icon.sys` roles, one nested extra icon, rendered
+pixel differences, animation, pause, reduced motion, keyboard entry and focus
+return. The local OutRun sample
+resolved `icon.ico`, `copy.ico`,
+and `del.ico`; desktop and 390-pixel viewer screenshots showed no horizontal
+overflow or page errors. The sample and screenshots were not added to the
+repository. These checks do not establish console-exact icon playback or
+destination game-load compatibility.
+
+The viewer's canvas initially stretched wide models because its width and
+height were capped separately. A shared scale now preserves the CSS aspect
+ratio. A focused Playwright check passed in Chromium, Firefox, and WebKit at
+desktop and 390-pixel widths. Corrected desktop and narrow screenshots of the
+local OutRun save showed no visible stretch or horizontal overflow.
+
+The local OutRun `icon.ico`, `copy.ico`, and `del.ico` files are byte-identical:
+each is 64,302 bytes and parses as one model shape with one static animation
+track. The viewer now identifies Copy or Delete files that match Normal. This
+sample contains no distinct file animation for those roles. The PS2 browser
+adds motion during copy or delete. That motion cannot be derived from the
+three icon files alone.
+
+The user then provided a PNG and a 41-second PS2 Browser recording on
+2026-09-24. They remain local reference files outside Git. The PNG shows the
+OutRun car from above in the card overview, while the recording shows the same
+car from the side in the save detail and action screens. The local `icon.sys`
+names `icon.ico` as Normal and stores lighting data; its four background
+colours are all zero. The grey overview background and bright selection glow
+are Browser presentation, while the car geometry and texture come from
+`icon.ico`. At that point, the application used one camera and a dark stage, so
+its view differed from both console screens. The user deferred further action
+animation work until a save with custom animation is available.
+
+## Follow-up: PS2 Browser icon views
+
+On 2026-09-25, the user selected a fixed 40-degree camera as the closest
+overview candidate from the render sweep. The card panes initially used that view and
+remain still on hover and keyboard focus. The inspector and enlarged viewer
+retain moving playback. The selected stages blend the bounded `icon.sys`
+corner colours at its stored opacity over the app's dark background. Burnout 3's
+one-shape, no-keyframe track with shape ID 1 now displays its stored shape;
+other out-of-range IDs still fail.
+
+`npm run check` passed TypeScript, 140 unit/CLI tests, and the production build.
+`npm run test:browser` passed 58 tests in Chromium, Firefox, and WebKit, with
+two expected folder-access skips. A focused three-engine run then passed after
+adding assertions for the selected background gradients. The local `TEST.ps2`
+rendered all three overview icons with no fallback. Desktop and 390-pixel
+screenshots showed no horizontal overflow. Selected stages matched the stored
+opacity values: OutRun 128, Sega Rally 64, and Burnout 0. The reference card
+and screenshots were not added to the app or test fixtures.
+
+The supplied PS2 screenshots support a visual comparison, not an exact camera
+matrix or playback rate. Its translucent selected backgrounds reveal the PS2
+Browser scene; this app blends them over its own dark stage. Custom Copy and
+Delete animation still awaits a suitable reference save.
+
+The user then compared angles with a temporary desktop slider and chose 45
+degrees. The slider was removed and the card-pane camera was fixed at 45
+degrees. `npm run typecheck` passed after this change. The earlier three-engine
+browser and screenshot results above were recorded at 40 degrees; they were
+not repeated for the five-degree adjustment, at the user's request to keep
+testing light. The 45-degree match is the user's visual judgement, not an
+independent measurement of the console camera.

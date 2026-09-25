@@ -163,6 +163,10 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .icon-preview::after { content: ''; position: absolute; bottom: 12%; left: 18%; width: 64%; height: 17%; border: 1px solid #43649a50; border-radius: 50%; opacity: .35; transform: scale(.84); transition: transform 180ms var(--ease), border-color 180ms var(--ease), opacity 180ms var(--ease); pointer-events: none; }
 .selected .icon-preview::after, .save-tile:focus-within .icon-preview::after { border-color: #99bbff; opacity: 1; transform: scale(1); }
 .icon-preview canvas { display: block; width: 100%; height: 100%; position: relative; z-index: 1; }
+.large-preview .icon-preview.with-save-background, .icon-viewer-stage .icon-preview.with-save-background { background: #060d1e; }
+.with-save-background::after { display: none; }
+.icon-sys-background { position: absolute; inset: 0; pointer-events: none; }
+.icon-sys-background > span { display: block; width: 100%; height: 100%; -webkit-mask-image: linear-gradient(to bottom, transparent, black); mask-image: linear-gradient(to bottom, transparent, black); }
 .invisible { visibility: hidden; }
 .icon-fallback { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #8ca9db; }
 .icon-fallback svg { width: 34px; height: 34px; stroke-width: 1; }
@@ -201,6 +205,7 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 @keyframes focus-settle { from { filter: blur(2px); } to { filter: blur(0); } }
 .preview-caption { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 10px; margin: 7px 0 20px; }
 .preview-caption button svg { width: 12px; height: 12px; }
+.view-icon-button { width: 100%; justify-content: center; margin: -7px 0 18px; font-size: 12px; }
 .inspector h2 { font-family: Sora, sans-serif; font-size: 17px; line-height: 1.45; font-weight: 450; margin: 4px 0 6px; overflow-wrap: anywhere; }
 .directory-name { font: 11px/1.6 ui-monospace, SFMono-Regular, monospace; color: #aebfdf; overflow-wrap: anywhere; }
 .save-details { margin: 18px 0; font-size: 11px; font-variant-numeric: tabular-nums; }
@@ -264,6 +269,21 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .error-banner button { align-self: start; margin-left: auto; padding: 4px; background: transparent; border: 0; }
 dialog { color: var(--text); background: #101b30; border: 1px solid #46608c; border-radius: 12px; padding: 26px; width: min(560px, calc(100% - 32px)); max-height: 85dvh; overflow: auto; }
 dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
+.icon-dialog { width: min(900px, calc(100% - 32px)); }
+.icon-viewer-stage { overflow: hidden; border-radius: 12px; background: #060d1e; }
+.icon-viewer-stage .icon-preview { height: min(58dvh, 580px); min-height: 300px; background: radial-gradient(ellipse at 50% 76%, #203f7455, transparent 66%); }
+.icon-viewer-stage .icon-preview::after { border-color: #668dcd; opacity: .65; transform: none; }
+.icon-viewer-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
+.icon-viewer-meta > div { display: grid; gap: 3px; min-width: 0; }
+.icon-viewer-meta strong { font-size: 13px; font-weight: 550; }
+.icon-viewer-meta span { color: var(--muted); font: 11px/1.5 ui-monospace, SFMono-Regular, monospace; overflow-wrap: anywhere; }
+.icon-viewer-meta .icon-duplicate-note { color: var(--muted); font-size: 11px; }
+.icon-viewer-meta button { flex-shrink: 0; }
+.icon-viewer-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 7px; margin-top: 18px; }
+.icon-viewer-choices button { display: grid; justify-content: start; gap: 3px; min-width: 0; text-align: left; background: #0b1427; }
+.icon-viewer-choices button[aria-pressed='true'] { background: var(--selection); border-color: #99bbff; }
+.icon-viewer-choices strong { font-size: 12px; font-weight: 550; }
+.icon-viewer-choices span { font: 10px/1.4 ui-monospace, SFMono-Regular, monospace; color: var(--muted); overflow-wrap: anywhere; }
 .dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
 .dialog-heading h2 { font-family: Sora, sans-serif; font-weight: 450; font-size: 19px; }
 .dialog-heading > .icon-button { border: 0; }
@@ -384,6 +404,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .statusbar { padding: 12px 16px; }
 }
 @media (max-width: 520px) {
+  .icon-viewer-stage .icon-preview { height: min(42dvh, 380px); min-height: 260px; }
   .header-actions { width: 100%; }
   .header-actions button { flex: 1; font-size: 11px; }
   .card-panes { grid-template-columns: 1fr; }
