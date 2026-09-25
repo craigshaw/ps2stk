@@ -32,13 +32,15 @@ A separate low-elevation sweep showed that ordinary yaw rotation of the three or
 
 ## Parser finding
 
-Burnout 3's `view.ico` reports one geometry shape and a track with shape ID 1. Its key count is 1, which contains only the reserved pair and no actual keyframes. The parser now accepts precisely this single-shape, non-animating case and displays the sole stored shape. Other out-of-range shape IDs still fail. The [format reference](https://www.psdevwiki.com/ps2/ICN_Files) labels this field but does not define its indexing, so the exception does not establish a general one-based indexing rule.
+Burnout 3's `view.ico` reports one geometry shape and a track with shape ID 1. Its sole key cannot change geometry, so the parser accepts precisely this single-shape case and displays the stored shape. Other out-of-range shape IDs still fail. The [format reference](https://www.psdevwiki.com/ps2/ICN_Files) labels this field but does not define its indexing, so the exception does not establish a general one-based indexing rule.
+
+On 2026-09-25, the user imported a Ridge Racer V PSV save into `TEST.ps2`. Its `icon.sys` names three distinct icon models, all present on the card. Each model contains eight shapes and eight animation tracks. The animation header stores frame length 119, while a final stored key is at frame 120. The previous parser rejected that key as out of range, leaving all three models without previews. It also discarded the first key in every nonempty track as a supposed reserved pair. The actual first pair is meaningful, for example Ridge Racer's first track starts at frame 0 with weight 0.8. The [PS2IODB author's account of their extractor correction](https://issung.com/posts/ps2iodb2026/) independently identifies this first-key omission in related tooling. The parser now reads all stored keys and accepts a final key at the boundary after the header's last frame. Synthetic tests cover both cases, and all three Ridge Racer models parse directly from the user's card. The original PSV package was not available for byte comparison, so these checks do not independently verify every byte of the import.
 
 ## Animation reference for later work
 
 The user supplied [this icon rendering article](https://babyno.top/en/posts/2023/10/rendering-ps2-3d-icon/) on 2026-09-25. Its Animation Effects section calculates a cyclic frame from elapsed time, 60 FPS, the icon's speed, and its frame length. It divides that cycle evenly among model shapes, then blends the current and next shape's vertex positions for smooth transitions. The article also applies a separate model rotation in its rendering example.
 
-This is an author's renderer implementation, not a verified OSDSYS playback specification. It does not demonstrate how the console uses stored animation keyframes or its default Copy and Delete action effects. When custom-animation reference saves are available, compare their stored tracks, this example, and console footage before changing our existing keyframe interpolation or action animation.
+This is an author's renderer implementation, not a verified OSDSYS playback specification. It does not demonstrate how the console uses stored animation keyframes or its default Copy and Delete action effects. Ridge Racer V now provides stored custom animation tracks for comparison. Console footage is still needed before claiming accurate playback timing or action effects.
 
 ## Rendering direction
 

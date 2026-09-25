@@ -9,11 +9,26 @@ test("icon geometry and stored keyframe weights use correct offsets and non-unif
   assert.equal(icon.shapes[1]![0], 2);
   assert.equal(icon.normals[2], 1);
   assert.equal(icon.colors[1], 0.5);
+  assert.deepEqual(icon.tracks[0]!.keys[0], { time: 0, value: 1 });
+  assert.deepEqual(icon.tracks[1]!.keys[0], { time: 0, value: 0 });
   assert.deepEqual(shapeWeights(icon, 0), [1, 0]);
   assert.deepEqual(shapeWeights(icon, 3), [0, 1]);
-  assert.deepEqual(shapeWeights(icon, 1.5), [0.5, 0.5]);
+  assert.deepEqual(shapeWeights(icon, 1.5), [0.5625, 0.4375]);
   assert.deepEqual(shapeWeights(icon, 15), [0, 1]);
   assert.deepEqual(shapeWeights(icon, 6), [0.4, 0.6000000000000001]);
+});
+test("a key at the boundary after the header's last frame ends the cycle", () => {
+  const bytes = model();
+  const view = new DataView(bytes.buffer);
+  view.setUint32(120, 11, true);
+  const icon = parseIcon(bytes);
+  assert.equal(icon.duration, 12);
+  assert.deepEqual(shapeWeights(icon, 12), shapeWeights(icon, 0));
+  view.setFloat32(224, 13, true);
+  assert.throws(() => parseIcon(bytes), /keyframe/);
+  view.setFloat32(224, 12, true);
+  view.setFloat32(144, NaN, true);
+  assert.throws(() => parseIcon(bytes), /animation/);
 });
 test("bounded RLE produces exactly 128 by 128 pixels", () => {
   const icon = parseIcon(model(true));
@@ -72,7 +87,7 @@ test("icon.sys title split is a byte offset, trims NUL and preserves icon filena
   assert.throws(() => parseIconSys(bytes));
 });
 
-test('zero-keyframe static tracks consume no reserved pair and retain the following texture', async () => {
+test('zero-keyframe static tracks leave the following texture aligned', async () => {
   const { staticModel } = await import('./icon-helper');
   const bytes = staticModel(), icon = parseIcon(bytes);
   assert.equal(icon.shapes.length, 1);
@@ -89,7 +104,7 @@ test('zero-keyframe static tracks consume no reserved pair and retain the follow
   mixed.set(animated.subarray(0, 144)); mixed.set(animated.subarray(176), 144);
   new DataView(mixed.buffer).setUint32(140, 0, true);
   const parsed = parseIcon(mixed);
-  assert.equal(parsed.tracks[1]!.keys.length, 5);
+  assert.equal(parsed.tracks[1]!.keys.length, 6);
   assert.equal(parsed.texture!.length, 65536);
 });
 

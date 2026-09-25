@@ -151,12 +151,12 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     at += 4;
   }
   valid(u32() === 1, "Invalid icon animation header.");
-  const duration = u32(),
+  const frameLength = u32(),
     speed = f32(),
     offset = u32(),
     trackCount = u32();
   valid(
-    duration <= 1000000 && speed >= 0 && speed <= 100 && trackCount <= count,
+    frameLength <= 1000000 && speed >= 0 && speed <= 100 && trackCount <= count,
     "Unsupported icon animation.",
   );
   const tracks: Track[] = [],
@@ -171,19 +171,13 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     );
     seen.add(shape);
     need(keyCount * 8);
-    // Nonempty tracks include a reserved pair in keyCount. A zero-key
-    // static track has no pair: the next track or texture follows immediately.
-    if (keyCount > 0) {
-      u32();
-      u32();
-    }
     const keys: Track["keys"] = [];
-    for (let k = 1; k < keyCount; k++) {
+    for (let k = 0; k < keyCount; k++) {
       const time = f32(),
         value = f32();
       valid(
         time >= 0 &&
-          time <= duration &&
+          time <= frameLength + 1 &&
           value >= 0 &&
           value <= 1 &&
           (keys.length === 0 || time > keys.at(-1)!.time),
@@ -193,10 +187,16 @@ export function parseIcon(bytes: Uint8Array): IconModel {
     }
     if (shape === 0 && !keys.some((k) => k.time === 0))
       keys.unshift({ time: 0, value: 1 });
-    // Burnout 3 uses shape ID 1 with one shape and no keyframes. The track
-    // cannot change geometry, so keep the one stored shape as the fallback.
+    // Burnout 3 uses shape ID 1 with one shape. It cannot change geometry,
+    // so keep the one stored shape as the fallback.
     if (shape < count) tracks.push({ shape, keys });
   }
+  // Ridge Racer V has frame length 119 and a final key at 120. Use that
+  // key as the end of the animation cycle.
+  const duration = Math.max(
+    frameLength,
+    ...tracks.map((track) => track.keys.at(-1)?.time ?? 0),
+  );
   let texture: Uint8Array | null = null;
   if (textureType & 4) {
     const pixels = new Uint16Array(128 * 128);

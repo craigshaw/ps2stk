@@ -22,11 +22,13 @@ export function model(texture = false): Uint8Array {
   f(124, 1);
   u(128, 0);
   u(132, 2);
-  // Track 0 reserved pair followed by keys at frames 0, 3, 12.
+  // Track 0 has four stored keys, starting at the first pair.
   u(136, 0);
   u(140, 4);
-  f(152, 0);
-  f(156, 1);
+  f(144, 0);
+  f(148, 1);
+  f(152, 1);
+  f(156, 0.75);
   f(160, 3);
   f(164, 0);
   f(168, 12);
@@ -34,7 +36,7 @@ export function model(texture = false): Uint8Array {
   u(176, 1);
   u(180, 6);
   for (const [i, [time, value]] of [
-    [0, 0],
+    [1, 0.25],
     [3, 1],
     [6, 0.5],
     [9, 0.25],
@@ -43,6 +45,8 @@ export function model(texture = false): Uint8Array {
     f(192 + i * 8, time!);
     f(196 + i * 8, value!);
   }
+  f(184, 0);
+  f(188, 0);
   if (texture) {
     u(232, 4);
     dv.setUint16(236, 16384, true);
