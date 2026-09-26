@@ -96,13 +96,13 @@ export function animatedCard(): Uint8Array {
     .export();
 }
 
-/** Synthetic save with three icon.sys roles and one extra icon model. */
-export function iconGalleryCard(): Uint8Array {
+/** Synthetic save with three icon.sys roles and optional duplicate model files. */
+export function iconGalleryCard(roles: "distinct" | "identical" | "shared" = "distinct"): Uint8Array {
   const sys = new Uint8Array(964);
   const view = new DataView(sys.buffer);
   sys.set(new TextEncoder().encode("PS2D"));
   sys.set(new TextEncoder().encode("Synthetic icon gallery"), 192);
-  for (const [offset, name] of [[260, "icon.ico"], [324, "copy.ico"], [388, "del.ico"]] as const)
+  for (const [offset, name] of [[260, "icon.ico"], [324, roles === "shared" ? "icon.ico" : "copy.ico"], [388, roles === "shared" ? "icon.ico" : "del.ico"]] as const)
     sys.set(new TextEncoder().encode(name), offset);
   for (const at of [176, 180, 184]) view.setFloat32(at, 1, true);
   const iconBytes = (index: number) => {
@@ -126,17 +126,20 @@ export function iconGalleryCard(): Uint8Array {
   };
   const children: SaveNode[] = [
     file("icon.sys", sys),
-    ...["icon.ico", "copy.ico", "del.ico"].map((name, index) => file(name, iconBytes(index))),
+    ...["icon.ico", ...(roles === "shared" ? [] : ["copy.ico", "del.ico"])].map((name, index) =>
+      file(name, iconBytes(roles === "identical" ? 0 : index))),
   ];
-  const extraDirectory = makeRecord("BONUS", true);
-  new DataView(extraDirectory.buffer).setUint32(4, 3, true);
-  children.push({
-    kind: "directory",
-    record: extraDirectory,
-    dot: makeRecord(".", true),
-    dotdot: makeRecord("..", true),
-    children: [file("extra.ico", iconBytes(3))],
-  });
+  if (roles === "distinct") {
+    const extraDirectory = makeRecord("BONUS", true);
+    new DataView(extraDirectory.buffer).setUint32(4, 3, true);
+    children.push({
+      kind: "directory",
+      record: extraDirectory,
+      dot: makeRecord(".", true),
+      dotdot: makeRecord("..", true),
+      children: [file("extra.ico", iconBytes(3))],
+    });
+  }
   const record = makeRecord("SAVE-ICONS", true);
   new DataView(record.buffer).setUint32(4, children.length + 2, true);
   const save = new SaveContent({

@@ -46,7 +46,7 @@ npm run dev
 
 1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
 2. Choose **Open memory card** and select a complete standard PS2 image, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
-3. Select a save to inspect its icon and files. Choose **View icons** to see a larger animated icon and switch between Normal, Copy, Delete, and extra icon files. You can also select an icon save file and choose **View icon**. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
+3. Select a save to inspect its icon and files. Choose **View icons** to see a larger animated icon. Choices for Normal, Copy, Delete, and extra icon files appear when the save has different icon models. You can also select an icon save file and choose **View icon**. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
 4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
 5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export save → Raw files to folder**.
 6. Select the pencil beside a card name to edit its filename in place. The extension stays fixed. Press Enter or select the check to apply the name; Escape cancels.

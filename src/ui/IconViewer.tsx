@@ -23,13 +23,19 @@ export function IconViewer({
     Math.max(0, info.icons.findIndex((icon) => icon.path === initialPath)),
   );
   const icon = info.icons[index]!;
-  const sameAsNormal = useMemo(() => {
-    if (icon.label === "Normal" || !icon.path || !info.iconPath) return false;
-    if (icon.path === info.iconPath) return true;
-    const normal = card.readFile(info.iconPath);
-    const selected = card.readFile(icon.path);
-    return normal.length === selected.length && normal.every((byte, at) => byte === selected[at]);
-  }, [card, icon.label, icon.path, info.iconPath]);
+  const hasDifferentIcons = useMemo(() => {
+    let first: Uint8Array | null = null;
+    const seen = new Set<string>();
+    for (const choice of info.icons) {
+      if (!choice.path || seen.has(choice.path)) continue;
+      seen.add(choice.path);
+      const bytes = card.readFile(choice.path);
+      if (first && (first.length !== bytes.length || first.some((byte, at) => byte !== bytes[at])))
+        return true;
+      first = bytes;
+    }
+    return false;
+  }, [card, info.icons]);
   return (
     <div className="icon-viewer">
       <div className="icon-viewer-stage">
@@ -46,7 +52,6 @@ export function IconViewer({
         <div>
           <strong>{icon.label} icon</strong>
           <span>{icon.filename}{!icon.path && " · File missing"}</span>
-          {sameAsNormal && <small className="icon-duplicate-note">This file is identical to the Normal icon.</small>}
         </div>
         <button
           className="text-button"
@@ -58,7 +63,7 @@ export function IconViewer({
           {paused || reduced ? "Paused" : "Pause"}
         </button>
       </div>
-      {info.icons.length > 1 && (
+      {hasDifferentIcons && (
         <div className="icon-viewer-choices" role="group" aria-label="Icons in this save">
           {info.icons.map((choice, choiceIndex) => (
             <button

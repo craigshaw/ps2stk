@@ -277,7 +277,6 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
 .icon-viewer-meta > div { display: grid; gap: 3px; min-width: 0; }
 .icon-viewer-meta strong { font-size: 13px; font-weight: 550; }
 .icon-viewer-meta span { color: var(--muted); font: 11px/1.5 ui-monospace, SFMono-Regular, monospace; overflow-wrap: anywhere; }
-.icon-viewer-meta .icon-duplicate-note { color: var(--muted); font-size: 11px; }
 .icon-viewer-meta button { flex-shrink: 0; }
 .icon-viewer-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 7px; margin-top: 18px; }
 .icon-viewer-choices button { display: grid; justify-content: start; gap: 3px; min-width: 0; text-align: left; background: #0b1427; }

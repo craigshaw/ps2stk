@@ -904,7 +904,7 @@ export function App() {
                           returnFocus: event.currentTarget,
                         })}
                       >
-                        <Eye /> View icons{inspected.icons.length > 1 ? ` (${inspected.icons.length})` : ""}
+                        <Eye /> {inspected.icons.length > 1 ? "View icons" : "View icon"}
                       </button>
                     )}
                     <h2>{inspected.title}</h2>

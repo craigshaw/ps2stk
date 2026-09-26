@@ -488,6 +488,7 @@ test("card icons stay still; inspector animation pauses and respects reduced mot
   expect(await pixels(tile)).toBe(still);
   await page.locator(".save-select").click();
   expect(await pixels(tile)).toBe(still);
+  await expect(page.locator(".view-icon-button")).toHaveText("View icon");
   const preview = page.locator(".large-preview canvas");
   const background = page.locator(".large-preview .icon-sys-background");
   await expect(background).toHaveCSS("opacity", "0.5");
@@ -521,7 +522,7 @@ test("icon viewer shows each referenced icon and extra models", async ({ page })
   await page.goto("/");
   await open(page, iconGalleryCard(), "icons.bin");
   await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
-  const openViewer = page.getByRole("button", { name: "View icons (4)" });
+  const openViewer = page.getByRole("button", { name: "View icons", exact: true });
   await openViewer.focus();
   await page.keyboard.press("Enter");
   const viewer = page.getByRole("dialog", { name: "View icons" });
@@ -557,6 +558,32 @@ test("icon viewer shows each referenced icon and extra models", async ({ page })
   await expect.poll(ratioError).toBeLessThan(0.01);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(ratioError).toBeLessThan(0.01);
+});
+
+test("icon viewer hides choices when all icon roles use the same model", async ({ page }, testInfo) => {
+  const { iconGalleryCard } = await import("../icon-helper");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 914, height: 743 });
+  await page.goto("/");
+  await open(page, iconGalleryCard("shared"), "shared-icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const viewer = page.getByRole("dialog", { name: "View icons" });
+  await expect(viewer.getByRole("group", { name: "Icons in this save" })).toHaveCount(0);
+  await expect(viewer).not.toContainText("identical to the Normal icon");
+  expect(await viewer.evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBe(true);
+  await expect(viewer.getByRole("button", { name: "Pause icon animation" })).toBeVisible();
+  await viewer.screenshot({ path: testInfo.outputPath("shared-icon-viewer.png") });
+  await page.keyboard.press("Escape");
+
+  await open(page, iconGalleryCard("identical"), "identical-icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).last().click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const identical = page.getByRole("dialog", { name: "View icons" });
+  await expect(identical.getByRole("group", { name: "Icons in this save" })).toHaveCount(0);
+  expect(await identical.evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await identical.evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth)).toBe(true);
 });
 
 test("fuller card panes scroll without clipping save labels at a narrow desktop width", async ({
