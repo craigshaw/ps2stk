@@ -1,7 +1,17 @@
 // Rendering approach adapted from ps2mcs (MIT). See THIRD_PARTY_NOTICES.md.
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { shapeWeights } from "./parser";
 import type { IconModel, IconSys } from "./parser";
+
+export interface PreviewHandle {
+  animate(value: boolean): void;
+  setFreeView(value: boolean): void;
+  resetView(): void;
+  rotateView(horizontal: number, vertical: number): void;
+  zoomView(inward: boolean): void;
+  dispose(): void;
+}
 
 interface Preview {
   canvas: HTMLCanvasElement;
@@ -11,8 +21,13 @@ interface Preview {
   material: THREE.ShaderMaterial;
   texture: THREE.DataTexture;
   group: THREE.Group;
+  homeCamera: THREE.Vector3;
+  controls: OrbitControls | undefined;
   view: "overview" | "detail";
   model: IconModel;
+  playbackActive: boolean;
+  freeView: boolean;
+  freeYaw: number;
   active: boolean;
   elapsed: number;
   dirty: boolean;
@@ -96,7 +111,9 @@ function draw(p: Preview): void {
         output[i] = output[i]! + shape[i]! * w;
   });
   attr.needsUpdate = true;
-  p.group.rotation.y = p.view === "overview" ? 0 : 0.65 + p.elapsed * 0.4;
+  p.group.rotation.y = p.freeView
+    ? p.freeYaw
+    : p.view === "overview" ? 0 : 0.65 + p.elapsed * 0.4;
   r.render(p.scene, p.camera);
   const ctx = p.canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
@@ -109,7 +126,7 @@ export function mountPreview(
   sys: IconSys,
   fail: () => void,
   view: "overview" | "detail" = "detail",
-): { animate(value: boolean): void; dispose(): void } {
+): PreviewHandle {
   getRenderer();
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
@@ -201,9 +218,14 @@ export function mountPreview(
     scene,
     camera,
     group,
+    homeCamera: camera.position.clone(),
+    controls: undefined,
     view,
     observer,
     fail,
+    playbackActive: false,
+    freeView: false,
+    freeYaw: 0.65,
     active: false,
     elapsed: 0,
     dirty: true,
@@ -211,15 +233,62 @@ export function mountPreview(
   previews.add(preview);
   observer.observe(canvas);
   schedule();
+  function invalidate() {
+    preview.dirty = true;
+    schedule();
+  }
   return {
     animate(value) {
-      preview.active = value;
-      preview.dirty = true;
-      schedule();
+      preview.playbackActive = value;
+      preview.active = value && !preview.freeView;
+      invalidate();
+    },
+    setFreeView(value) {
+      if (preview.freeView === value) return;
+      preview.freeView = value;
+      preview.active = preview.playbackActive && !value;
+      if (value) {
+        preview.freeYaw = 0.65 + preview.elapsed * 0.4;
+        const controls = new OrbitControls(camera, canvas);
+        controls.enablePan = false;
+        controls.enableDamping = false;
+        controls.minDistance = radius * 1.5;
+        controls.maxDistance = radius * 8;
+        controls.minPolarAngle = 0.05;
+        controls.maxPolarAngle = Math.PI - 0.05;
+        controls.addEventListener("change", invalidate);
+        preview.controls = controls;
+      } else {
+        preview.controls?.dispose();
+        preview.controls = undefined;
+        camera.position.copy(preview.homeCamera);
+        camera.lookAt(0, 0, 0);
+      }
+      invalidate();
+    },
+    resetView() {
+      if (!preview.freeView) return;
+      preview.freeYaw = 0.65;
+      camera.position.copy(preview.homeCamera);
+      preview.controls?.target.set(0, 0, 0);
+      preview.controls?.update();
+      invalidate();
+    },
+    rotateView(horizontal, vertical) {
+      if (!preview.freeView || !preview.controls) return;
+      if (horizontal) preview.controls.rotateLeft(horizontal);
+      if (vertical) preview.controls.rotateUp(vertical);
+    },
+    zoomView(inward) {
+      if (!preview.freeView || !preview.controls) return;
+      const scale = 1 / 1.2;
+      if (inward) preview.controls.dollyIn(scale);
+      else preview.controls.dollyOut(scale);
     },
     dispose() {
       previews.delete(preview);
       observer.disconnect();
+      preview.controls?.dispose();
       geometry.dispose();
       material.dispose();
       texture.dispose();

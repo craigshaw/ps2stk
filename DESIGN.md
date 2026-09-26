@@ -235,12 +235,13 @@ and edge. Selection adds a stronger blue boundary, tinted fill, checkbox, and
 elliptical floor. Titles lead, directory names support, and byte/file counts
 follow. List mode uses the same information beside a smaller preview.
 The inspector enlarges the original icon and puts save actions before file rows.
-View icons opens a wider, bounded dialog with one large preview and compact model choices beneath it. The viewer and inspector blend the save's `icon.sys` background over their dark stages and share the pause state.
+View icons opens Icon Viewer, a wider, bounded dialog with one large preview and compact model choices beneath it. A small mode switch above the stage selects Playback or Free View. Free View provides direct model rotation and zoom, with a Reset view action. Instructions stay visible below the stage in both modes so the dialog keeps one size. The preview gives up height when model choices need room, so the dialog does not gain a scrollbar. The viewer and inspector blend the save's `icon.sys` background over their dark stages. Playback shares the inspector's pause state; Free View changes only the viewer.
 
 ### Dialogs and feedback
 
-Dialogs use a bounded, scrollable dark surface, a Sora title, and actions aligned
-to the end. Import and export reviews use normal paragraphs, select fields,
+Dialogs use a bounded dark surface, a Sora title, and actions aligned to the end.
+Most dialogs scroll when their content is too tall; Icon Viewer fits its preview
+around its controls and model choices. Import and export reviews use normal paragraphs, select fields,
 and explicit acknowledgement controls. Do not turn metadata-loss or format
 limits into decorative labels. Errors use a rose-toned fixed banner with a
 close action; status and session information sit in the footer.

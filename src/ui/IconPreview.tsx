@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Box } from "lucide-react";
 import type { MemoryCard } from "../core/index";
 import { parseIcon } from "../icons/parser";
+import type { PreviewHandle } from "../icons/renderer";
 import type { SaveInfo } from "./model";
 
 export function IconPreview({
@@ -12,6 +14,9 @@ export function IconPreview({
   showBackground = false,
   iconPath = info.iconPath,
   label = "PS2 save icon",
+  freeView = false,
+  resetViewToken = 0,
+  onReadyChange,
 }: {
   card: Pick<MemoryCard, "readFile">;
   info: SaveInfo;
@@ -20,14 +25,18 @@ export function IconPreview({
   showBackground?: boolean;
   iconPath?: string | null;
   label?: string;
+  freeView?: boolean;
+  resetViewToken?: number;
+  onReadyChange?: (ready: boolean) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const mounted = useRef<{
-    animate(value: boolean): void;
-    dispose(): void;
-  } | null>(null);
+  const mounted = useRef<PreviewHandle | null>(null);
   const active = useRef(animate);
   active.current = animate;
+  const interactive = useRef(freeView);
+  interactive.current = freeView;
+  const readyChange = useRef(onReadyChange);
+  readyChange.current = onReadyChange;
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
   const colors = info.sys?.backgroundColors;
@@ -40,6 +49,7 @@ export function IconPreview({
       generation = 0;
     setFailed(false);
     setReady(false);
+    readyChange.current?.(false);
     const observer = new IntersectionObserver(async ([entry]) => {
       visible = !!entry?.isIntersecting;
       const current = ++generation;
@@ -56,16 +66,21 @@ export function IconPreview({
         mounted.current = mountPreview(element, model, info.sys, () => {
           if (alive) {
             setFailed(true);
+            setReady(false);
+            readyChange.current?.(false);
             mounted.current?.dispose();
             mounted.current = null;
           }
         }, view);
+        mounted.current.setFreeView(interactive.current);
         mounted.current.animate(active.current);
         setReady(true);
+        readyChange.current?.(true);
       } catch {
         if (alive) {
           setFailed(true);
           setReady(false);
+          readyChange.current?.(false);
         }
       }
     });
@@ -78,11 +93,34 @@ export function IconPreview({
     };
   }, [card, info, iconPath, view]);
   useEffect(() => mounted.current?.animate(animate), [animate]);
+  useEffect(() => mounted.current?.setFreeView(freeView), [freeView]);
+  useEffect(() => {
+    if (resetViewToken) mounted.current?.resetView();
+  }, [resetViewToken]);
+  function handleFreeViewKeys(event: KeyboardEvent<HTMLCanvasElement>) {
+    if (!freeView || !ready || failed) return;
+    const controls = mounted.current;
+    if (!controls) return;
+    switch (event.key) {
+      case "ArrowLeft": controls.rotateView(-0.15, 0); break;
+      case "ArrowRight": controls.rotateView(0.15, 0); break;
+      case "ArrowUp": controls.rotateView(0, 0.15); break;
+      case "ArrowDown": controls.rotateView(0, -0.15); break;
+      case "+":
+      case "=": controls.zoomView(true); break;
+      case "-":
+      case "_": controls.zoomView(false); break;
+      case "0": controls.resetView(); break;
+      default: return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  }
   return (
     <span
-      className={`icon-preview ${showBackground && colors ? "with-save-background" : ""}`}
-      role="img"
-      aria-label={`${info.title}: ${failed || !iconPath ? "preview unavailable" : label}`}
+      className={`icon-preview ${showBackground && colors ? "with-save-background" : ""} ${freeView ? "free-view" : ""}`}
+      role={freeView ? undefined : "img"}
+      aria-label={freeView ? undefined : `${info.title}: ${failed || !iconPath ? "preview unavailable" : label}`}
     >
       {showBackground && colors && (
         <span
@@ -99,6 +137,10 @@ export function IconPreview({
       <canvas
         ref={canvas}
         className={failed || !iconPath ? "invisible" : ""}
+        role={freeView ? "group" : undefined}
+        aria-label={freeView ? `${info.title}: ${label}. Use arrow keys to rotate, plus or minus to zoom, and 0 to reset.` : undefined}
+        tabIndex={freeView && ready && !failed && iconPath ? 0 : undefined}
+        onKeyDown={handleFreeViewKeys}
       />
       {(!ready || failed || !iconPath) && (
         <span className="icon-fallback">

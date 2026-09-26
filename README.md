@@ -56,7 +56,7 @@ npm run dev
 
 Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
 
-The icon viewer uses the same local PS2 model renderer as the gallery. Its Pause control stops animation and rotation. Missing or unsupported models show a fallback; they do not affect card operations. Icon playback and lighting remain previews rather than a claim of console-exact rendering.
+The Icon Viewer uses the same local PS2 model renderer as the gallery. It opens in Playback mode, where Pause stops animation and rotation. Free View freezes the current pose so you can drag to rotate and scroll to zoom. Reset view restores the starting angle and size. With the model focused, arrow keys rotate, + zooms in, - zooms out, and 0 resets. Manual viewing remains available under reduced motion. Missing or unsupported models show a fallback; they do not affect card operations. Icon playback and lighting remain previews rather than a claim of console-exact rendering.
 
 New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`. A new card shows Download needed until a whole-card download is offered, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
 

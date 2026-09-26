@@ -13,6 +13,7 @@ Status: milestones 1 through 3 are implemented. On 2026-09-20, the user accepted
 - Save complete edited memory cards as binary PS2 memory card images. `.ps2` output includes calculated ECC spare bytes; `.mc2` and `.bin` output omit them.
 - Render the original PS2 save icons using the sibling ps2mcs icon browser as a starting point.
 - Let users view the Normal, Copy, and Delete icon models named in `icon.sys` at a larger size, plus extra `.ico` or `.icn` files in the save. A save file can open its matching icon directly. Preserve pause and reduced-motion behaviour. Added by user request on 2026-09-24.
+- Name the dialog Icon Viewer and offer Playback and Free View modes. Free View freezes the current pose for bounded manual rotation and zoom, with Reset view and keyboard controls. It affects only the viewer, not card contents or the shared Pause state. Added by user request on 2026-09-26.
 - Match the PS2 Browser's card-overview view of each Normal icon in the card panes. When a save is selected, show its animated Normal icon in the inspector, including the selected-screen background specified by `icon.sys`. The 2026-09-24 investigation and remaining camera uncertainty are recorded in [icon Browser research](./icon-browser-research.md). Do this before returning to action-specific Copy and Delete animation.
 - Use the modern Orbital browser identity agreed on 2026-09-23: deep space, luminous blue selection, calm motion, and original save icons. This supersedes the earlier charcoal, translucent, blue-and-purple treatment.
 - Host on Cloudflare Pages.

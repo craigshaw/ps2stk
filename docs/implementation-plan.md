@@ -138,6 +138,8 @@ Empty-card creation was added by user request on 2026-09-23. It creates a format
 
 The 2026-09-24 icon viewing extension reads all three icon filenames from `icon.sys` and offers a larger viewer for each available model. It also lists extra `.ico` and `.icn` save files. The normal icon remains the gallery default. Viewer work stays in the icon and UI layers, uses the shared renderer, and does not change card bytes or history. Acceptance covers the OutRun three-icon save, synthetic extra icons, switching and playback in the supported browser engines, keyboard focus, reduced motion, and narrow layouts.
 
+The 2026-09-26 Free View extension keeps Playback as the Icon Viewer default. Free View freezes the current model pose and lets users rotate and zoom within bounds, then reset to the starting view. Keyboard controls and reduced-motion use remain available. Viewer mode stays local to the dialog, so the inspector's shared Pause state and card history are unaffected. Acceptance covers manual controls, reset, mode and icon switching, narrow layout, and all three browser engines.
+
 Show icon choice buttons only when available model files have different bytes. Identical Normal, Copy, and Delete files share one view without redundant controls.
 
 On 2026-09-24, the user provided PS2 Browser reference media and deferred action-specific Copy and Delete animation until a save with custom icon animation is available. The OutRun role files are identical and have one static model shape. Its Browser action motion is separate from stored model animation. Keep console action effects outside this icon-viewing change.

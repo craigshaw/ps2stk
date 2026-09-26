@@ -1049,7 +1049,7 @@ export function App() {
               save: "Save memory card as",
               import: "Review save import",
               export: "Export save",
-              icons: "View icons",
+              icons: "Icon Viewer",
             }[modal.type]
           }
           onClose={() => { if (!busyRef.current) setModal(null); }}

@@ -525,7 +525,7 @@ test("icon viewer shows each referenced icon and extra models", async ({ page })
   const openViewer = page.getByRole("button", { name: "View icons", exact: true });
   await openViewer.focus();
   await page.keyboard.press("Enter");
-  const viewer = page.getByRole("dialog", { name: "View icons" });
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
   await expect(viewer.getByRole("button", { name: "Normal icon.ico" })).toHaveAttribute("aria-pressed", "true");
   const canvas = viewer.locator("canvas");
   await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.width)).toBeGreaterThan(1);
@@ -551,13 +551,107 @@ test("icon viewer shows each referenced icon and extra models", async ({ page })
   await expect(openViewer).toBeFocused();
   await page.getByRole("button", { name: "copy.ico" }).click();
   await page.getByRole("button", { name: "View icon", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "View icons" }).getByRole("button", { name: "Copy copy.ico" })).toHaveAttribute("aria-pressed", "true");
-  const resized = page.getByRole("dialog", { name: "View icons" }).locator("canvas");
+  await expect(page.getByRole("dialog", { name: "Icon Viewer" }).getByRole("button", { name: "Copy copy.ico" })).toHaveAttribute("aria-pressed", "true");
+  const resized = page.getByRole("dialog", { name: "Icon Viewer" }).locator("canvas");
   const ratioError = () => resized.evaluate((element: HTMLCanvasElement) =>
     Math.abs(element.width / element.height - element.clientWidth / element.clientHeight));
   await expect.poll(ratioError).toBeLessThan(0.01);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(ratioError).toBeLessThan(0.01);
+});
+
+test("icon viewer free view freezes, rotates, zooms, and resets", async ({ page }, testInfo) => {
+  const { iconGalleryCard } = await import("../icon-helper");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await open(page, iconGalleryCard(), "icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
+  const canvas = viewer.locator("canvas");
+  const pixels = () => canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+  const paintedPixels = () => canvas.evaluate((element: HTMLCanvasElement) => {
+    const data = element.getContext("2d")!.getImageData(0, 0, element.width, element.height).data;
+    let count = 0;
+    for (let at = 3; at < data.length; at += 4) if (data[at]! > 0) count++;
+    return count;
+  });
+  const dialogBox = () => viewer.evaluate((dialog) => {
+    const { x, y, width, height } = dialog.getBoundingClientRect();
+    return { x, y, width, height };
+  });
+  const free = viewer.getByRole("button", { name: "Free View" });
+  await expect(free).toBeEnabled();
+  const playbackBox = await dialogBox();
+  await free.click();
+  expect(await dialogBox()).toEqual(playbackBox);
+  await expect(free).toHaveAttribute("aria-pressed", "true");
+  await expect(canvas).toHaveAttribute("tabindex", "0");
+  await viewer.getByRole("button", { name: "Reset view" }).click();
+  await page.waitForTimeout(60);
+  const home = await pixels();
+  await page.waitForTimeout(150);
+  expect(await pixels()).toBe(home);
+
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 90, box.y + box.height / 2 + 35, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(pixels).not.toBe(home);
+  const rotated = await pixels();
+  await canvas.hover();
+  await page.mouse.wheel(0, -500);
+  await expect.poll(pixels).not.toBe(rotated);
+
+  await viewer.getByRole("button", { name: "Reset view" }).click();
+  await expect.poll(pixels).toBe(home);
+  await canvas.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(pixels).not.toBe(home);
+  await page.keyboard.press("0");
+  await expect.poll(pixels).toBe(home);
+  const homeSize = await paintedPixels();
+  await page.keyboard.press("=");
+  await expect.poll(paintedPixels).toBeGreaterThan(homeSize);
+  await page.keyboard.press("0");
+  await expect.poll(pixels).toBe(home);
+  await page.keyboard.press("-");
+  await expect.poll(paintedPixels).toBeLessThan(homeSize);
+
+  await viewer.getByRole("button", { name: "Playback" }).click();
+  expect(await dialogBox()).toEqual(playbackBox);
+  await expect(viewer.getByRole("button", { name: "Pause icon animation" })).toBeVisible();
+  const playback = await pixels();
+  await expect.poll(pixels).not.toBe(playback);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(viewer.getByRole("button", { name: "Play icon animation" })).toBeDisabled();
+  const reducedPlaybackBox = await dialogBox();
+  await free.click();
+  expect(await dialogBox()).toEqual(reducedPlaybackBox);
+  await viewer.getByRole("button", { name: "Reset view" }).click();
+  await page.waitForTimeout(60);
+  const still = await pixels();
+  await page.waitForTimeout(150);
+  expect(await pixels()).toBe(still);
+  await canvas.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(pixels).not.toBe(still);
+
+  await viewer.getByRole("button", { name: "Copy copy.ico" }).click();
+  await expect(free).toHaveAttribute("aria-pressed", "true");
+  await expect(viewer.getByRole("button", { name: "Reset view" })).toBeEnabled();
+  if (testInfo.project.name === "chromium") {
+    await viewer.screenshot({ path: testInfo.outputPath("free-view-desktop.png") });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await viewer.evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth)).toBe(true);
+    await viewer.screenshot({ path: testInfo.outputPath("free-view-narrow.png") });
+    const narrowFreeBox = await dialogBox();
+    await viewer.getByRole("button", { name: "Playback" }).click();
+    expect(await dialogBox()).toEqual(narrowFreeBox);
+    await viewer.screenshot({ path: testInfo.outputPath("playback-narrow.png") });
+  }
 });
 
 test("icon viewer hides choices when all icon roles use the same model", async ({ page }, testInfo) => {
@@ -568,7 +662,7 @@ test("icon viewer hides choices when all icon roles use the same model", async (
   await open(page, iconGalleryCard("shared"), "shared-icons.bin");
   await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
   await page.getByRole("button", { name: "View icons", exact: true }).click();
-  const viewer = page.getByRole("dialog", { name: "View icons" });
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
   await expect(viewer.getByRole("group", { name: "Icons in this save" })).toHaveCount(0);
   await expect(viewer).not.toContainText("identical to the Normal icon");
   expect(await viewer.evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBe(true);
@@ -579,11 +673,49 @@ test("icon viewer hides choices when all icon roles use the same model", async (
   await open(page, iconGalleryCard("identical"), "identical-icons.bin");
   await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).last().click();
   await page.getByRole("button", { name: "View icons", exact: true }).click();
-  const identical = page.getByRole("dialog", { name: "View icons" });
+  const identical = page.getByRole("dialog", { name: "Icon Viewer" });
   await expect(identical.getByRole("group", { name: "Icons in this save" })).toHaveCount(0);
   expect(await identical.evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBe(true);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await identical.evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth)).toBe(true);
+});
+
+test("icon viewer fits distinct model choices without a dialog scrollbar", async ({ page }) => {
+  const { iconGalleryCard } = await import("../icon-helper");
+  await page.goto("/");
+  await open(page, iconGalleryCard(), "distinct-icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
+  await expect(viewer.getByRole("group", { name: "Icons in this save" }).getByRole("button")).toHaveCount(4);
+  const free = viewer.getByRole("button", { name: "Free View" });
+  await expect(free).toBeEnabled();
+
+  for (const viewport of [{ width: 928, height: 752 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    const heights: number[] = [];
+    const layout = () => viewer.evaluate((dialog) => {
+      const stage = dialog.querySelector(".icon-viewer-stage")!;
+      const choices = dialog.querySelector(".icon-viewer-choices")!;
+      return {
+        dialogHeight: dialog.getBoundingClientRect().height,
+        scrollHeight: dialog.scrollHeight,
+        clientHeight: dialog.clientHeight,
+        stageHeight: stage.getBoundingClientRect().height,
+        choicesBottom: choices.getBoundingClientRect().bottom,
+        dialogBottom: dialog.getBoundingClientRect().bottom,
+      };
+    });
+    for (const mode of ["Playback", "Free View"]) {
+      await viewer.getByRole("button", { name: mode, exact: true }).click();
+      const bounds = await layout();
+      heights.push(bounds.dialogHeight);
+      expect(bounds.scrollHeight).toBeLessThanOrEqual(bounds.clientHeight);
+      expect(bounds.stageHeight).toBeGreaterThan(180);
+      expect(bounds.choicesBottom).toBeLessThan(bounds.dialogBottom);
+    }
+    expect(heights[1]).toBe(heights[0]);
+  }
 });
 
 test("fuller card panes scroll without clipping save labels at a narrow desktop width", async ({

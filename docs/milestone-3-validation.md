@@ -179,3 +179,49 @@ browser and screenshot results above were recorded at 40 degrees; they were
 not repeated for the five-degree adjustment, at the user's request to keep
 testing light. The 45-degree match is the user's visual judgement, not an
 independent measurement of the console camera.
+
+## Follow-up: Icon Viewer Free View
+
+On 2026-09-26, the dialog was renamed Icon Viewer and gained Playback and Free
+View modes. Playback remains the default and retains the shared Pause and
+reduced-motion behaviour. Free View freezes the current model pose and viewer
+rotation. Dragging rotates the camera; scrolling zooms within model-relative
+bounds. Reset view returns to the starting angle and distance. When the model is
+focused, arrow keys rotate, + zooms in, - zooms out, and 0 resets. Manual controls remain
+available under reduced motion. Switching modes or icons does not edit card
+bytes, history, or download status. The existing shared WebGL renderer and
+preview disposal path remain in use.
+
+`npm run check` passed TypeScript, 141 unit and CLI tests, and the production
+build. The full `npm run test:browser` passed 64 checks across Chromium,
+Firefox, and WebKit, with the two expected folder-access skips. The new
+three-engine test uses a synthetic icon to check a still Free View frame,
+drag rotation, scroll zoom, reset, keyboard controls, return to Playback,
+reduced motion, and icon switching. Desktop and 390-pixel Chromium screenshots
+were inspected. An initial focused run exposed vertical dialog overflow at a
+short desktop height; the stage height was reduced and all nine focused viewer
+checks then passed across the three engines.
+
+These are browser and synthetic-fixture results. Manual rotation of a range of
+real game icons, installed browser checks, and console rendering comparisons
+remain outside this check. Free View is an inspection camera, not a claim about
+the PS2 Browser's camera or playback behaviour.
+
+The user then found that the keyboard zoom direction was reversed and that
+showing Free View instructions changed the dialog height. The zoom scale was
+corrected and the same instruction line now occupies space in both modes.
+Focused Playwright checks passed in Chromium, Firefox, and WebKit. They compare
+painted model area before and after + and -, and compare dialog bounds when
+switching modes at desktop and 390-pixel widths, including reduced motion.
+Chromium screenshots of both narrow modes were inspected and show matching
+dialog bounds. The full browser suite result above predates this correction.
+
+The user then reported a scrollbar in the Ridge Racer V viewer, which has
+separate Normal, Copy, and Delete models. The Icon Viewer now has a bounded
+height, and its preview shrinks to leave room for model choices. A focused
+Playwright run passed nine viewer checks across Chromium, Firefox, and WebKit.
+The new check used a synthetic save with four model choices at 928 × 752 and
+390 × 844 viewport sizes. In both Playback and Free View, the dialog content
+fit without vertical overflow, the preview remained visible, and all choices
+stayed inside the dialog. A narrow Chromium screenshot was inspected. This is
+synthetic browser evidence; Ridge Racer V itself was not loaded for this check.
