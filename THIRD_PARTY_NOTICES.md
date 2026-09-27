@@ -120,3 +120,10 @@ variable font from the [Google Fonts repository](https://github.com/google/fonts
 retrieved on 2026-09-23. Copyright 2020 The Sora Project Authors. It is licensed
 under the SIL Open Font License 1.1. The complete licence is in
 `public/fonts/OFL-Sora.txt` and the distributed third-party notices.
+
+## GitHub mark
+
+`src/ui/GitHubMark.tsx` uses GitHub's 16px mark from
+[Primer Octicons](https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg),
+retrieved on 2026-09-27. Copyright GitHub, Inc. Use of the logo follows
+[GitHub's logo guidelines](https://github.com/logos).

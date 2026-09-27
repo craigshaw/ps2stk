@@ -62,7 +62,7 @@ The user confirmed on 2026-09-19 that all memory card processing happens locally
 On 2026-09-23, the user requested creation of empty cards for importing saves.
 New memory card fills the first available slot without replacing an open card.
 It creates a formatted 8 MiB working image, named `new-card-a.ps2` or
-`new-card-b.ps2` for its slot. Save as can select another supported extension.
+`new-card-b.ps2` for its slot. Download as can select another supported extension.
 Creation needs no source file and does not add an Undo step.
 Imports and copies use the existing history rules. A new card needs a download
 even before its first edit, or after Undo returns it to empty, until a whole-card
@@ -171,15 +171,20 @@ The detailed dependencies, engineering policies, reference sources, and acceptan
 
 ## Agreed whole-card save defaults
 
-On 2026-09-23, the user revised the 2026-09-19 layout default. Save card keeps the
+On 2026-09-23, the user revised the 2026-09-19 layout default. Download card keeps the
 opened filename. Its extension determines the downloaded layout for supported
 types, even when the opened image uses a different layout.
 
+On 2026-09-27, the user approved clearer UI wording. The complete-image actions
+formerly labelled Save card and Save as are now Download card and Download as.
+The one-save action is labelled Export selected save. These names do not change
+the output or metadata policy.
+
 - `.ps2` downloads include ECC spare bytes, calculated for converted or changed pages.
 - `.mc2` and `.bin` downloads omit ECC spare bytes.
-- Save as selects only the extension. The UI does not show an ECC control or layout label.
+- Download as selects only the extension. The UI does not show an ECC control or layout label.
 - The displayed memory card image filename can be edited inline. Renaming keeps its extension, changes no card bytes, and adds no Undo step. A name changed after a download needs another download before closing or leaving without warning.
-- An unknown opened extension keeps its filename and current binary layout on Save card. Save as can select a supported extension.
+- An unknown opened extension keeps its filename and current binary layout on Download card. Download as can select a supported extension.
 - Saving still produces a download and leaves the original input file unchanged.
 
 Input layout remains a property of the bytes, not proof from the filename. The
@@ -201,6 +206,12 @@ the product requirements. This is visual work, not milestone 4 release approval.
 See [the design system](../DESIGN.md) and
 [redesign validation](design-redesign-validation.md) for the implementation and
 checks. The layout agreement below remains in force.
+
+Landing copy update, 2026-09-27: the user chose "The Swiss Army knife for PS2
+saves" as the strapline. The empty view uses it as the main heading and omits
+the separate Memory cards toolbar. Supporting copy introduces browsing,
+importing downloaded saves, copying between cards, file replacement, and creating
+a card in plain language.
 
 The user approved the interactive layout study on 2026-09-19, with two cards visible, the icon grid at comfortable density, and the shared inspector on the right. Use this as the first-version desktop design direction.
 
@@ -309,7 +320,7 @@ Keep CONTEXT.md as the domain glossary. Keep product decisions here and executab
 - Save titles use the icon.sys byte-based line break and display normalization for full-width text. Directory identities and file bytes are unchanged.
 - Previews use the normal icon, its texture and lighting, on a dark application stage. Stored shape keyframes are interpolated; the sibling renderer's equal-time shape cycling is not used. The original format document leaves timing partly unresolved, so console-exact playback timing is not claimed.
 - Folder dumps preflight the complete file tree, reject unsafe portable filenames and case/normalization collisions, and require a new save folder. There is no silent overwrite or automatic renaming. External writes can leave partial output on failure; they do not enter Undo history or change download status.
-- Actual Save and Save as downloads acknowledge their prepared revision only after initiation. Refresh still ends the session. Browser controls request a leave-page warning while edits need downloading or an asynchronous file operation is in progress.
+- Actual Download card and Download as actions acknowledge their prepared revision only after initiation. Refresh still ends the session. Browser controls request a leave-page warning while edits need downloading or an asynchronous file operation is in progress.
 - The explorer and regression tests are implemented. Installed browser permission flows, minimum supported versions, performance across a wider icon collection, and destination game loads remain in milestone 4.
 
 
@@ -334,7 +345,7 @@ Choose folder, supports nested saves, and explains the Chrome/Edge directory
 access requirement when unavailable. Package downloads remain available in
 other browsers. MAX and PSV require their own metadata-loss acknowledgement.
 
-The separate Dump save to folder button is removed. Save card remains separate
+The separate Dump save to folder button is removed. Download card remains separate
 because it exports a complete memory card image. Raw folder export keeps the
 existing safe-path checks, new-folder-only writes, partial-write reporting, and
 unchanged card/history state. Cancelling the directory picker keeps the export

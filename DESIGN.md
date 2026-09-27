@@ -177,7 +177,9 @@ the inspector moves below the panes and toolbar controls wrap. At 520px and
 below, card panes stack. The page has a 360px minimum width. These adaptations
 preserve the desktop tool; they do not define separate phone workflows.
 
-The empty view pairs explanatory text with two offset card bays. It becomes
+The empty view leads with "The Swiss Army knife for PS2 saves" as its only
+heading. It has no separate Memory cards toolbar. Brief supporting copy mentions
+importing downloaded saves. Two actions sit beside the offset card bays. It becomes
 one column below 761px. Reused gaps are compact and consistent; larger space
 around icons and empty bays gives the orbital motif room.
 
@@ -244,7 +246,8 @@ Most dialogs scroll when their content is too tall; Icon Viewer fits its preview
 around its controls and model choices. Import and export reviews use normal paragraphs, select fields,
 and explicit acknowledgement controls. Do not turn metadata-loss or format
 limits into decorative labels. Errors use a rose-toned fixed banner with a
-close action; status and session information sit in the footer.
+close action; status, session information, the repository link, and the version
+sit in the footer.
 
 ## Do's and Don'ts
 

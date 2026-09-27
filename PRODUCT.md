@@ -36,8 +36,8 @@ results, and leave. It is not a persistent workspace.
 - Users open one or two complete card images. They browse saves, inspect files,
   copy saves between cards, import packages, delete saves, or replace files with
   versions edited elsewhere.
-- Save card downloads the complete edited image. Save as can select another
-  supported extension, which determines the output layout. Export save produces
+- Download card downloads the complete edited image. Download as can select another
+  supported extension, which determines the output layout. Export selected save produces
   a save package or separate raw files. Package exports and raw dumps do not
   save the whole card.
 - Chrome and Edge support raw save-folder output when directory access is
@@ -53,7 +53,7 @@ results, and leave. It is not a persistent workspace.
 
 - Support up to two standard 8 MiB PS2 card images, with or without ECC spare
   bytes. Preserve the input filename by default. Whole-card `.ps2` downloads
-  include calculated ECC; `.mc2` and `.bin` downloads omit it. Save as selects
+  include calculated ECC; `.mc2` and `.bin` downloads omit it. Download as selects
   the extension without exposing the binary layout.
 - Let users edit the displayed card filename inline while retaining its extension.
   A changed filename needs another whole-card download, without changing card
@@ -99,6 +99,10 @@ later milestones.
   including beneath the wordmark and in the browser title. The user confirmed
   this meaning on 2026-09-23. Use Simplified Technical English and no em dashes.
   Explain actions and limits with direct, familiar language.
+- The landing page strapline is "The Swiss Army knife for PS2 saves". The user
+  chose it on 2026-09-27. The supporting copy should suggest browsing saves,
+  importing downloaded saves, copying between cards, replacing files, and
+  starting a new card without implying game-specific editing or session recovery.
 - On 2026-09-23, the user selected a new Orbital browser identity inspired by
   the PS2 system browser: deep space, luminous blue selection, calm motion,
   and original save icons. Keep PS2STK with its geometric wordmark. The user

@@ -72,6 +72,8 @@ h2 { font-weight: 550; }
 a { color: var(--accent); text-underline-offset: 4px; }
 fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; flex: 1; }
 .app { min-height: 100dvh; display: flex; flex-direction: column; background: radial-gradient(ellipse at 55% 0%, #142d5a55, transparent 65%); }
+.app:not(.has-cards) { display: grid; grid-template-rows: minmax(min-content, 1fr) auto; height: 100dvh; }
+.app:not(.has-cards) .application-controls { display: grid; grid-template-rows: auto minmax(min-content, 1fr); min-height: 0; }
 .app-header {
   display: flex; align-items: center; gap: 26px; min-height: 88px;
   padding: 18px 32px; border-bottom: 1px solid #202e47;
@@ -139,8 +141,8 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .icon-button { padding: 7px; background: transparent; }
 .card-header > .icon-button { border: 0; color: var(--muted); }
 .capacity { padding: 0 12px 16px; font-variant-numeric: tabular-nums; }
-.capacity > div { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; margin-bottom: 9px; color: #b9c9e3; }
-.changed { color: var(--warning); }
+.capacity > div { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 9px; color: #b9c9e3; }
+.changed { color: var(--warning); font-weight: 600; }
 .capacity meter { display: block; width: 100%; height: 3px; background: #26334b; border: 0; }
 .capacity meter::-webkit-meter-bar { background: #26334b; border: 0; height: 3px; }
 .capacity meter::-webkit-meter-optimum-value { background: #789fee; }
@@ -241,12 +243,15 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .statusbar > span:first-child { max-width: 80ch; }
 .statusbar > .muted { white-space: nowrap; font-size: 10px; }
 .statusbar a { color: var(--muted); }
-.welcome { display: grid; grid-template-columns: 1.1fr 1fr; column-gap: 70px; align-content: center; align-items: center; max-width: 1160px; margin: 0 auto; min-height: calc(100dvh - 212px); padding: 38px 32px 42px; outline: 0; }
-.welcome-copy h2 { font-family: Sora, sans-serif; font-size: 42px; font-weight: 400; line-height: 1.2; letter-spacing: -.035em; margin: 0 0 24px; }
+.footer-meta { display: inline-flex; align-items: center; }
+.footer-github { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; }
+.footer-github svg { display: block; width: 16px; height: 16px; }
+.footer-github:hover { color: var(--text); }
+.welcome { display: grid; grid-template-columns: 1.1fr 1fr; column-gap: 70px; align-content: center; align-items: center; max-width: 1160px; margin: 0 auto; min-height: 0; padding: 38px 32px 42px; outline: 0; }
+.welcome-copy h1 { font-family: Sora, sans-serif; font-size: 42px; font-weight: 400; line-height: 1.2; letter-spacing: -.035em; margin: 0 0 24px; }
 .welcome-copy > p { color: #b2c1db; font-size: 14px; line-height: 1.85; max-width: 48ch; }
 .welcome-actions > .primary svg:last-child { margin-left: 20px; }
 .welcome-formats { display: block; font-size: 11px; color: var(--muted); }
-.welcome-formats > span { margin: 0 6px; }
 .card-bays { position: relative; display: grid; gap: 16px; padding: 55px 14px; }
 .bay-orbits { position: absolute; width: 128%; height: 138%; left: -14%; top: -19%; pointer-events: none; stroke: #385686; stroke-width: .7; opacity: .65; }
 .bay-orbits circle { fill: #9bbcff; stroke: none; }
@@ -258,11 +263,9 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .bay-copy strong { font-size: 14px; font-weight: 500; }
 .bay-copy > span { font-size: 12px; color: var(--muted); }
 .card-bay > svg { width: 20px; height: 20px; color: var(--accent); }
-.bay-caption { position: relative; margin-top: 7px; text-align: center; color: var(--muted); font-size: 11px; }
 .welcome-notes { grid-column: 1/-1; display: grid; grid-template-columns: 1fr 1fr; gap: 70px; margin-top: 80px; border-top: 1px solid #273550; padding-top: 25px; }
 .welcome-notes p { display: flex; gap: 12px; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .welcome-notes svg { width: 17px; height: 17px; color: #8fabe0; flex-shrink: 0; margin-top: 2px; }
-.welcome-notes strong { display: block; font-size: 12px; font-weight: 500; color: #d5e0f6; margin-bottom: 4px; }
 .error-banner { position: fixed; z-index: 5; bottom: 20px; left: 50%; transform: translateX(-50%); width: min(640px, calc(100% - 40px)); display: flex; gap: 13px; padding: 18px; border: 1px solid #986275; border-radius: 12px; background: #291a2a; }
 .error-banner > svg { color: var(--danger); flex-shrink: 0; }
 .error-banner p { font-size: 12px; margin-top: 5px; overflow-wrap: anywhere; }
@@ -335,10 +338,14 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .large-preview .icon-preview { height: 250px; }
 }
 @media (min-width: 761px) {
-  .card-pane { display: flex; flex-direction: column; height: calc(100dvh - 224px); max-height: calc(100dvh - 224px); min-height: 480px; }
-  .save-items { overflow: auto; flex: 1; min-height: 170px; }
+  .app.has-cards { display: grid; grid-template-rows: minmax(min-content, 1fr) auto; height: 100dvh; min-height: 100dvh; }
+  .has-cards .application-controls { display: grid; grid-template-rows: auto auto minmax(min-content, 1fr); min-height: 0; }
+  .has-cards .workspace { min-height: 0; grid-template-rows: minmax(min-content, 1fr); }
+  .has-cards .card-panes { align-items: stretch; min-height: 0; }
+  .card-pane { display: flex; flex-direction: column; min-height: 480px; }
+  .save-items { overflow: auto; flex: 1; min-height: 170px; contain: size; }
   .card-header, .capacity, .card-actions, .selection-bar, .pane-footer { flex-shrink: 0; }
-  .inspector { max-height: calc(100dvh - 224px); overflow: auto; }
+  .inspector { align-self: stretch; max-height: 100%; min-height: 0; overflow: auto; contain: size; }
 }
 @media (max-width: 1150px) {
   .app-header { padding: 18px 24px; }
@@ -359,7 +366,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .pane-footer button { font-size: 11px; padding: 7px; }
   .statusbar { padding: 12px 24px; }
   .welcome { gap: 30px; padding-inline: 42px; }
-  .welcome-copy h2 { font-size: 36px; }
+  .welcome-copy h1 { font-size: 36px; }
   .welcome-notes { gap: 30px; }
 }
 @media (max-width: 950px) {
@@ -383,9 +390,10 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .list .save-label small span { display: none; }
   .file-actions { flex-wrap: wrap; }
   .statusbar { flex-wrap: wrap; gap: 6px; }
-  .welcome-copy h2 { font-size: 30px; }
+  .welcome-copy h1 { font-size: 30px; }
   .welcome { padding-inline: 28px; }
   .card-bay { padding: 18px; gap: 12px; }
+  .bay-orbits { width: 116%; left: -8%; }
 }
 @media (max-width: 760px) {
   .app-header { flex-wrap: wrap; }
@@ -405,7 +413,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .wordmark { width: 113px; height: 19px; }
   .brand-caption { font-size: 9px; }
   .welcome { grid-template-columns: 1fr; max-width: 570px; padding: 38px 28px; gap: 30px; }
-  .welcome-copy h2 { font-size: 36px; }
+  .welcome-copy h1 { font-size: 36px; }
   .card-bays { padding: 30px 12px; max-width: 440px; width: 100%; justify-self: center; }
   .bay-orbits { width: 110%; left: -5%; }
   .welcome-notes { margin-top: 0; gap: 22px; }
@@ -424,7 +432,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .wordmark { width: 94px; height: 18px; }
   .brand { gap: 6px; }
   .app-header .primary { padding: 9px 8px; font-size: 11px; gap: 5px; }
-  .welcome-copy h2 { font-size: 30px; }
+  .welcome-copy h1 { font-size: 30px; }
   .welcome-copy > p { font-size: 13px; }
   .welcome-notes { grid-template-columns: 1fr; }
   .welcome { padding: 28px 22px; }
@@ -432,9 +440,6 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .card-bay:nth-of-type(2) { margin-left: 18px; }
   .card-panes .save-items { min-height: 200px; }
   .workspace-toolbar { padding: 18px 16px; }
-  .workspace-toolbar.empty-toolbar > div { flex-direction: row; gap: 12px; }
-  .workspace-toolbar.empty-toolbar h1 { font-size: 17px; }
-  .workspace-toolbar.empty-toolbar .muted { font-size: 11px; }
   .dialog-actions button { flex: 1; }
   .copy-choice label { align-items: start; flex-direction: column; }
   dialog { padding: 20px; }

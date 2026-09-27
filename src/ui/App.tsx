@@ -58,6 +58,8 @@ import { IconPreview } from "./IconPreview";
 import { IconViewer } from "./IconViewer";
 import { Dialog } from "./Dialog";
 import { Brand } from "./Brand";
+import { GitHubMark } from "./GitHubMark";
+import { version as appVersion } from "../../package.json";
 
 type Modal =
   | { type: "icons"; card: MemoryCard; info: SaveInfo; initialPath: string; returnFocus: HTMLElement }
@@ -413,7 +415,7 @@ export function App() {
   }
   return (
     <div
-      className="app"
+      className={openCount ? "app has-cards" : "app"}
       onKeyDown={keyboard}
       onClickCapture={(event) => {
         // Safari does not focus buttons on pointer clicks. Keep dialog return
@@ -486,10 +488,10 @@ export function App() {
       <fieldset className="application-controls" disabled={busy}>
         <header className="app-header">
           <Brand />
-          <span className="local-label">
+          {!!openCount && <span className="local-label">
             <LockKeyhole /> Local to your browser
-          </span>
-          <div className="header-actions">
+          </span>}
+          {!!openCount && <div className="header-actions">
           <button onClick={createCard} disabled={openCount === 2}
             title={openCount === 2 ? "Close a card to create a new one" : "Create an empty 8 MiB memory card"}>
             <FilePlus2 /> New memory card
@@ -501,29 +503,23 @@ export function App() {
           >
               <Plus /> Open memory card
           </button>
-          </div>
+          </div>}
         </header>
-        <div className={`workspace-toolbar ${!openCount ? "empty-toolbar" : ""}`}>
+        {!!openCount && <div className="workspace-toolbar">
           <div>
             <h1>Memory cards</h1>
-            <span className="muted">
-              {openCount
-                ? `${openCount} of 2 slots in use`
-                : "Your saves. Your cards."}
-            </span>
+            <span className="muted">{openCount} of 2 slots in use</span>
           </div>
-          {!!openCount && <div className="workspace-tools">
-            {!!openCount && (
-              <label className="search">
-                <Search />
-                <input
-                  aria-label="Find saves"
-                  placeholder="Find a save or directory"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </label>
-            )}
+          <div className="workspace-tools">
+            <label className="search">
+              <Search />
+              <input
+                aria-label="Find saves"
+                placeholder="Find a save or directory"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
             <div className="segmented">
               <button
                 aria-label="Icon grid"
@@ -548,24 +544,23 @@ export function App() {
               <PanelRight />
               <span>Inspector</span>
             </button>
-          </div>}
-        </div>
+          </div>
+        </div>}
         {!openCount ? (
           <main id="workspace" className="welcome" tabIndex={-1}>
             <div className="welcome-copy">
-            <h2>Pick up where<br />you left off.</h2>
+            <h1>The Swiss Army knife for PS2 saves</h1>
             <p>
-              Open a PS2 memory card or create an empty one.
-              <br />
-              Bring a second card to copy between them.
+              See what's on your cards. Import saves you've downloaded, copy
+              saves between cards, replace files, or build a fresh card.
             </p>
             <div className="welcome-actions">
-            <button className="primary large" onClick={() => requestOpen()}>
+            <button className="primary large" id="open-card" onClick={() => requestOpen()}>
               <FolderOpen /> Open memory card <ArrowRight />
             </button>
             <button className="large" onClick={createCard}><FilePlus2 /> New memory card</button>
             </div>
-            <span className="welcome-formats">PS2 / MC2 / BIN <span>·</span> Standard 8 MiB images</span>
+            <span className="welcome-formats">Standard 8 MiB card images, including .ps2, .mc2, and .bin</span>
             </div>
             <div className="card-bays" aria-label="Available card slots">
               <svg className="bay-orbits" viewBox="0 0 500 400" fill="none" aria-hidden="true">
@@ -577,15 +572,14 @@ export function App() {
               {slots.map((slot) => (
                 <button className="card-bay" key={slot} onClick={() => requestOpen(slot)} aria-label={`Open memory card in slot ${letter(slot)}`}>
                   <span className="bay-letter">{letter(slot)}</span>
-                  <span className="bay-copy"><strong>Card {letter(slot)}</strong><span>No card open</span></span>
+                  <span className="bay-copy"><strong>Card {letter(slot)}</strong><span>Open a card here</span></span>
                   <Plus aria-hidden="true" />
                 </button>
               ))}
-              <span className="bay-caption">Two cards. A world of saves.</span>
             </div>
             <div className="welcome-notes">
-              <p><LockKeyhole /><span><strong>On your device. In your hands.</strong>Files stay in your browser. Original images stay unchanged.</span></p>
-              <p><Download /><span><strong>Keep what you change.</strong>Edits last for this session. Download your card before you leave.</span></p>
+              <p><LockKeyhole /><span>Files stay in your browser. Original card images stay unchanged.</span></p>
+              <p><Download /><span>Reloading or closing this page discards cards and edits. Download your card before leaving.</span></p>
             </div>
           </main>
         ) : (
@@ -692,9 +686,9 @@ export function App() {
                             }
                           >
                             {state.needsDownload
-                              ? "● Download needed"
+                              ? "● Download card to keep it"
                               : state.lastOfferedRevision
-                                ? "Download offered"
+                                ? "Download started"
                                 : "Unchanged"}
                           </span>
                         </div>
@@ -711,10 +705,10 @@ export function App() {
                           packageInput.current!.click();
                         }}><Upload /> Import save</button>
                         <button onClick={() => saveCard(slot)} disabled={renaming?.slot === slot} title={renaming?.slot === slot ? "Apply or cancel the name first" : undefined}>
-                          <Download /> Save card
+                          <Download /> Download card
                         </button>
                         <button onClick={() => showSaveAs(slot)} disabled={renaming?.slot === slot} title={renaming?.slot === slot ? "Apply or cancel the name first" : undefined}>
-                          Save as
+                          Download as
                         </button>
                         <span className="spacer" />
                         <button
@@ -823,7 +817,7 @@ export function App() {
                         </details>
                       )}
                       <footer className="pane-footer">
-                        <button disabled={count !== 1} onClick={() => exportSave(slot, selection[slot][0]!)}><Download /> Export save</button>
+                        <button disabled={count !== 1} onClick={() => exportSave(slot, selection[slot][0]!)}><Download /> Export selected save</button>
                         <button
                           disabled={!count || !cards[other(slot)]}
                           onClick={() => copySelection(slot)}
@@ -1014,12 +1008,25 @@ export function App() {
         <span role="status" aria-live="polite">
           {busy ? "Working with your local files…" : status}
         </span>
-        <span className="muted">
-          Session only <span className="dot-separator">·</span> PS2 / MC2 / BIN
+        <span className="footer-meta muted">
+          Session only
+          <span className="dot-separator">·</span>
+          <a
+            className="footer-github"
+            href="https://github.com/craigshaw/ps2stk"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub repository"
+            title="GitHub repository"
+          >
+            <GitHubMark />
+          </a>
           <span className="dot-separator">·</span>
           <a href="/third-party-notices.txt" target="_blank" rel="noreferrer">
             Licenses
           </a>
+          <span className="dot-separator">·</span>
+          <span>v{appVersion}</span>
         </span>
       </footer>
       {error && modal?.type !== "export" && (
@@ -1046,9 +1053,9 @@ export function App() {
               delete: "Delete selected saves?",
               copy: "Copy complete saves",
               replace: "Replace this file?",
-              save: "Save memory card as",
+              save: "Download card as",
               import: "Review save import",
-              export: "Export save",
+              export: "Export selected save",
               icons: "Icon Viewer",
             }[modal.type]
           }
@@ -1096,7 +1103,7 @@ export function App() {
             <>
               <p>
                 Choose which card to replace. You can download it first with
-                Save card.
+                Download card.
               </p>
               <div className="slot-choices">
                 {slots.map((slot) => (
@@ -1365,7 +1372,7 @@ export function App() {
                 </select>
               </label>
               <p className="small muted">
-                Save as changes this download only. Save card uses the name
+                Download as changes this download only. Download card uses the name
                 shown on the card.
               </p>
               <div className="dialog-actions">

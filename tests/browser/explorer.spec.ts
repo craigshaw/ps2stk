@@ -17,6 +17,16 @@ async function downloaded(download: Download) {
   return new Uint8Array(await readFile((await download.path())!));
 }
 
+test('landing page fits a roomy window and scrolls on narrow screens', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test('create an empty card, import a package, undo and download both layouts', async ({ page }, testInfo) => {
   const { gunzipSync } = await import('node:zlib');
   const { decodePsu } = await import('../../src/formats/psu');
@@ -26,7 +36,7 @@ test('create an empty card, import a package, undo and download both layouts', a
   const a = page.getByRole('region', { name: 'Card A', exact: true });
   await expect(a.getByRole('heading', { name: 'new-card-a.ps2' })).toBeVisible();
   await expect(a.getByText('No saves on this card.', { exact: true })).toBeVisible();
-  await expect(a.getByText('● Download needed', { exact: true })).toBeVisible();
+  await expect(a.getByText('● Download card to keep it', { exact: true })).toBeVisible();
   await expect(a.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
   await a.getByRole('button', { name: 'Close card A' }).click();
   await expect(page.getByRole('button', { name: 'Discard and close' })).toBeVisible();
@@ -37,17 +47,17 @@ test('create an empty card, import a package, undo and download both layouts', a
   await expect(a.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toBeVisible();
   await a.getByRole('button', { name: 'Undo card A' }).click();
   await expect(a.getByText('No saves on this card.', { exact: true })).toBeVisible();
-  await expect(a.getByText('● Download needed', { exact: true })).toBeVisible();
+  await expect(a.getByText('● Download card to keep it', { exact: true })).toBeVisible();
   const emptyDownload = page.waitForEvent('download');
-  await a.getByRole('button', { name: 'Save card', exact: true }).click();
+  await a.getByRole('button', { name: 'Download card', exact: true }).click();
   const empty = await emptyDownload;
   expect(empty.suggestedFilename()).toBe('new-card-a.ps2');
   const emptyCard = new MemoryCard(await downloaded(empty));
   expect(emptyCard.layout).toBe('ecc');
   expect(emptyCard.entries).toHaveLength(0);
-  await expect(a.getByText('Download offered', { exact: true })).toBeVisible();
+  await expect(a.getByText('Download started', { exact: true })).toBeVisible();
   await a.getByRole('button', { name: 'Redo card A' }).click();
-  await a.getByRole('button', { name: 'Save as', exact: true }).click();
+  await a.getByRole('button', { name: 'Download as', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).not.toContainText('ECC');
   await expect(dialog).not.toContainText('Binary layout');
@@ -82,7 +92,38 @@ test('new cards use only empty slots and remain keyboard accessible at narrow wi
   await expect(create).toBeEnabled();
 });
 
-test('card names can be edited inline and follow Save card and Save as downloads', async ({ page }, testInfo) => {
+test('loaded cards fit a roomy window and scroll in a short window', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await open(page, fixture(), 'first.ps2');
+  const pageOverflow = () => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+  expect(await pageOverflow()).toBeLessThanOrEqual(1);
+
+  const first = page.getByRole('region', { name: 'Card A', exact: true });
+  await first.getByRole('button', { name: 'Select SAVE-A (SAVE-A)', exact: true }).click();
+  expect(await pageOverflow()).toBeLessThanOrEqual(1);
+  expect(await page.locator('.inspector').evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+  await page.getByRole('banner').getByRole('button', { name: 'New memory card', exact: true }).click();
+  await first.getByRole('button', { name: 'Activate card A' }).click();
+  expect(await pageOverflow()).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 1920, height: 850 });
+  expect(await pageOverflow()).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 1024, height: 600 });
+  expect(await pageOverflow()).toBeGreaterThan(0);
+  await page.setViewportSize({ width: 761, height: 720 });
+  expect(await pageOverflow()).toBeGreaterThan(0);
+  const paneFooterBottom = await page.locator('.pane-footer').evaluateAll(elements =>
+    Math.max(...elements.map(element => element.getBoundingClientRect().bottom)),
+  );
+  const pageFooterTop = await page.locator('.statusbar').evaluate(element => element.getBoundingClientRect().top);
+  expect(paneFooterBottom).toBeLessThanOrEqual(pageFooterTop);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await pageOverflow()).toBeGreaterThan(0);
+});
+
+test('card names can be edited inline and used for both card download actions', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByRole('main').getByRole('button', { name: 'New memory card', exact: true }).click();
   const card = page.getByRole('region', { name: 'Card A', exact: true });
@@ -106,31 +147,31 @@ test('card names can be edited inline and follow Save card and Save as downloads
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await card.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('rename-card-narrow.png') });
-  await expect(card.getByRole('button', { name: 'Save card', exact: true })).toBeDisabled();
+  await expect(card.getByRole('button', { name: 'Download card', exact: true })).toBeDisabled();
   await name.press('Enter');
   await expect(card.getByRole('heading', { name: 'My Memory Card.ps2' })).toBeVisible();
   await expect(card.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
   const first = page.waitForEvent('download');
-  await card.getByRole('button', { name: 'Save card', exact: true }).click();
+  await card.getByRole('button', { name: 'Download card', exact: true }).click();
   const firstFile = await first;
   expect(firstFile.suggestedFilename()).toBe('My Memory Card.ps2');
   expect(new MemoryCard(await downloaded(firstFile)).layout).toBe('ecc');
-  await expect(card.getByText('Download offered', { exact: true })).toBeVisible();
+  await expect(card.getByText('Download started', { exact: true })).toBeVisible();
   await rename.click();
   await name.fill('Another Card');
   await card.getByRole('button', { name: 'Apply card A name' }).click();
-  await expect(card.getByText('● Download needed', { exact: true })).toBeVisible();
+  await expect(card.getByText('● Download card to keep it', { exact: true })).toBeVisible();
   await card.getByRole('button', { name: 'Close card A' }).click();
   await expect(page.getByRole('button', { name: 'Discard and close' })).toBeVisible();
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await card.getByRole('button', { name: 'Save as', exact: true }).click();
+  await card.getByRole('button', { name: 'Download as', exact: true }).click();
   await page.getByLabel('Card file type').selectOption('.bin');
   const second = page.waitForEvent('download');
   await page.getByRole('dialog').getByRole('button', { name: 'Download card', exact: true }).click();
   const secondFile = await second;
   expect(secondFile.suggestedFilename()).toBe('Another Card.bin');
   expect(new MemoryCard(await downloaded(secondFile)).layout).toBe('data');
-  await expect(card.getByText('Download offered', { exact: true })).toBeVisible();
+  await expect(card.getByText('Download started', { exact: true })).toBeVisible();
   await page.getByRole('banner').getByRole('button', { name: 'New memory card', exact: true }).click();
   await page.setViewportSize({ width: 850, height: 900 });
   await rename.click();
@@ -182,7 +223,7 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
   const raw = page.waitForEvent("download");
   await page.getByRole("button", { name: "Dump file", exact: true }).click();
   expect(await downloaded(await raw)).toEqual(new Uint8Array(replacement));
-  await expect(b.getByText("● Download needed")).toBeVisible();
+  await expect(b.getByText("● Download card to keep it")).toBeVisible();
   expect(
     await page.evaluate(() => {
       const event = new Event("beforeunload", { cancelable: true });
@@ -191,7 +232,7 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
     }),
   ).toBe(true);
   const output = page.waitForEvent("download");
-  await b.getByRole("button", { name: "Save card", exact: true }).click();
+  await b.getByRole("button", { name: "Download card", exact: true }).click();
   const result = new MemoryCard(await downloaded(await output));
   expect(result.layout).toBe("ecc");
   expect(result.readFile("/SAVE-A/bytes-513")).toEqual(
@@ -200,7 +241,7 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
   expect(result.readFile("/KEEP/original")).toEqual(
     new MemoryCard(destination).readFile("/KEEP/original"),
   );
-  await expect(b.getByText("Download offered")).toBeVisible();
+  await expect(b.getByText("Download started")).toBeVisible();
   expect(
     await page.evaluate(() => {
       const event = new Event("beforeunload", { cancelable: true });
@@ -208,11 +249,11 @@ test("two-card copy, replace, raw dump, Undo/Redo and converted download preserv
       return event.defaultPrevented;
     }),
   ).toBe(false);
-  await b.getByRole("button", { name: "Save as", exact: true }).click();
+  await b.getByRole("button", { name: "Download as", exact: true }).click();
   await expect(page.getByRole('dialog')).not.toContainText('ECC');
   await page.getByLabel("Card file type").selectOption(".mc2");
   const converted = page.waitForEvent("download");
-  await page
+  await page.getByRole('dialog')
     .getByRole("button", { name: "Download card", exact: true })
     .click();
   const download = await converted;
@@ -266,11 +307,11 @@ test("conflicts default to Skip and explicit Replace can be undone; close protec
   await page.getByRole("button", { name: "Close dialog" }).click();
   await b.getByRole("button", { name: "Undo card B" }).click();
   const saved = page.waitForEvent("download");
-  await b.getByRole("button", { name: "Save card" }).click();
+  await b.getByRole("button", { name: "Download card" }).click();
   expect(await downloaded(await saved)).toEqual(bytes);
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Pick up where you left off." }),
+    page.getByRole("heading", { name: "The Swiss Army knife for PS2 saves" }),
   ).toBeVisible();
 });
 
@@ -368,7 +409,7 @@ test("folder dump writes exact files through the browser and refuses an existing
   await page
     .getByRole("button", { name: "Select SAVE-A (SAVE-A)", exact: true })
     .click();
-  await page.getByRole("button", { name: "Export save", exact: true }).click();
+  await page.getByRole("button", { name: "Export selected save", exact: true }).click();
   await page.getByLabel('Output type').selectOption('folder');
   await page.getByRole("button", { name: "Choose folder", exact: true }).click();
   // Cancelling the picker preserves the review and makes no card or folder changes.
@@ -407,7 +448,7 @@ test("folder dump writes exact files through the browser and refuses an existing
   const card = new MemoryCard(fixture());
   for (const [path, bytes] of Object.entries(hashes))
     expect(new Uint8Array(bytes)).toEqual(card.readFile(`/SAVE-A/${path}`));
-  await page.getByRole("button", { name: "Export save", exact: true }).click();
+  await page.getByRole("button", { name: "Export selected save", exact: true }).click();
   await page.getByLabel('Output type').selectOption('folder');
   await page.getByRole("button", { name: "Choose folder", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("already exists");
@@ -432,7 +473,7 @@ test("explicit whole-save replacement and capacity failure preserve the correct 
   await page.getByLabel("Conflict for SAVE-A").selectOption("replace");
   await page.getByRole("button", { name: "Apply copy choices" }).click();
   let output = page.waitForEvent("download");
-  await b.getByRole("button", { name: "Save card" }).click();
+  await b.getByRole("button", { name: "Download card" }).click();
   expect(
     new MemoryCard(await downloaded(await output)).readFile(
       "/SAVE-A/bytes-513",
@@ -440,7 +481,7 @@ test("explicit whole-save replacement and capacity failure preserve the correct 
   ).toEqual(source.readFile("/SAVE-A/bytes-513"));
   await b.getByRole("button", { name: "Undo card B" }).click();
   output = page.waitForEvent("download");
-  await b.getByRole("button", { name: "Save card" }).click();
+  await b.getByRole("button", { name: "Download card" }).click();
   expect(await downloaded(await output)).toEqual(changed.export());
   await b
     .getByRole("button", { name: "Select SAVE-A (SAVE-A)", exact: true })
@@ -460,7 +501,7 @@ test("explicit whole-save replacement and capacity failure preserve the correct 
   await expect(b.getByRole("button", { name: "Redo card B" })).toBeEnabled();
   await page.getByRole("button", { name: "Dismiss error" }).click();
   output = page.waitForEvent("download");
-  await b.getByRole("button", { name: "Save card" }).click();
+  await b.getByRole("button", { name: "Download card" }).click();
   expect(await downloaded(await output)).toEqual(changed.export());
 });
 
@@ -789,8 +830,8 @@ test("PSU import review, cancel, export and exact Undo/Redo work without folder 
   await expect(pane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toBeVisible();
   await expect(firstPane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toHaveCount(0);
   await expect(page.getByRole('complementary').getByRole('heading', { name: 'PSU-FLAT', exact: true })).toBeVisible();
-  await expect(pane.getByText('● Download needed')).toBeVisible();
-  await pane.getByRole('button', { name: 'Export save', exact: true }).click();
+  await expect(pane.getByText('● Download card to keep it')).toBeVisible();
+  await pane.getByRole('button', { name: 'Export selected save', exact: true }).click();
   await expect(page.getByLabel('Output type')).toHaveValue('psu');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download save', exact: true }).click();
@@ -798,10 +839,10 @@ test("PSU import review, cancel, export and exact Undo/Redo work without folder 
   expect(output.suggestedFilename()).toBe('PSU-FLAT.psu');
   const exported = decodePsu(await downloaded(output));
   expect(exported.readFile('/PSU-FLAT/bytes-513')).toEqual(decodePsu(packageBytes).readFile('/PSU-FLAT/bytes-513'));
-  await expect(pane.getByText('● Download needed')).toBeVisible();
+  await expect(pane.getByText('● Download card to keep it')).toBeVisible();
   await pane.getByRole('button', { name: 'Undo card B' }).click();
   const whole = page.waitForEvent('download');
-  await pane.getByRole('button', { name: 'Save card', exact: true }).click();
+  await pane.getByRole('button', { name: 'Download card', exact: true }).click();
   expect(await downloaded(await whole)).toEqual(original);
   await pane.getByRole('button', { name: 'Redo card B' }).click();
   await load();
@@ -815,11 +856,11 @@ test("PSU import review, cancel, export and exact Undo/Redo work without folder 
   await page.getByLabel('Import conflict').selectOption('replace');
   await page.getByRole('button', { name: 'Replace entire save', exact: true }).click();
   const replaced = page.waitForEvent('download');
-  await pane.getByRole('button', { name: 'Save card', exact: true }).click();
+  await pane.getByRole('button', { name: 'Download card', exact: true }).click();
   expect(new MemoryCard(await downloaded(await replaced)).extractSave('PSU-FLAT').fileCount).toBe(0);
   await pane.getByRole('button', { name: 'Undo card B' }).click();
   const restored = page.waitForEvent('download');
-  await pane.getByRole('button', { name: 'Save card', exact: true }).click();
+  await pane.getByRole('button', { name: 'Download card', exact: true }).click();
   expect(new MemoryCard(await downloaded(await restored)).readFile('/PSU-FLAT/bytes-513')).toEqual(exported.readFile('/PSU-FLAT/bytes-513'));
   await expect(pane.getByRole('button', { name: 'Redo card B' })).toBeEnabled();
   await load(Buffer.from([0, 1, 2]));
@@ -847,7 +888,7 @@ test("PSU capacity failure and nested export leave the card intact; narrow revie
   await open(page, fixture(), 'nested.bin');
   const b = page.getByRole('region', { name: 'Card B', exact: true });
   await b.getByRole('button', { name: 'Select SAVE-A (SAVE-A)', exact: true }).click();
-  await b.getByRole('button', { name: 'Export save', exact: true }).click();
+  await b.getByRole('button', { name: 'Export selected save', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('nested directories');
   await expect(b.getByRole('button', { name: 'Undo card B' })).toBeDisabled();
 });
@@ -876,7 +917,7 @@ test('PSU review renders contained icon assets with reduced motion and preserves
   await dialog.getByRole('button', { name: 'Import save', exact: true }).click();
   await expect(page.getByRole('complementary').getByRole('heading', { name: 'Synthetic animated icon' })).toBeVisible();
   const output = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save card', exact: true }).click();
+  await page.getByRole('button', { name: 'Download card', exact: true }).click();
   expect(new MemoryCard(await downloaded(await output)).readFile('/SAVE-A/icon.ico')).toEqual(new MemoryCard(animatedCard()).readFile('/SAVE-A/icon.ico'));
 });
 
@@ -897,7 +938,7 @@ test('legacy imports use content detection and MAX export requires loss acknowle
   }
   await pane.getByRole('button', { name: 'Redo card A' }).click();
   await pane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true }).click();
-  await pane.getByRole('button', { name: 'Export save', exact: true }).click();
+  await pane.getByRole('button', { name: 'Export selected save', exact: true }).click();
   const dialog=page.getByRole('dialog');
   await expect(page.getByLabel('Output type')).toHaveValue('psu');
   await page.getByLabel('Output type').selectOption('max');
@@ -912,7 +953,7 @@ test('legacy imports use content detection and MAX export requires loss acknowle
   const output=await pending; expect(output.suggestedFilename()).toBe('PSU-FLAT.max');
   const exported=decodeSavePackage(await downloaded(output));expect(exported.format).toBe('max');
   expect(exported.save.readFile('/PSU-FLAT/bytes-513')).toEqual(decodeSavePackage(gunzipSync(await readFile('tests/fixtures/flat.psu.gz'))).save.readFile('/PSU-FLAT/bytes-513'));
-  await expect(pane.getByText('● Download needed')).toBeVisible();
+  await expect(pane.getByText('● Download card to keep it')).toBeVisible();
   await page.setViewportSize({width:1440,height:1000});
   await pane.getByRole('button', { name: 'Import save', exact: true }).click();
   const corrupt=gunzipSync(await readFile('tests/fixtures/flat.psv.gz'));corrupt[corrupt.length-1]!^=1;
@@ -968,7 +1009,7 @@ test('unified export explains folder support while retaining package downloads',
   await open(page, fixture('destination'), 'export-options.ps2');
   await page.getByRole('button', { name: 'Select KEEP (KEEP)', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Dump save to folder' })).toHaveCount(0);
-  const button = page.getByRole('button', { name: 'Export save', exact: true });
+  const button = page.getByRole('button', { name: 'Export selected save', exact: true });
   await button.click();
   const dialog = page.getByRole('dialog');
   await expect(page.getByLabel('Output type')).toHaveValue('psu');
@@ -1007,8 +1048,8 @@ test('signed PSV downloads preserve contents and history, with keyboard review a
   await pane.getByRole('button', { name: 'Import save', exact: true }).click();
   await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'source.psu', mimeType: 'application/octet-stream', buffer: Buffer.from(encodePsu(source)) });
   await page.getByRole('dialog').getByRole('button', { name: 'Import save', exact: true }).click();
-  await expect(pane.getByText('● Download needed')).toBeVisible();
-  const exportButton = pane.getByRole('button', { name: 'Export save', exact: true });
+  await expect(pane.getByText('● Download card to keep it')).toBeVisible();
+  const exportButton = pane.getByRole('button', { name: 'Export selected save', exact: true });
   await exportButton.click();
   const dialog = page.getByRole('dialog'), outputType = page.getByLabel('Output type');
   await expect(outputType).toHaveValue('psu');
@@ -1037,14 +1078,14 @@ test('signed PSV downloads preserve contents and history, with keyboard review a
   for (const child of source.entry.children) expect(save.readFile(child.path)).toEqual(source.readFile(child.path));
   await expect(dialog).toHaveCount(0);
   await expect(exportButton).toBeFocused();
-  await expect(pane.getByText('● Download needed')).toBeVisible();
+  await expect(pane.getByText('● Download card to keep it')).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await pane.getByRole('button', { name: 'Undo card A' }).click();
   await expect(pane.getByRole('button', { name: 'Select BASLUS-20370-02 (BASLUS-20370-02)', exact: true })).toHaveCount(0);
   await expect(pane.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
   await pane.getByRole('button', { name: 'Redo card A' }).click();
   const whole = page.waitForEvent('download');
-  await pane.getByRole('button', { name: 'Save card', exact: true }).click();
+  await pane.getByRole('button', { name: 'Download card', exact: true }).click();
   const wholeBytes = await downloaded(await whole);
   const expectedCard = new MemoryCard(fixture('destination')).importSave(source).export('ecc');
   expect(wholeBytes.length).toBe(expectedCard.length);
