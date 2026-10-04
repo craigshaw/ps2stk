@@ -207,6 +207,13 @@ See [the design system](../DESIGN.md) and
 [redesign validation](design-redesign-validation.md) for the implementation and
 checks. The layout agreement below remains in force.
 
+Brand update, 2026-10-04: the user selected a PS2-style PS2STK line wordmark
+with blue-to-cyan ink and no memory card or separate header symbol. It replaces
+the Relay identity. The header keeps PS2 Save Toolkit as readable live text
+beneath the transparent wordmark. A compact version of its open numeral 2 is
+used for the favicon. The Orbital browser palette, layout and workflows remain
+in place. See [wordmark validation](wordmark-validation.md).
+
 Landing copy update, 2026-09-27: the user chose "The Swiss Army knife for PS2
 saves" as the strapline. The empty view uses it as the main heading and omits
 the separate Memory cards toolbar. Supporting copy introduces browsing,

@@ -27,6 +27,41 @@ test('landing page fits a roomy window and scrolls on narrow screens', async ({ 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test('brand artwork loads and its live descriptor stays readable at desktop and narrow widths', async ({ page }) => {
+  await page.goto('/');
+  const wordmark = page.getByRole('banner').getByRole('img', { name: 'PS2STK', exact: true });
+  const caption = page.getByRole('banner').getByText('PS2 Save Toolkit', { exact: true });
+  await expect(wordmark).toBeVisible();
+  await expect.poll(() => wordmark.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.evaluate(() => document.fonts.ready);
+
+  for (const loaded of [false, true]) {
+    if (loaded) await open(page, fixture(), 'brand-layout.ps2');
+    for (const width of [1440, 1024, 768, 760, 390, 360]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(caption).toBeVisible();
+      const layout = await caption.evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        const header = element.closest('header')!.getBoundingClientRect();
+        return {
+          fontSize: parseFloat(getComputedStyle(element).fontSize),
+          left: rect.left, right: rect.right, bottom: rect.bottom,
+          headerBottom: header.bottom, clipped: element.scrollWidth > element.clientWidth,
+        };
+      });
+      expect(layout.fontSize).toBeGreaterThanOrEqual(12);
+      expect(layout.left).toBeGreaterThanOrEqual(0);
+      expect(layout.right).toBeLessThanOrEqual(width);
+      expect(layout.bottom).toBeLessThanOrEqual(layout.headerBottom);
+      expect(layout.clipped).toBe(false);
+      const artwork = await wordmark.boundingBox();
+      expect(artwork).not.toBeNull();
+      expect(artwork!.x).toBeGreaterThanOrEqual(0);
+      expect(artwork!.x + artwork!.width).toBeLessThanOrEqual(width);
+    }
+  }
+});
+
 test('create an empty card, import a package, undo and download both layouts', async ({ page }, testInfo) => {
   const { gunzipSync } = await import('node:zlib');
   const { decodePsu } = await import('../../src/formats/psu');

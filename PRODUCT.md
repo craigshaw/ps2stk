@@ -109,6 +109,10 @@ later milestones.
   then selected the Relay symbol, two memory cards linked by a transfer path,
   for the header and favicon. This replaces the earlier generic dark explorer
   treatment. The built design system is recorded in [DESIGN.md](DESIGN.md).
+- On 2026-10-04, the user replaced Relay with a PS2-style PS2STK line wordmark
+  in blue-to-cyan ink, without a memory card or separate header symbol. Keep
+  PS2 Save Toolkit as readable live text beneath it. The favicon uses the
+  wordmark's open numeral 2. The Orbital browser world remains in place.
 - Preserve the approved one- or two-card explorer, comfortable icon grid with a
   list alternative, and shared collapsible inspector on the right.
 - Use original save assets for previews, with fallbacks when needed. Do not ship

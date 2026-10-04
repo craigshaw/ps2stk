@@ -16,7 +16,14 @@ colors:
   focus: "#bad2ff"
   scroll-track: "#0b1120"
   scroll-thumb: "#526b96"
+  brand-blue: "#093df8"
+  brand-cyan: "#02d7f9"
 typography:
+  brand-caption:
+    fontFamily: "Sora, sans-serif"
+    fontSize: "12px"
+    lineHeight: 1.4
+    letterSpacing: ".01em"
   display:
     fontFamily: "Sora, sans-serif"
     fontSize: "42px"
@@ -107,7 +114,7 @@ components:
 
 **Creative North Star: "Orbital browser"**
 
-Orbital browser draws on the PS2 system browser: deep space, luminous blue selection, calm motion, and original save icons. The Relay symbol links two memory card forms with a transfer path beside the geometric PS2STK wordmark. PS2 Save Toolkit remains visible beneath the wordmark at narrow widths.
+Orbital browser draws on the PS2 system browser: deep space, luminous blue selection, calm motion, and original save icons. The PS2STK wordmark uses thin, open lines with a blue-to-cyan vertical gradient. PS2 Save Toolkit remains readable as live white text centred beneath it at every supported width. A compact open numeral 2 carries the same gradient in the favicon.
 
 Open galleries give save icons room. Thin lines, pale controls, and a darker inspector organise the working surface. Shape and colour clarify selection without competing with the original save artwork.
 
@@ -119,7 +126,7 @@ Open galleries give save icons room. Thin lines, pale controls, and a darker ins
 
 Extracted from [the stylesheet](src/style.css), [the explorer](src/ui/App.tsx),
 [the identity](src/ui/Brand.tsx), import/export reviews, and the original SVG
-favicon. The selected world is recorded in [PRODUCT.md](PRODUCT.md).
+favicon and [wordmark](public/wordmark.svg). The selected world is recorded in [PRODUCT.md](PRODUCT.md).
 Existing desktop and narrow screenshots support the visual record; this document
 is not a new UI audit. No shipping raster assets were generated.
 
@@ -133,6 +140,7 @@ owns the exact colour values.
 - **Accent:** links, active-card edges, and interface details.
 - **Action / Action ink:** pale blue primary controls with dark text.
 - **Selection / Focus:** filled selection states and a distinct keyboard outline.
+- **Brand blue / Brand cyan:** the top and bottom stops of the wordmark and favicon gradient, taken from the selected raster reference. Keep these identity colours separate from control and selection colours.
 
 ### Neutral
 
@@ -149,7 +157,8 @@ owns the exact colour values.
 
 Sora provides the display, workspace, inspector, and dialog headings. Readable
 system UI text supports controls and descriptions. Monospace identifies save
-directories and filenames. The wordmark is original SVG geometry, not a font.
+directories and filenames. The wordmark is SVG line geometry derived from the
+selected reference, not a font.
 
 - **Display:** the empty-state heading; reduces to 36px or 30px as space narrows.
 - **Headline:** the workspace heading; reduces to 19px on narrow desktop.
@@ -159,8 +168,9 @@ directories and filenames. The wordmark is original SVG geometry, not a font.
 - **Label:** save titles. Supporting metadata generally uses 10px to 12px;
   numeric capacity and file details use tabular numerals.
 - **Identity:** directory labels; inspector directory text uses 11px and can wrap.
+- **Brand caption:** centred live Sora text beneath the wordmark, using Text for a readable white descriptor.
 
-**The Visible Name Rule.** Keep PS2 Save Toolkit beneath the geometric wordmark at every supported width.
+**The Visible Name Rule.** Keep PS2 Save Toolkit as readable live text beneath the open-line wordmark at every supported width.
 
 ## Layout
 
@@ -176,6 +186,10 @@ uses 230px and two-card grids use one icon column per pane. At 760px and below,
 the inspector moves below the panes and toolbar controls wrap. At 520px and
 below, card panes stack. The page has a 360px minimum width. These adaptations
 preserve the desktop tool; they do not define separate phone workflows.
+
+The header wordmark is 216px wide on desktop, 180px at 760px and below, and
+160px at 520px and below. Its aspect ratio stays fixed. The caption is centred
+beneath it with a 5px gap and stays on one line.
 
 The empty view leads with "The Swiss Army knife for PS2 saves" as its only
 heading. It has no separate Memory cards toolbar. Brief supporting copy mentions
@@ -200,11 +214,21 @@ save animation retains its own pause and reduced-motion controls.
 
 Controls have small rounded corners. Save tiles, large previews, card bays,
 and dialogs use the larger surface radius. Ellipses belong to icon floors and
-bay decoration; the brand uses two upright card outlines and a diagonal transfer path.
+bay decoration. The brand uses thin open-line letter geometry without a separate
+header symbol. The favicon uses a single open numeral 2 with a 6px stroke on
+the existing dark 64px tile.
 Card panes remain open, with a top edge and tonal fill rather than a repeated
 rounded outer shell. Most boundaries use a single thin line.
 
 ## Components
+
+### Brand
+
+The header uses the transparent external wordmark SVG with PS2STK alternative
+text. The PS2 Save Toolkit descriptor is live text beneath it. The wordmark
+uses 5px SVG strokes with flat ends and sharp joins. The separate compact
+favicon uses the same blue-to-cyan gradient on Ground. Keep memory card imagery
+in the workspace rather than adding it to the identity.
 
 ### Buttons
 
@@ -255,12 +279,13 @@ sit in the footer.
 
 - Do use original save assets with a clear fallback when an icon cannot render.
 - Do retain visible keyboard focus, pause controls, and reduced-motion behaviour.
-- Do use Lucide SVG icons for interface actions and Relay for the brand.
+- Do use Lucide SVG icons for interface actions, the open-line PS2STK wordmark for the header, and the compact numeral 2 for the favicon.
 - Do use the blue scrollbar theme for page, gallery, inspector, file, and dialog overflow.
 
 ### Don't:
 
 - Don't hide the PS2 Save Toolkit caption at narrow widths.
+- Don't add a memory card or separate symbol to the header wordmark.
 - Don't add decorative perpetual motion or a page-load sequence.
 - Don't use personal save assets as public demonstration content.
 - Don't treat technical directory names as the primary save title.
