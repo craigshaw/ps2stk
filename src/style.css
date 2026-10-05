@@ -78,15 +78,12 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
   display: flex; align-items: center; gap: 26px; min-height: 88px;
   padding: 18px 32px; border-bottom: 1px solid #202e47;
 }
-.brand { display: flex; align-items: center; gap: 14px; margin-right: auto; }
+.brand { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-right: auto; flex-shrink: 0; }
 .header-actions, .welcome-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .header-actions { flex-shrink: 0; }
 .welcome-actions { margin: 30px 0 16px; }
-.brand-mark { display: block; width: 45px; height: 45px; color: var(--accent); }
-.brand-mark svg { width: 100%; height: 100%; }
-.brand-type { display: flex; flex-direction: column; gap: 6px; }
-.wordmark { width: 143px; height: 23px; color: var(--text); }
-.brand-caption { font-size: 10px; letter-spacing: .08em; color: var(--muted); }
+.wordmark { display: block; width: 216px; height: auto; }
+.brand-caption { font-family: Sora, sans-serif; font-size: 12px; line-height: 1.4; letter-spacing: .01em; color: var(--text); white-space: nowrap; }
 .local-label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
 .local-label svg { width: 14px; height: 14px; }
 .primary { background: var(--action); border-color: transparent; color: var(--action-ink); font-weight: 600; }
@@ -408,10 +405,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .card-panes .save-items.grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); }
   .app-header { gap: 12px; padding: 16px; min-height: 78px; }
   .app-header .primary { font-size: 12px; padding: 9px; }
-  .brand { gap: 9px; }
-  .brand-mark { width: 35px; height: 35px; }
-  .wordmark { width: 113px; height: 19px; }
-  .brand-caption { font-size: 9px; }
+  .wordmark { width: 180px; }
   .welcome { grid-template-columns: 1fr; max-width: 570px; padding: 38px 28px; gap: 30px; }
   .welcome-copy h1 { font-size: 36px; }
   .card-bays { padding: 30px 12px; max-width: 440px; width: 100%; justify-self: center; }
@@ -427,10 +421,7 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
   .save-items.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .statusbar > .muted { white-space: normal; }
   .app-header { gap: 8px; }
-  .brand-caption { font-size: 8px; letter-spacing: .04em; }
-  .brand-mark { width: 29px; height: 32px; }
-  .wordmark { width: 94px; height: 18px; }
-  .brand { gap: 6px; }
+  .wordmark { width: 160px; }
   .app-header .primary { padding: 9px 8px; font-size: 11px; gap: 5px; }
   .welcome-copy h1 { font-size: 30px; }
   .welcome-copy > p { font-size: 13px; }
