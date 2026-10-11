@@ -74,6 +74,13 @@ match, and at most 64 match candidates per token.
 
 ## Browser and interface
 
+Public help lives at `/guides/`: importing saves, save formats, and copying
+saves between card images. Guides are static HTML and work without JavaScript.
+App guide links open in a new tab to preserve the current card session.
+The home page includes search and sharing metadata and a readable HTML fallback.
+`/sitemap.xml` lists the home page and guides; `/robots.txt` advertises it.
+Search Console verification and deployed indexing checks remain owner setup tasks.
+
 Use one/two card panes, a comfortable icon grid with a list alternative, and one
 shared collapsible inspector. Card-pane icons stay still at the fixed 45-degree
 overview approximation. Inspector and Icon Viewer support animation, pause, and

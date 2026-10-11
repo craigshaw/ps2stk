@@ -488,6 +488,7 @@ export function App() {
       <fieldset className="application-controls" disabled={busy}>
         <header className="app-header">
           <Brand />
+          <a className="header-guides" href="/guides/" target="_blank" rel="noopener" aria-label="Guides (opens in a new tab)">Guides</a>
           {!!openCount && <span className="local-label">
             <LockKeyhole /> Local to your browser
           </span>}
@@ -551,8 +552,8 @@ export function App() {
             <div className="welcome-copy">
             <h1>The Swiss Army knife for PS2 saves</h1>
             <p>
-              See what's on your cards. Import saves you've downloaded, copy
-              saves between cards, replace files, or build a fresh card.
+              Manage PS2 memory card images in your browser. Import and export
+              saves, copy saves between cards, replace files, or build a fresh card.
             </p>
             <div className="welcome-actions">
             <button className="primary large" id="open-card" onClick={() => requestOpen()}>
@@ -561,6 +562,7 @@ export function App() {
             <button className="large" onClick={createCard}><FilePlus2 /> New memory card</button>
             </div>
             <span className="welcome-formats">Standard 8 MiB card images, including .ps2, .mc2, and .bin</span>
+            <span className="welcome-formats">Import PSU, MAX, CBS, SPS, XPS and signed PS2 PSV save packages.</span>
             </div>
             <div className="card-bays" aria-label="Available card slots">
               <svg className="bay-orbits" viewBox="0 0 500 400" fill="none" aria-hidden="true">
@@ -1010,6 +1012,8 @@ export function App() {
         </span>
         <span className="footer-meta muted">
           Session only
+          <span className="dot-separator">·</span>
+          <a href="/guides/" target="_blank" rel="noopener" aria-label="Guides (opens in a new tab)">Guides</a>
           <span className="dot-separator">·</span>
           <a
             className="footer-github"

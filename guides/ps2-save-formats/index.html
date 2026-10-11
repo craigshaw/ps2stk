@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060914"><title>PS2 save formats explained | PS2 Save Toolkit</title>
+  <meta name="description" content="Understand PS2 memory card images, PSU, MAX, CBS, SPS, XPS and PSV save packages, and which formats PS2 Save Toolkit can import and export.">
+  <link rel="canonical" href="https://ps2stk.craigshaw.com/guides/ps2-save-formats/"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article"><meta property="og:site_name" content="PS2 Save Toolkit">
+  <meta property="og:title" content="PS2 save formats explained"><meta property="og:description" content="Understand PS2 memory card images, PSU, MAX, CBS, SPS, XPS and PSV save packages, and which formats PS2 Save Toolkit can import and export.">
+  <meta property="og:url" content="https://ps2stk.craigshaw.com/guides/ps2-save-formats/"><meta property="og:image" content="https://ps2stk.craigshaw.com/social-preview.png">
+  <meta property="og:image:alt" content="PS2 Save Toolkit: manage PS2 memory card images in your browser">
+  <meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="/guides/guides.css">
+</head><body class="guides-page">
+  <a class="guide-skip" href="#content">Skip to content</a>
+  <header class="guide-header"><a class="guide-brand" href="/" target="_blank" rel="noopener" aria-label="Open PS2 Save Toolkit in a new tab"><img src="/wordmark.svg" alt="PS2STK" width="490" height="58"><span>PS2 Save Toolkit</span></a><nav aria-label="Main"><a href="/guides/">Guides</a><a class="guide-action" href="/" target="_blank" rel="noopener">Open toolkit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="visually-hidden"> (new tab)</span></a></nav></header>
+  <main id="content" class="guide-main" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/guides/">All guides</a></nav>
+    <div class="guide-intro"><h1>PS2 save formats explained</h1><p>A card image holds a whole memory card. A save package holds one save. Choose the output for the task you need to complete.</p></div>
+    <div class="guide-layout">
+      <nav class="guide-contents" aria-label="On this page"><strong>On this page</strong><a href="#cards">Memory card images</a><a href="#packages">Save packages</a><a href="#choose">Choose your output</a><a href="#limits">Supported limits</a></nav>
+      <article class="guide-article">
+<section id="cards"><h2>Memory card images</h2>
+<p>A card image represents a memory card file system and all its contents. PS2STK opens standard 8 MiB images, with or without spare bytes. Common filenames end in <code>.ps2</code>, <code>.mc2</code> or <code>.bin</code>. The extension alone does not prove the layout.</p>
+<p>When downloading, PS2STK writes <code>.ps2</code> with error-correction (ECC) spare bytes. It writes <code>.mc2</code> and <code>.bin</code> without them. Use <b>Download as</b> to select an extension. This affects the downloaded layout, not your working card or Undo history.</p>
+<p>Card images are useful when you need to keep several saves together or preserve a save with nested folders.</p></section>
+<section id="packages"><h2>Save packages</h2>
+<p>A save is one directory and its contents. A save package puts that complete save into one transfer file. A game can use several separate saves.</p>
+<p class="table-hint">On narrow screens, scroll the table to see all columns.</p>
+<div class="table-scroll" role="region" aria-label="Supported save package formats" tabindex="0"><table>
+<caption>PS2STK package support</caption><thead><tr><th scope="col">Format</th><th scope="col">Import</th><th scope="col">Export</th><th scope="col">What to know</th></tr></thead><tbody>
+<tr><th scope="row">PSU</th><td>Yes</td><td>Yes</td><td>Default export. Retains the most complete supported save metadata.</td></tr>
+<tr><th scope="row">MAX</th><td>Yes</td><td>Yes</td><td>Action Replay MAX. Export keeps names and file contents; other metadata is lost.</td></tr>
+<tr><th scope="row">CBS</th><td>Yes</td><td>No</td><td>CodeBreaker package. Import retains names, flags and timestamps.</td></tr>
+<tr><th scope="row">SPS / XPS</th><td>Yes</td><td>No</td><td>SharkPort / X-Port packages. Import retains names, flags and timestamps.</td></tr>
+<tr><th scope="row">PS2 PSV</th><td>Yes</td><td>Signed</td><td>PS2 save transfer through a PS3. Signatures are checked. PS3 acceptance is unverified.</td></tr>
+</tbody></table></div>
+<p>PS2STK checks package integrity where the format provides it. Missing metadata uses documented defaults, shown in the import review. MAX and PSV exports require acknowledgement of metadata loss.</p>
+<p>PS2 PSV is different from PS1 PSV, native PS3 saves, and encrypted PS2 Classics card images. Those inputs are outside this tool's scope.</p></section>
+<section id="choose"><h2>Choose your output</h2>
+<ul><li><strong>Keep the whole card:</strong> use <b>Download card</b> or <b>Download as</b>.</li>
+<li><strong>Transfer one save:</strong> select it and use <b>Export selected save</b>. PSU is the default. Choose MAX or PSV only when your destination needs that format.</li>
+<li><strong>Get exact file bytes:</strong> select a save file and choose <b>Dump file</b>. A raw file has no package wrapper.</li>
+<li><strong>Keep a save's folder structure:</strong> choose <b>Export selected save</b>, then <b>Raw files to folder</b> in Chrome or Edge when directory access is available. Choose a new save folder; existing folders are not merged or overwritten.</li></ul>
+<p>Exporting a package or dumping files does not download the complete card. If the card has edits you want to retain, download it too.</p>
+<p>To change package formats with the current tool, <a href="/guides/import-ps2-saves/">import the save into a card</a>, then export the selected save. There is no standalone package converter.</p></section>
+<section id="limits"><h2>Supported limits</h2>
+<p>PS2STK opens at most two standard 8 MiB cards. It supports flat save packages, not packages with nested folders. Larger cards, damaged-card repair, region conversion and game-specific editing are outside scope.</p>
+<p>Format checks verify bytes and structures. They do not prove that a destination game or device accepts the result. PCSX2, MemCard PRO2 and PS3 game-load validation remains pending.</p></section></article>
+    </div>
+    <nav class="related-guides" aria-label="Related guides"><h2>Keep reading</h2><a href="/guides/import-ps2-saves/">Import a PS2 save into a memory card image</a><a href="/guides/copy-ps2-saves/">Copy saves between PS2 memory card images</a></nav>
+  </main>
+  <footer class="guide-footer"><span>Files stay in your browser. Original inputs stay unchanged.</span><a href="https://github.com/craigshaw/ps2stk">GitHub</a><a href="/third-party-notices.txt">Licenses</a></footer>
+</body></html>

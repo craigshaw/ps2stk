@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060914"><title>Copy saves between PS2 memory card images | PS2 Save Toolkit</title>
+  <meta name="description" content="Copy complete saves between two PS2 memory card images in your browser, review conflicts, and download the destination card.">
+  <link rel="canonical" href="https://ps2stk.craigshaw.com/guides/copy-ps2-saves/"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article"><meta property="og:site_name" content="PS2 Save Toolkit">
+  <meta property="og:title" content="Copy saves between PS2 memory card images"><meta property="og:description" content="Copy complete saves between two PS2 memory card images in your browser, review conflicts, and download the destination card.">
+  <meta property="og:url" content="https://ps2stk.craigshaw.com/guides/copy-ps2-saves/"><meta property="og:image" content="https://ps2stk.craigshaw.com/social-preview.png">
+  <meta property="og:image:alt" content="PS2 Save Toolkit: manage PS2 memory card images in your browser">
+  <meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="/guides/guides.css">
+</head><body class="guides-page">
+  <a class="guide-skip" href="#content">Skip to content</a>
+  <header class="guide-header"><a class="guide-brand" href="/" target="_blank" rel="noopener" aria-label="Open PS2 Save Toolkit in a new tab"><img src="/wordmark.svg" alt="PS2STK" width="490" height="58"><span>PS2 Save Toolkit</span></a><nav aria-label="Main"><a href="/guides/">Guides</a><a class="guide-action" href="/" target="_blank" rel="noopener">Open toolkit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="visually-hidden"> (new tab)</span></a></nav></header>
+  <main id="content" class="guide-main" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/guides/">All guides</a></nav>
+    <div class="guide-intro"><h1>Copy saves between PS2 memory card images</h1><p>Open two card images, select complete saves on the source, then copy them to the destination. Download the destination card to keep the result.</p></div>
+    <div class="guide-layout">
+      <nav class="guide-contents" aria-label="On this page"><strong>On this page</strong><a href="#before">Choose your cards</a><a href="#steps">Copy the saves</a><a href="#conflicts">Conflicts and capacity</a></nav>
+      <article class="guide-article">
+<section id="before"><h2>Choose your cards</h2>
+<p>You need two standard 8 MiB memory card images. Keep backups of both. PS2STK reads local files and edits working copies in browser memory. It does not connect directly to physical memory cards.</p>
+<p>The <strong>source</strong> supplies the saves. The <strong>destination</strong> receives them. If you only have a save package, use the <a href="/guides/import-ps2-saves/">import guide</a> instead.</p></section>
+<section id="steps"><h2>Copy the saves</h2>
+<ol class="steps">
+<li><strong>Open the source in Card A.</strong><p>Choose <b>Open memory card</b> and select the source image.</p></li>
+<li><strong>Open the destination in Card B.</strong><p>Use the header's <b>Open memory card</b> action to open the second image. You can use <b>New memory card</b> to create an empty destination instead.</p></li>
+<li><strong>Select saves on Card A.</strong><p>Use the checkboxes to select the complete saves you want to copy. A save includes its directory and every file inside it.</p></li>
+<li><strong>Choose Copy to B.</strong><p>The review shows the transfer direction, destination space, and each selected save. Check the direction before applying.</p></li>
+<li><strong>Resolve conflicts and apply.</strong><p>For a matching destination directory, keep <b>Skip</b> or choose <b>Replace entire save</b>. Then choose <b>Apply copy choices</b>.</p></li>
+<li><strong>Download Card B.</strong><p>Use <b>Download card</b> on the destination. To choose another card extension, use <b>Download as</b>.</p></li>
+</ol>
+<figure><a href="/guides/workspace.png" aria-label="View the full-size example workspace"><img src="/guides/workspace.png" alt="Two example cards labelled A and B, with selected saves on Card A and the Copy to B action below its save list" width="1200" height="900" loading="lazy"></a><figcaption>Example workspace using synthetic test cards. Check the source and destination before copying.</figcaption></figure>
+<p>You can also copy in the other direction with <b>Copy to A</b>. The source stays unchanged. A successful batch is one Undo step on the destination; Redo can restore it.</p>
+<p class="notice"><strong>Download before leaving.</strong> Refreshing or closing the toolkit discards cards and edits. A downloaded package is not a download of the edited card.</p></section>
+<section id="conflicts"><h2>Conflicts and capacity</h2>
+<p>Conflicts use the save's directory name, not just its displayed game title. <b>Skip</b> preserves the existing destination save. <b>Replace entire save</b> replaces it as a whole, including its metadata, and removes destination-only files. Files are never merged.</p>
+<p>The capacity check includes directory space and the space reclaimed by replacements. If the chosen batch cannot fit, both cards stay unchanged. Saves you explicitly skip are excluded from the batch.</p>
+<p>Copying does not rename saves, convert game regions, or remove protection flags. Game-load validation on PCSX2 and PS2 through MemCard PRO2 remains pending.</p></section></article>
+    </div>
+    <nav class="related-guides" aria-label="Related guides"><h2>Keep reading</h2><a href="/guides/import-ps2-saves/">Import a PS2 save into a memory card image</a><a href="/guides/ps2-save-formats/">PS2 save formats explained</a></nav>
+  </main>
+  <footer class="guide-footer"><span>Files stay in your browser. Original inputs stay unchanged.</span><a href="https://github.com/craigshaw/ps2stk">GitHub</a><a href="/third-party-notices.txt">Licenses</a></footer>
+</body></html>

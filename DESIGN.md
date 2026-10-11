@@ -47,6 +47,14 @@ card bays. It becomes one column below 761px. Keep card actions separate from
 save content. Titles lead; directory names and byte/file counts support them.
 Use a comfortable grid with a list alternative and one shared inspector.
 
+## Public guides
+
+The Read layout keeps the existing palette, wordmark, Sora headings, and thin dividers.
+Use three linked rows for the index and a reading column (72ch maximum) for each guide.
+A sticky contents rail (200px) moves above the article at 760px and below.
+Guide body text is 16px with 1.75 line height; introductions use 18px, then 17px below 520px.
+Guide headings use 42px/36px/30px across the existing breakpoints; section headings use 23px.
+
 ## Controls and states
 
 Use tonal layers, thin borders, and elliptical icon floors for depth. Avoid

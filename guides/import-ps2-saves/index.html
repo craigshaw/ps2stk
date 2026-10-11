@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060914"><title>Import a PS2 save into a memory card image | PS2 Save Toolkit</title>
+  <meta name="description" content="Put a PSU, MAX, CBS, SPS, XPS or PS2 PSV save package onto a memory card image with PS2 Save Toolkit.">
+  <link rel="canonical" href="https://ps2stk.craigshaw.com/guides/import-ps2-saves/"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article"><meta property="og:site_name" content="PS2 Save Toolkit">
+  <meta property="og:title" content="Import a PS2 save into a memory card image"><meta property="og:description" content="Put a PSU, MAX, CBS, SPS, XPS or PS2 PSV save package onto a memory card image with PS2 Save Toolkit.">
+  <meta property="og:url" content="https://ps2stk.craigshaw.com/guides/import-ps2-saves/"><meta property="og:image" content="https://ps2stk.craigshaw.com/social-preview.png">
+  <meta property="og:image:alt" content="PS2 Save Toolkit: manage PS2 memory card images in your browser">
+  <meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="/guides/guides.css">
+</head><body class="guides-page">
+  <a class="guide-skip" href="#content">Skip to content</a>
+  <header class="guide-header"><a class="guide-brand" href="/" target="_blank" rel="noopener" aria-label="Open PS2 Save Toolkit in a new tab"><img src="/wordmark.svg" alt="PS2STK" width="490" height="58"><span>PS2 Save Toolkit</span></a><nav aria-label="Main"><a href="/guides/">Guides</a><a class="guide-action" href="/" target="_blank" rel="noopener">Open toolkit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span class="visually-hidden"> (new tab)</span></a></nav></header>
+  <main id="content" class="guide-main" tabindex="-1">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/guides/">All guides</a></nav>
+    <div class="guide-intro"><h1>Import a PS2 save into a memory card image</h1><p>Start with a save package and a memory card image. Import the save, review the result, then download the edited card.</p></div>
+    <div class="guide-layout">
+      <nav class="guide-contents" aria-label="On this page"><strong>On this page</strong><a href="#before">Before you start</a><a href="#steps">Import the save</a><a href="#problems">If the import stops</a></nav>
+      <article class="guide-article">
+<section id="before"><h2>Before you start</h2>
+<p>A <strong>save package</strong> contains one complete save. A <strong>memory card image</strong> contains a card file system and its saves. These are different inputs. Renaming a package to <code>.ps2</code> does not turn it into a card.</p>
+<p>You need a PSU, MAX, CBS, SPS, XPS or signed PS2 PSV package, plus a standard 8 MiB card image. PS2STK can also create an empty card. Keep a backup of your original files.</p>
+<p>Not sure what you have? Read <a href="/guides/ps2-save-formats/">PS2 save formats explained</a>.</p></section>
+<section id="steps"><h2>Import the save</h2>
+<ol class="steps">
+<li><strong>Open a destination card.</strong><p>In the toolkit, choose <b>Open memory card</b> and select your card image. To start with an empty card, choose <b>New memory card</b> instead.</p></li>
+<li><strong>Choose the package.</strong><p>Use <b>Import save</b> on the destination card. Select one package. PS2STK detects the format from its contents.</p></li>
+<li><strong>Review before applying.</strong><p>Check the destination, save name, space needed, and metadata notices. If the same save directory already exists, <b>Skip</b> keeps it. <b>Replace entire save</b> removes the whole destination save, including files absent from the package. Files are not merged.</p></li>
+<li><strong>Apply the import.</strong><p>Choose <b>Import save</b>, or <b>Replace entire save</b> if you selected replacement. A successful import is one Undo step on the destination card.</p></li>
+<li><strong>Download your card.</strong><p>Choose <b>Download card</b> to keep the displayed filename, or <b>Download as</b> to choose a card extension. Keep the downloaded result separately from your backup.</p></li>
+</ol>
+<figure><a href="/guides/workspace.png" aria-label="View the full-size example workspace"><img src="/guides/workspace.png" alt="Two open example memory cards with Import save and Download card controls above the save lists" width="1200" height="900" loading="lazy"></a><figcaption>Example workspace using synthetic test cards. Your save names and icons will differ.</figcaption></figure>
+<p class="notice"><strong>Download before leaving.</strong> Cards and edits stay in browser memory. Refreshing or closing the toolkit discards them. Original input files stay unchanged.</p></section>
+<section id="problems"><h2>If the import stops</h2>
+<ul><li><strong>Not enough space:</strong> free space on the destination or use another card. The check includes directory space.</li>
+<li><strong>Unsupported structure:</strong> packages with nested folders cannot be imported. Do not flatten them by hand. Keep a complete card image or use a tool that supports their structure.</li>
+<li><strong>Invalid package or signature:</strong> obtain an intact source file. Changing its extension does not repair it.</li></ul>
+<p>A failed import leaves the card and its history unchanged. <b>Skip</b> also makes no edit. If you change or replace the destination during review, start the import again.</p>
+<p>Import support does not prove that a game will load the save. Game and region differences can matter. PCSX2, MemCard PRO2 and PS3 game-load validation remains pending.</p></section></article>
+    </div>
+    <nav class="related-guides" aria-label="Related guides"><h2>Keep reading</h2><a href="/guides/ps2-save-formats/">PS2 save formats explained</a><a href="/guides/copy-ps2-saves/">Copy saves between PS2 memory card images</a></nav>
+  </main>
+  <footer class="guide-footer"><span>Files stay in your browser. Original inputs stay unchanged.</span><a href="https://github.com/craigshaw/ps2stk">GitHub</a><a href="/third-party-notices.txt">Licenses</a></footer>
+</body></html>

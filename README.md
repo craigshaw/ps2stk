@@ -76,6 +76,14 @@ Run `npm run card --` for command syntax.
 
 ## Hosting and records
 
+Public [save guides](https://ps2stk.craigshaw.com/guides/) cover imports,
+save formats, and copying between cards. Their HTML sources are in `guides/`,
+with one shared stylesheet in `public/guides/`. Vite builds them alongside the app.
+When adding a guide, include its entry in `vite.config.ts` and `public/sitemap.xml`.
+After deployment, verify the site in Google Search Console and submit
+`https://ps2stk.craigshaw.com/sitemap.xml`. Search Console setup and live indexing
+checks are not part of the local build.
+
 Cloudflare Pages uses the existing `ps2stk` Git project and `main` branch.
 Setup values: Node 24, `NODE_VERSION=24`, `SKIP_DEPENDENCY_INSTALL=1`, build
 command `npm ci && npm run check`, output `dist`. Hosting was confirmed by the
