@@ -1,114 +1,89 @@
 # PS2STK
 
-PS2 Save Toolkit.
+PS2 Save Toolkit. A desktop browser app for managing PS2 memory card images.
 
-A local browser application for managing PS2 memory card images. Open up to two cards, browse their original save icons, copy or delete saves, replace individual files, dump raw contents, and download edited card images.
+**[Open PS2STK](https://ps2stk.craigshaw.com)**
 
-Repository: [craigshaw/ps2stk](https://github.com/craigshaw/ps2stk).
+Card data stays in your browser. There are no accounts, uploads, or saved
+workspaces. Download results before closing or refreshing the page.
+Original input files stay unchanged.
 
-The first version targets standard PS2 memory card images and compatibility with PCSX2 and MemCard PRO2. Card processing and Undo/Redo stay in memory during the current page session.
+## Features
 
-## Project status
+- Open up to two standard 8 MiB cards, or create an empty formatted card.
+- Browse original 3D save icons, inspect files, and view icon models.
+- Copy or delete complete saves, replace individual files, and use Undo/Redo.
+- Import PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV packages.
+- Export PSU, MAX, or signed PS2 PSV. MAX and PSV require acknowledgement of
+  metadata loss. Packages support flat saves; nested saves need raw-folder
+  output or a complete-card download.
+- Download exact raw files or complete cards. Chrome and Edge also support
+  complete-save folder output when directory access is available.
 
-Milestones 1 through 3 are implemented. The browser explorer uses the tested card engine and session API, with two card panes, grid/list views, a shared inspector, animated icon previews, and complete editing and download controls. Milestones 3A and 3B save-package support are also implemented. Milestone 3C signed PSV export is implemented; PS3 import and game-load validation remain pending. Cloudflare Pages hosting is live, confirmed by the user on 2026-09-22. Milestone 4 release validation remains open.
+Input layout is detected from bytes. **Download card** keeps the displayed
+filename. `.ps2` output includes ECC spare bytes; `.mc2` and `.bin` omit them.
+**Download as** selects an extension. Inline renaming keeps the extension.
+Package exports and raw dumps do not clear the whole card's changed status.
+Firefox and Safari support editing and file, package, and card downloads.
+Undo/Redo retains at most 64 MiB of card snapshots across both cards;
+parsed cards and temporary buffers use additional memory.
 
-PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV imports are available, with PSU/MAX and signed PSV exports. PS3 compatibility is not yet verified. See [the delivery plan](docs/save-format-plan.md) for scope and acceptance criteria. Raw dumps and whole-card downloads remain supported. See [milestone 3A validation](docs/milestone-3a-validation.md), [milestone 3B validation](docs/milestone-3b-validation.md), and [milestone 3C validation](docs/milestone-3c-validation.md) for evidence and the PS3 test procedure.
+## Status
 
-Milestone 1 is accepted for further development. Automated and independent-tool checks pass, and the user checked both prepared card images in existing tooling. Game-load tests on PCSX2 and a PS2 through MemCard PRO2 are deferred to milestone 4 release validation. See the [validation record](docs/milestone-1-validation.md).
-
-Implementation decisions and test evidence are in the [milestone 2](docs/milestone-2-validation.md) and [milestone 3](docs/milestone-3-validation.md) validation records.
-
-- [Product decisions](docs/planning.md)
-- [Implementation plan and acceptance criteria](docs/implementation-plan.md)
-- [Save-format milestones 3A through 3C](docs/save-format-plan.md)
-- [Domain glossary](CONTEXT.md)
-- [Visual design system](DESIGN.md)
-- [Orbital browser redesign validation](docs/design-redesign-validation.md)
-- [Project instructions for coding agents](AGENTS.md)
-
-The agreed stack is React, TypeScript, Vite, Three.js, and Lucide, deployed as a static SPA on Cloudflare Pages through Git integration.
-
-Open [PS2STK](https://ps2stk.craigshaw.com). See [deployment notes](docs/deployment.md) for the Pages build settings, setup record, and remaining hosted checks.
+The features above are implemented. Automated tests and independent format
+checks provide byte-level evidence. Game-load validation on PCSX2, PS2 through
+MemCard PRO2, and PS3 remains pending. PS3 compatibility is not yet verified.
+Installed-browser permissions, minimum versions, and detailed hosted checks
+remain open. See [release requirements](PRODUCT.md#release-validation).
 
 ## Development
 
-Use Node.js 24 and npm. Dependencies are pinned in `package-lock.json`.
-The footer displays the version from `package.json`.
+Use Node.js 24. Dependencies are pinned in `package-lock.json`.
 
 ```sh
 npm ci
-npm run check
 npm run dev
-```
-
-`check` runs TypeScript checks, the Node test suite, and the production build. Engine and session code also compile without DOM or Node types. `npm run build` writes the static site to `dist/`. There is no separate lint command yet. Three.js is loaded when an icon preview is needed. Lucide supplies interface icons.
-
-## Use the explorer
-
-1. Open [PS2STK](https://ps2stk.craigshaw.com), or run `npm run dev` and open the local URL printed by Vite.
-2. Choose **Open memory card** and select a complete standard PS2 image, or **New memory card** to create an empty formatted card for imports. Open or create a second card to copy between cards.
-3. Select a save to inspect its icon and files. Choose **View icons** to see a larger animated icon. Choices for Normal, Copy, Delete, and extra icon files appear when the save has different icon models. You can also select an icon save file and choose **View icon**. Use the checkboxes, Ctrl/Command click, Shift click, or Select all for batches.
-4. Use the card's Copy or Delete buttons. Copy conflicts default to Skip; Replace removes the entire destination save.
-5. Select an individual file in the inspector to dump its exact bytes or replace it. To export a complete save as separate files in Chrome or Edge, use **Export selected save → Raw files to folder**.
-6. Select the pencil beside a card name to edit its filename in place. The extension stays fixed. Press Enter or select the check to apply the name; Escape cancels.
-7. Use **Download card** for the complete image with the displayed filename, or **Download as** to choose `.ps2`, `.mc2`, or `.bin`. Each download uses the format that matches its extension. Downloads leave the original image unchanged.
-
-**Import save** on a card detects PSU, MAX, SPS/XPS, CBS, or PS2 PSV from its contents and opens a review with its icon, file count, capacity, metadata notices, and conflict choice. **Export selected save** offers PSU (default), MAX, signed PS2 PSV, and **Raw files to folder** for one selected save. PSU/MAX/PSV downloads work in every supported browser. Raw folder export requires Chrome or Edge with directory access and always creates a new save folder. MAX requires acknowledgement because it drops timestamps, flags, and attributes. PSV export requires acknowledgement because it omits extended attributes, opaque card metadata, and dot entries. It preserves file bytes, names, timestamps, and mode flags. PSV imports require a valid signature. Packages support flat saves; select **Raw files to folder** or download the whole card for nested directories. Extract ZIP downloads before selecting a package. Package exports do not clear the whole card's changed status.
-
-Undo/Redo is per card. Ctrl/Command+Z, Shift+Ctrl/Command+Z, and Ctrl/Command+S act on the active card. Arrow keys move between save tiles; Enter or Space selects. The inspector can be hidden, and narrow desktop panes scroll independently. Reduced motion stops icon animation.
-
-The Icon Viewer uses the same local PS2 model renderer as the gallery. It opens in Playback mode, where Pause stops animation and rotation. Free View freezes the current pose so you can drag to rotate and scroll to zoom. Reset view restores the starting angle and size. With the model focused, arrow keys rotate, + zooms in, - zooms out, and 0 resets. Manual viewing remains available under reduced motion. Missing or unsupported models show a fallback; they do not affect card operations. Icon playback and lighting remain previews rather than a claim of console-exact rendering.
-
-New cards use an available slot and default to `new-card-a.ps2` or `new-card-b.ps2`. A new card shows "Download card to keep it" until a whole-card download starts, even if it is still empty. See [empty-card validation](docs/empty-card-validation.md).
-
-Firefox and Safari retain editing and individual file/card downloads. The interface explains when folder dumping is unavailable. Nothing is restored after a refresh. A browser leave-page warning is requested for undownloaded edits, but it is not recovery.
-
-## Browser tests
-
-```sh
+npm run check
 npx playwright install chromium firefox webkit
 npm run test:browser
 ```
 
-The suite uses synthetic card data and isolated browser profiles. Folder writes use a test-only directory picker connected to real Chromium file streams. Native OS picker permissions, installed Edge/Safari, and destination game loads remain release checks. See [the evidence and limits](docs/milestone-3-validation.md).
+`check` runs TypeScript checks, unit/CLI tests, and the production build.
+Engine, session, and format code also compile without DOM or Node types.
+There is no separate lint command. Browser tests use synthetic cards in
+Playwright Chromium, Firefox, and WebKit. Native OS picker flows are separate
+manual checks. See [fixture provenance](tests/fixtures/README.md) for independent
+reference checks and fixture generation.
 
-## Card harness
+## Command-line harness
 
 ```sh
-npm run card -- create new-card.ps2
-npm run card -- create new-card-ecc.ps2 ecc
-npm run card -- import-save destination.ps2 save.psu edited.ps2
-npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.psu
-npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.max max --allow-metadata-loss
-npm run card -- export-save edited.ps2 SAVE-DIRECTORY exported.PSV psv --allow-metadata-loss
 npm run card -- inspect source.ps2
-npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
+npm run card -- create new-card.ps2 ecc
 npm run card -- copy source.ps2 destination.mc2 SAVE-NAME edited.mc2
-npm run card -- copy source.ps2 destination.mc2 SAVE-NAME replaced.mc2 replace
-npm run card -- delete source.ps2 deleted.ps2 SAVE-NAME ANOTHER-SAVE
-npm run card -- replace source.ps2 /SAVE-NAME/data replacement.bin replaced.ps2
-npm run card -- convert source.ps2 data converted.mc2
-npm run card -- convert source.mc2 ecc converted.ps2
-npm run card -- copy-batch source.ps2 destination.mc2 plan.json batch.mc2
+npm run card -- delete source.ps2 edited.ps2 SAVE-NAME
+npm run card -- replace source.ps2 /SAVE-NAME/data replacement.bin edited.ps2
+npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
+npm run card -- import-save destination.ps2 save.psu edited.ps2
+npm run card -- export-save source.ps2 SAVE-NAME exported.psu
+npm run card -- export-save source.ps2 SAVE-NAME exported.max max --allow-metadata-loss
+npm run card -- export-save source.ps2 SAVE-NAME exported.PSV psv --allow-metadata-loss
 ```
 
-Use existing, complete card images as inputs. Output paths must not already exist. A copy retains the destination's binary layout, regardless of the filename extension. The single-copy command reports conflicts by default; its optional final argument can be `skip`, `replace`, or `error`. Insufficient capacity leaves both input cards unchanged. Replacement retains the existing file name and metadata, including timestamps and flags.
+CLI output paths must be new files. Card mutations keep the destination layout;
+the browser's extension-based download conversion is a separate policy.
+Run `npm run card --` for command syntax.
 
-A batch plan resolves each conflict before the operation. Omitted conflict choices default to Skip. For example:
+## Hosting and records
 
-```json
-[
-  { "name": "SAVE-A", "onConflict": "skip" },
-  { "name": "SAVE-B", "onConflict": "replace" }
-]
-```
+Cloudflare Pages uses the existing `ps2stk` Git project and `main` branch.
+Setup values: Node 24, `NODE_VERSION=24`, `SKIP_DEPENDENCY_INSTALL=1`, build
+command `npm ci && npm run check`, output `dist`. Hosting was confirmed by the
+owner on 2026-09-22; final dashboard settings and the deployed commit still need
+independent recording. The app needs no runtime secrets or server bindings.
 
-The whole batch succeeds or fails. Replace uses the entire source save, with no merge. The plan file is a CLI test aid, not a save-package format.
-
-## Session API
-
-`src/session/session.ts` provides `CardSession` for the explorer. Open slots 0 and 1, or use `create(slot, filename)` for an empty card, then use `copySaves`, `deleteSaves`, `replaceFile`, or `convertLayout`. `renameCard` changes only the download filename stem, with no card-byte or Undo-history change. `importSave` commits a validated save against an expected card identity; `prepareSaveExport` creates PSU or explicitly acknowledged MAX/PSV output without marking the card downloaded. The browser uses a package worker for compression and decoding, then commits validated imports through the session API. `undo` and `redo` restore exact card bytes. History retains at most 64 MiB of byte buffers across both cards; current parsed cards and temporary operation buffers use additional memory. State and history disappear with the session.
-
-`prepareDownload` defaults to the displayed filename and derives output layout from its supported extension. Its optional `extension` produces Download as output without changing the working card. Unknown input extensions retain the card's current layout. Call `markDownloadOffered` only after initiating a whole-card download. It records the exported revision and displayed filename at preparation time, not verified disk persistence. Raw file dumps do not change download status. The explorer acknowledges the prepared state after initiating its download.
-
-The engine has no dependency on the sibling repository, browser APIs, or reference tools. Personal cards and extracted files must remain outside Git. See [fixture provenance](tests/fixtures/README.md) for synthetic test data and independent verification commands.
+[PRODUCT.md](PRODUCT.md) defines scope and release requirements.
+[CONTEXT.md](CONTEXT.md) defines terms. [DESIGN.md](DESIGN.md) records the visual
+system. [AGENTS.md](AGENTS.md) gives development rules.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) identifies distributed third-party
+material and its licence texts.

@@ -1,4 +1,4 @@
-// Rendering approach adapted from ps2mcs (MIT). See THIRD_PARTY_NOTICES.md.
+// Rendering pipeline adapted through ps2mcs from caol64/ps2mc-browser (MIT). See THIRD_PARTY_NOTICES.md.
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { shapeWeights } from "./parser";

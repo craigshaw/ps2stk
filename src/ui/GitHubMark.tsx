@@ -1,4 +1,4 @@
-// GitHub mark from Primer Octicons: https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg
+// GitHub mark from Primer Octicons (MIT). See THIRD_PARTY_NOTICES.md.
 export function GitHubMark() {
   return (
     <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">

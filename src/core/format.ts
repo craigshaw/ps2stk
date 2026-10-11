@@ -4,7 +4,7 @@ import { pageEcc } from './ecc';
 import type { CardLayout } from './image';
 
 /** Standard 8 MiB geometry from Ross Ridge's PS2 memory card file system reference.
- * No input image or bundled template is used. See docs/empty-card-validation.md.
+ * No input image or bundled template is used. See tests/fixtures/README.md for independent format vectors.
  */
 export function formatCard(layout: CardLayout, createdAt: Date): Uint8Array {
   if (layout !== 'data' && layout !== 'ecc') throw new CardError('unsupported', 'Expected data or ecc layout.');

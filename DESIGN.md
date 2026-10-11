@@ -1,291 +1,84 @@
----
-name: PS2STK
-description: PS2 Save Toolkit, an orbital browser for local memory card saves.
-colors:
-  ground: "#060914"
-  surface: "#0d1425"
-  selection: "#172c51"
-  text: "#e9efff"
-  muted: "#9daecb"
-  border: "#273550"
-  accent: "#8eafff"
-  action: "#a5c0ff"
-  action-ink: "#08152f"
-  warning: "#efc78f"
-  danger: "#ffb0bd"
-  focus: "#bad2ff"
-  scroll-track: "#0b1120"
-  scroll-thumb: "#526b96"
-  brand-blue: "#093df8"
-  brand-cyan: "#02d7f9"
-typography:
-  brand-caption:
-    fontFamily: "Sora, sans-serif"
-    fontSize: "12px"
-    lineHeight: 1.4
-    letterSpacing: ".01em"
-  display:
-    fontFamily: "Sora, sans-serif"
-    fontSize: "42px"
-    fontWeight: 400
-    lineHeight: 1.2
-    letterSpacing: "-.035em"
-  headline:
-    fontFamily: "Sora, sans-serif"
-    fontSize: "22px"
-    fontWeight: 450
-    lineHeight: 1.5
-    letterSpacing: "-.03em"
-  title:
-    fontFamily: "Sora, sans-serif"
-    fontSize: "17px"
-    fontWeight: 450
-    lineHeight: 1.45
-  body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "14px"
-    lineHeight: 1.5
-  label:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "12px"
-    lineHeight: 1.45
-    fontWeight: 550
-  identity:
-    fontFamily: "ui-monospace, SFMono-Regular, monospace"
-    fontSize: "10px"
-    lineHeight: 1.5
-rounded:
-  control: "6px"
-  surface: "12px"
-  orbit: "50%"
-spacing:
-  compact: "8px"
-  control: "12px"
-  inset: "18px"
-  section: "24px"
-  page: "32px"
-components:
-  button-primary:
-    backgroundColor: "{colors.action}"
-    textColor: "{colors.action-ink}"
-    rounded: "{rounded.control}"
-    padding: "8px 12px"
-  button-secondary:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.text}"
-    rounded: "{rounded.control}"
-    padding: "8px 12px"
-  button-danger:
-    backgroundColor: "#a83955"
-    textColor: "#fff"
-    rounded: "{rounded.control}"
-    padding: "8px 12px"
-  button-text:
-    backgroundColor: "transparent"
-    textColor: "{colors.accent}"
-    padding: "4px 0"
-  field:
-    backgroundColor: "#090f1d"
-    textColor: "{colors.text}"
-    rounded: "{rounded.control}"
-    padding: "9px 11px"
-  view-switch:
-    backgroundColor: "#0c1426"
-    rounded: "{rounded.control}"
-    padding: "3px"
-  card-tag:
-    textColor: "#bfd3ff"
-  card-bay:
-    backgroundColor: "#111d34"
-    rounded: "{rounded.surface}"
-    padding: "22px"
-  save-tile:
-    backgroundColor: "transparent"
-    rounded: "{rounded.surface}"
-  dialog:
-    backgroundColor: "#101b30"
-    textColor: "{colors.text}"
-    rounded: "{rounded.surface}"
-    padding: "26px"
----
-# Design System: PS2STK
+# PS2STK design
 
-## Overview
+## Identity
 
-**Creative North Star: "Orbital browser"**
+The Orbital browser uses the PS2 system browser as a visual reference: midnight
+space, luminous blue selection, calm motion, and original save icons.
+Use [wordmark.svg](public/wordmark.svg) with PS2STK alternative text and live
+PS2 Save Toolkit text centred beneath it. Use the open numeral 2 in
+[favicon.svg](public/favicon.svg). No separate header symbol or memory card logo.
 
-Orbital browser draws on the PS2 system browser: deep space, luminous blue selection, calm motion, and original save icons. The PS2STK wordmark uses thin, open lines with a blue-to-cyan vertical gradient. PS2 Save Toolkit remains readable as live white text centred beneath it at every supported width. A compact open numeral 2 carries the same gradient in the favicon.
+Wordmark widths: 216px desktop, 180px at 760px and below, 160px at 520px and
+below. Preserve its aspect ratio. The caption is 12px Sora with a 5px gap and
+stays on one line. The landing heading is "The Swiss Army knife for PS2 saves".
 
-Open galleries give save icons room. Thin lines, pale controls, and a darker inspector organise the working surface. Shape and colour clarify selection without competing with the original save artwork.
+## Colour and type
 
-**Key Characteristics:**
+| Role | Value |
+| --- | --- |
+| Ground / surface | `#060914` / `#0d1425` |
+| Selection / border | `#172c51` / `#273550` |
+| Text / muted | `#e9efff` / `#9daecb` |
+| Accent / action / action ink | `#8eafff` / `#a5c0ff` / `#08152f` |
+| Focus | `#bad2ff` |
+| Warning / danger | `#efc78f` / `#ffb0bd` |
+| Scroll track / thumb | `#0b1120` / `#526b96` |
+| Brand blue / cyan | `#093df8` / `#02d7f9` |
 
-- Midnight ground with cool, readable text.
-- Blue selection light and elliptical icon floors.
-- Open galleries, precise controls, and short state transitions.
-
-Extracted from [the stylesheet](src/style.css), [the explorer](src/ui/App.tsx),
-[the identity](src/ui/Brand.tsx), import/export reviews, and the original SVG
-favicon and [wordmark](public/wordmark.svg). The selected world is recorded in [PRODUCT.md](PRODUCT.md).
-Existing desktop and narrow screenshots support the visual record; this document
-is not a new UI audit. No shipping raster assets were generated.
-
-## Colors
-
-The palette places luminous blue on a nearly black, cool ground. The frontmatter
-owns the exact colour values.
-
-### Primary
-
-- **Accent:** links, active-card edges, and interface details.
-- **Action / Action ink:** pale blue primary controls with dark text.
-- **Selection / Focus:** filled selection states and a distinct keyboard outline.
-- **Brand blue / Brand cyan:** the top and bottom stops of the wordmark and favicon gradient, taken from the selected raster reference. Keep these identity colours separate from control and selection colours.
-
-### Neutral
-
-- **Ground / Surface:** page and default control surfaces.
-- **Text / Muted:** main content and supporting metadata.
-- **Border:** quiet structural separation.
-- **Scroll track / Scroll thumb:** thin blue overflow controls; WebKit uses a
-  rounded thumb with a track-coloured inset border.
-- **Warning / Danger:** changed-card status and destructive-action text.
-
-**The Selection Light Rule.** Use a blue edge and elliptical floor to identify the focused or selected save. Keep its original icon visible.
-
-## Typography
-
-Sora provides the display, workspace, inspector, and dialog headings. Readable
-system UI text supports controls and descriptions. Monospace identifies save
-directories and filenames. The wordmark is SVG line geometry derived from the
-selected reference, not a font.
-
-- **Display:** the empty-state heading; reduces to 36px or 30px as space narrows.
-- **Headline:** the workspace heading; reduces to 19px on narrow desktop.
-- **Title:** the inspector save title; dialog titles use 19px.
-- **Body:** instructions and default control text. The welcome description uses
-  a 1.85 line height and a 48ch maximum width.
-- **Label:** save titles. Supporting metadata generally uses 10px to 12px;
-  numeric capacity and file details use tabular numerals.
-- **Identity:** directory labels; inspector directory text uses 11px and can wrap.
-- **Brand caption:** centred live Sora text beneath the wordmark, using Text for a readable white descriptor.
-
-**The Visible Name Rule.** Keep PS2 Save Toolkit as readable live text beneath the open-line wordmark at every supported width.
+Sora is served locally for headings and the caption. Controls and descriptions
+use system UI text; directory identities and filenames use monospace.
+The wordmark is SVG geometry, not a font. Body text is 14px with 1.5 line height;
+labels are 12px. Headings: 42px display, 22px workspace, 17px inspector, 19px
+dialogs. The landing heading reduces to 36px/30px as space narrows. Supporting
+metadata uses 10px to 12px and tabular numerals where useful.
 
 ## Layout
 
-The desktop frame uses 32px horizontal insets. One or two equal card panes share
-the main column; the inspector starts at 296px. The gallery fills available width
-with columns of at least 145px. Card action bars stay separate from save content.
-Above 760px, galleries and the inspector scroll internally and card panes have
-a 480px minimum height. The header and footer remain in normal page flow.
+Use 32px desktop horizontal insets. One or two equal card panes share the main
+column; a collapsible inspector starts at 296px. Gallery columns start at 145px.
+Above 760px, panes have a 480px minimum height and scroll internally; the header
+and footer stay in normal flow. At 1600px, the inspector grows to 330px and gallery
+columns to 170px. At 1150px, spacing contracts; at 950px, the inspector is 230px
+and each two-card grid has one column. At 760px, the inspector moves below the
+cards; at 520px, cards stack. The page has a 360px minimum width.
 
-At 1600px and above, the inspector grows to 330px and gallery columns to 170px.
-At 1150px, page spacing and gallery density contract. At 950px, the inspector
-uses 230px and two-card grids use one icon column per pane. At 760px and below,
-the inspector moves below the panes and toolbar controls wrap. At 520px and
-below, card panes stack. The page has a 360px minimum width. These adaptations
-preserve the desktop tool; they do not define separate phone workflows.
+The empty view has one heading, short supporting copy, two actions, and offset
+card bays. It becomes one column below 761px. Keep card actions separate from
+save content. Titles lead; directory names and byte/file counts support them.
+Use a comfortable grid with a list alternative and one shared inspector.
 
-The header wordmark is 216px wide on desktop, 180px at 760px and below, and
-160px at 520px and below. Its aspect ratio stays fixed. The caption is centred
-beneath it with a 5px gap and stays on one line.
+## Controls and states
 
-The empty view leads with "The Swiss Army knife for PS2 saves" as its only
-heading. It has no separate Memory cards toolbar. Brief supporting copy mentions
-importing downloaded saves. Two actions sit beside the offset card bays. It becomes
-one column below 761px. Reused gaps are compact and consistent; larger space
-around icons and empty bays gives the orbital motif room.
+Use tonal layers, thin borders, and elliptical icon floors for depth. Avoid
+repeated boxed panels and decorative perpetual motion. Controls use 6px corners;
+large surfaces use 12px. Reused spacing steps are 8, 12, 18, 24, and 32px.
+Transitions settle in 180ms. Reduced motion removes CSS animation/transitions
+and stops icon playback. Preserve pause controls and manual Free View.
 
-## Elevation & Depth
+Primary controls use Action with Action ink; secondary controls use Surface and
+Border. Destructive confirmations use rose `#a83955` with white text. Ordinary
+Delete actions use Danger. Disabled controls use 0.4 opacity. Keyboard focus is
+a 2px Focus outline with a 3px offset. Fields use `#090f1d`; search is an open
+underline. Theme all page, pane, file-list, and dialog scrollbars.
 
-Depth comes from a soft radial blue page light, translucent pane fills, and
-fine dividing lines. There is no box-shadow vocabulary. Save previews sit over
-an elliptical floor; the selected floor brightens and expands. Dialogs use a
-near-black translucent backdrop with a 6px blur.
+Active cards use blue top borders and selected slot controls. Save selection
+adds a bright boundary, checkbox, tinted fill, and elliptical floor. Keep original
+artwork visible. Card-pane icons remain still; inspector and viewer playback can
+animate. Stored icon backgrounds blend over detail stages. Rendering is a visual
+approximation, not a claim of console-exact presentation.
 
-**The Calm Depth Rule.** Use tonal layers, thin borders, and orbit lines for depth. Reserve movement for interaction feedback and original save animation.
+## Dialogs and accessibility
 
-Controls, selected floors, and the inspector settle in 180ms using the shared
-easing curve. Reduced motion removes CSS animations and transitions. Original
-save animation retains its own pause and reduced-motion controls.
+Use bounded dark dialogs (`#101b30`) with Sora titles, focus handling, and aligned
+actions. Most dialogs scroll when needed; Icon Viewer fits its preview around
+mode controls, model choices, and instructions. Free View freezes the pose for
+bounded rotation/zoom and reset. Identical model files share one choice.
+Import/export limits and metadata acknowledgement use plain readable text.
 
-## Shapes
+Keep PS2 Save Toolkit visible at narrow widths, all operations available through
+controls and keyboard, and original icons replaceable by fallbacks. Errors and
+status must remain readable. Do not use personal save assets as public demos.
+Do not add a dedicated phone workflow or claim accessibility conformance.
 
-Controls have small rounded corners. Save tiles, large previews, card bays,
-and dialogs use the larger surface radius. Ellipses belong to icon floors and
-bay decoration. The brand uses thin open-line letter geometry without a separate
-header symbol. The favicon uses a single open numeral 2 with a 6px stroke on
-the existing dark 64px tile.
-Card panes remain open, with a top edge and tonal fill rather than a repeated
-rounded outer shell. Most boundaries use a single thin line.
-
-## Components
-
-### Brand
-
-The header uses the transparent external wordmark SVG with PS2STK alternative
-text. The PS2 Save Toolkit descriptor is live text beneath it. The wordmark
-uses 5px SVG strokes with flat ends and sharp joins. The separate compact
-favicon uses the same blue-to-cyan gradient on Ground. Keep memory card imagery
-in the workspace rather than adding it to the identity.
-
-### Buttons
-
-Primary buttons use Action and Action ink, with semibold labels. Secondary
-buttons use Surface and a thin Border. Transparent toolbar and text actions
-reduce visual weight. Destructive confirmation uses a rose fill; ordinary Delete
-actions use Danger text. Hover changes the fill and edge, active state deepens
-the fill, and disabled buttons use 0.4 opacity. Keyboard focus is a 2px Focus
-outline with a 3px offset.
-
-### Inputs and view controls
-
-Fields use a dark inset fill, small corners, and the same focus outline.
-Search is an open underline with a Lucide search icon. The grid/list switch
-uses two compact icon buttons on one dark strip; its active button has a blue
-fill. Inspector visibility is a separate labelled toggle. This single-screen
-app has no route navigation system.
-
-### Tags and card panes
-
-The inspector's Card A or Card B tag is plain blue text, without a pill shell.
-Card slot buttons combine a small Card label with a larger letter. The active
-card has a blue top border and selected slot control. Capacity remains a thin
-meter with text above it; changed status uses Warning.
-
-### Save gallery and inspector
-
-At rest, save tiles have a transparent boundary. Hover reveals a subtle fill
-and edge. Selection adds a stronger blue boundary, tinted fill, checkbox, and
-elliptical floor. Titles lead, directory names support, and byte/file counts
-follow. List mode uses the same information beside a smaller preview.
-The inspector enlarges the original icon and puts save actions before file rows.
-View icons opens Icon Viewer, a wider, bounded dialog with one large preview and compact model choices beneath it. A small mode switch above the stage selects Playback or Free View. Free View provides direct model rotation and zoom, with a Reset view action. Instructions stay visible below the stage in both modes so the dialog keeps one size. The preview gives up height when model choices need room, so the dialog does not gain a scrollbar. The viewer and inspector blend the save's `icon.sys` background over their dark stages. Playback shares the inspector's pause state; Free View changes only the viewer.
-
-### Dialogs and feedback
-
-Dialogs use a bounded dark surface, a Sora title, and actions aligned to the end.
-Most dialogs scroll when their content is too tall; Icon Viewer fits its preview
-around its controls and model choices. Import and export reviews use normal paragraphs, select fields,
-and explicit acknowledgement controls. Do not turn metadata-loss or format
-limits into decorative labels. Errors use a rose-toned fixed banner with a
-close action; status, session information, the repository link, and the version
-sit in the footer.
-
-## Do's and Don'ts
-
-### Do:
-
-- Do use original save assets with a clear fallback when an icon cannot render.
-- Do retain visible keyboard focus, pause controls, and reduced-motion behaviour.
-- Do use Lucide SVG icons for interface actions, the open-line PS2STK wordmark for the header, and the compact numeral 2 for the favicon.
-- Do use the blue scrollbar theme for page, gallery, inspector, file, and dialog overflow.
-
-### Don't:
-
-- Don't hide the PS2 Save Toolkit caption at narrow widths.
-- Don't add a memory card or separate symbol to the header wordmark.
-- Don't add decorative perpetual motion or a page-load sequence.
-- Don't use personal save assets as public demonstration content.
-- Don't treat technical directory names as the primary save title.
+The current implementation is in [style.css](src/style.css),
+[App.tsx](src/ui/App.tsx), and [Brand.tsx](src/ui/Brand.tsx).

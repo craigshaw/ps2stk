@@ -1,129 +1,25 @@
-# Third-party references
+# Third-party notices
 
-## ECC calculation
+Full runtime and adapted-source notices are in
+[public/third-party-notices.txt](public/third-party-notices.txt), served by the app's
+Licenses link. The unmodified Sora font has its full licence beside it at
+[public/fonts/OFL-Sora.txt](public/fonts/OFL-Sora.txt).
 
-`src/core/ecc.ts` adapts the ECC calculation in Ross Ridge's `ps2mc_ecc.py`,
-from [mymc](https://github.com/ps2dev/mymc), commit
-`db5d9e1c141cbbc4ba4e374f73a0518a8d75b7ef`.
-The original file states: "By Ross Ridge" and "Public Domain".
+| Material | Use | Licence |
+| --- | --- | --- |
+| React, React DOM, Scheduler | Browser UI | MIT |
+| Three.js, including OrbitControls | Icon rendering | MIT |
+| Lucide React, including Feather-derived icons | Interface icons | ISC and MIT |
+| pako and its zlib-derived modules | CBS decompression | MIT and zlib |
+| noble ciphers and hashes | PSV integrity | MIT |
+| Sora | Locally served typeface | SIL OFL 1.1 |
+| [Primer Octicons](https://github.com/primer/octicons/blob/97825f832c98f817867f770d084c08e3edc6f78c/LICENSE) | GitHub mark in `src/ui/GitHubMark.tsx` | MIT |
+| [caol64/ps2mc-browser](https://github.com/caol64/ps2mc-browser/blob/206920b995f6edfb779dbfae7072d988e68bf58c/LICENSE) | Upstream icon parsing/rendering pipeline, adapted through the author's ps2mcs browser | MIT |
+| [Ross Ridge's mymc](https://github.com/ps2dev/mymc/tree/db5d9e1c141cbbc4ba4e374f73a0518a8d75b7ef) | Adapted ECC calculation and Code Breaker permutation; card/save-format reference | ECC and save-format source files are marked Public Domain |
+| [Haruhiko Okumura's LZARI](https://github.com/bucanero/psv-save-converter/blob/0e142d2e1a83788dcdd3f4066f6d13b2c1beb467/src/lzari.c) | MAX compression wire format and arithmetic model | Original permission notice retained |
 
-## Independent verification tools
+Runtime versions are pinned in `package-lock.json`. Keep notices aligned with
+installed licences when dependencies or distributed assets change.
 
-[mymc+](https://git.sr.ht/~thestr4ng3r/mymcplus), commit
-`5e58891fd036d9f39a6c3076f998514c8f1cb8f9`, is GPL-3.0-or-later.
-It is used as an external test tool and synthetic fixture producer.
-Its source is not included in this application or its runtime dependencies.
-
-[ps2mcd](https://github.com/craigshaw/ps2mcd), commit
-`950d98b353c2899d5d9d20687e2fc4bb9b7599ea`, is MIT licensed,
-copyright Craig Shaw, 2024. It was reviewed as an independent extraction reference.
-No ps2mcd source is included in this application.
-
-The file system implementation follows Ross Ridge's PS2 memory card file system
-description. A copy of that reference is available in the pinned mymc+ checkout
-at `docs/ps2mcfs.html`. Reference tools are development aids, not build dependencies.
-
-## PS2 icon previews
-
-`src/icons/parser.ts` and `src/icons/renderer.ts` adapt the data layout,
-texture decoding, shared-renderer approach, lighting, and camera framing from
-[Craig Shaw's ps2mcs icon browser](https://github.com/craigshaw/ps2mcs),
-commit `e010a6df728a9a13f444b763344d7ae8caae730e`.
-The adaptation adds bounded parsing, retained animation keys, and a separate
-React integration. No personal icon assets are distributed.
-
-The binary format was also checked against Martin Akesson's
-[PS2 Icon Format v0.5](https://www.ps2savetools.com/ps2icon-0.5.pdf).
-The mymc+ parser is an external verification reference only; its source is not
-copied into the application.
-
-The ps2mcs source uses this license:
-
-MIT License
-
-Copyright (c) 2024 Craig Shaw
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-## PSU save packages
-
-The PSU record layout and padding were checked against the EMS implementation
-in the pinned external mymc+ tool above and Ross Ridge's original public-domain
-[mymc save-format code](https://github.com/ps2dev/mymc/blob/db5d9e1c141cbbc4ba4e374f73a0518a8d75b7ef/ps2save.py).
-The TypeScript save model, validation, card importer, and PSU reader/writer are
-new implementations. No mymc+ source or runtime dependency is bundled.
-The synthetic PSU fixtures are generated by the external tool and contain only
-generated test bytes. They are not included in the application build.
-
-## Legacy save containers and PSV integrity
-
-The MAX, SharkPort/X-Port and Code Breaker layouts and the public Code Breaker
-RC4 permutation were checked against Ross Ridge's public-domain `ps2save.py`
-in the original mymc revision linked above. The TypeScript readers, bounds,
-checksums, metadata mapping, and writer are new implementations.
-
-`src/formats/lzari.ts` implements Haruhiko Okumura's LZARI wire format and
-arithmetic model, also described by Ross Ridge's `lzari.py`. The match finder
-uses fixed-size hash chains with bounded search. The original LZARI notice,
-preserved in [PSV Save Converter's LZARI reference](https://github.com/bucanero/psv-save-converter/blob/0e142d2e1a83788dcdd3f4066f6d13b2c1beb467/src/lzari.c), reads:
-
-```text
-LZARI.C -- A Data Compression Program
-4/7/1989 Haruhiko Okumura
-Use, distribute, and modify this program freely.
-Please send me your improved versions.
-PC-VAN        SCIENCE
-NIFTY-Serve   PAF01022
-CompuServe    74050,1022
-```
-
-[PSV Save Converter](https://github.com/bucanero/psv-save-converter), commit
-`0e142d2e1a83788dcdd3f4066f6d13b2c1beb467`, is an external fixture producer
-and format reference. Its PSV integrity scheme derives a 20-byte HMAC key
-from the header seed using AES-CBC, then hashes the package with the signature
-field zeroed. The PSV writer also follows the documented metadata tables,
-icon references, and filename convention. It uses its own fixed public seed.
-The application implements the format and signing scheme with noble libraries;
-it does not copy the converter's GPL-3.0 application code. This reference
-credits Bucanero, dots_tb's ps3-psvresigner, PMStanley's PSV-Exporter, and
-root670's CheatDevicePS2. Its file-level LZARI notice is reproduced above.
-
-Runtime dependencies added for these formats:
-
-- `pako` 2.1.0: MIT; its zlib-derived modules carry the zlib license and credit
-  Jean-loup Gailly, Mark Adler, Vitaly Puzrin, and Andrey Tupitsin.
-- `@noble/ciphers` 2.0.1 and `@noble/hashes` 2.0.1: MIT, Paul Miller.
-
-The complete installed runtime license texts, including pako's zlib notice,
-are included in `public/third-party-notices.txt`.
-
-## Sora typeface
-
-The locally served `public/fonts/Sora-Variable.ttf` is the unmodified Sora
-variable font from the [Google Fonts repository](https://github.com/google/fonts/tree/main/ofl/sora),
-retrieved on 2026-09-23. Copyright 2020 The Sora Project Authors. It is licensed
-under the SIL Open Font License 1.1. The complete licence is in
-`public/fonts/OFL-Sora.txt` and the distributed third-party notices.
-
-## GitHub mark
-
-`src/ui/GitHubMark.tsx` uses GitHub's 16px mark from
-[Primer Octicons](https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg),
-retrieved on 2026-09-27. Copyright GitHub, Inc. Use of the logo follows
-[GitHub's logo guidelines](https://github.com/logos).
+External test-tool pins and fixture provenance are in
+[tests/fixtures/README.md](tests/fixtures/README.md).

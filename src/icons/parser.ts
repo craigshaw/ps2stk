@@ -1,4 +1,4 @@
-// Adapted from Craig Shaw's ps2mcs icon browser (MIT). See THIRD_PARTY_NOTICES.md.
+// Adapted through ps2mcs from caol64/ps2mc-browser (MIT). See THIRD_PARTY_NOTICES.md.
 export interface IconSys {
   title: string;
   normal: string;

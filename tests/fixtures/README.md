@@ -28,7 +28,7 @@ These four compressed images contain only generated test bytes. They contain no 
 
 ## Reproduce
 
-The generator uses [mymc+](https://git.sr.ht/~thestr4ng3r/mymcplus), commit `5e58891fd036d9f39a6c3076f998514c8f1cb8f9`, as a separate Python tool. It is GPL-3.0-or-later; its code is not copied into the application. See [third-party notices](../../THIRD_PARTY_NOTICES.md).
+The generator uses [mymc+](https://git.sr.ht/~thestr4ng3r/mymcplus), commit `5e58891fd036d9f39a6c3076f998514c8f1cb8f9`, as a separate Python tool. It is GPL-3.0-or-later; its code is not copied into the application.
 
 Clone the tool outside this repository and check out the specified commit. Then run:
 
@@ -115,10 +115,9 @@ npm run test:reference -- /path/to/mymcplus
 ```
 
 MAX/CBS/SPS/XPS/PSV lack the full opaque records and extended attributes of PSU.
-MAX also lacks flags and dates. See [3B validation](../../docs/milestone-3b-validation.md)
-for expected defaults, parser limits, negative cases, measurements, and locally
-checked Apollo packages. Original-peripheral captures and destination game loads
-remain release work. Real Apollo samples remain outside Git and public assets.
+MAX also lacks flags and dates. See [format policy](../../PRODUCT.md#save-formats)
+for metadata defaults and parser limits. Original-peripheral captures and
+destination game loads remain release work. Real Apollo samples remain outside Git and public assets.
 
 `staticModel()` in `tests/icon-helper.ts` adds an entirely synthetic triangle
 with a zero-key animation track and an immediately following RLE texture. It
@@ -155,5 +154,5 @@ The synthetic icon payloads test container references, not PS2 rendering.
 The normal test suite checks the recorded vector with Node/OpenSSL as a second
 crypto implementation. It also covers full-width/high-byte names, empty files,
 missing/broken icons, nested rejection, near-capacity data, output filename
-safety, acknowledgement, and unchanged source/history. Hardware results are
-separate in [3C validation](../../docs/milestone-3c-validation.md).
+safety, acknowledgement, and unchanged source/history. Destination testing is
+pending; see [release validation](../../PRODUCT.md#release-validation).
