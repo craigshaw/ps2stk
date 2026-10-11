@@ -156,3 +156,13 @@ crypto implementation. It also covers full-width/high-byte names, empty files,
 missing/broken icons, nested rejection, near-capacity data, output filename
 safety, acknowledgement, and unchanged source/history. Destination testing is
 pending; see [release validation](../../PRODUCT.md#release-validation).
+
+## Public guide image
+
+`public/guides/workspace.png` is a browser screenshot of the source-data and
+destination-data fixtures above, opened as `example-source.ps2` and
+`example-destination.ps2`, with the source save selected. It contains only
+synthetic names and file data, with fallback icons. The card files themselves
+are not shipped in public assets. `public/social-preview.png` is a static
+brand composition using the existing wordmark, Sora font, and site colours.
+Both images were captured with Playwright Chromium at version 0.2.0.

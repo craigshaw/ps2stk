@@ -81,6 +81,8 @@ fieldset.application-controls { margin: 0; padding: 0; border: 0; min-width: 0; 
 .brand { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-right: auto; flex-shrink: 0; }
 .header-actions, .welcome-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .header-actions { flex-shrink: 0; }
+.header-guides { font-size: 14px; text-decoration: none; }
+.header-guides:hover { text-decoration: underline; }
 .welcome-actions { margin: 30px 0 16px; }
 .wordmark { display: block; width: 216px; height: auto; }
 .brand-caption { font-family: Sora, sans-serif; font-size: 12px; line-height: 1.4; letter-spacing: .01em; color: var(--text); white-space: nowrap; }
