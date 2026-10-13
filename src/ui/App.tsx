@@ -1,4 +1,6 @@
-import { decodePackage, encodePackage } from "../browser/packages";
+import { decodePackage, inspectPackage, encodePackage } from "../browser/packages";
+import type { ArchiveChoices, ArchiveInfo } from "../formats/archives";
+import { ArchiveChoice } from "./ArchiveChoice";
 import type { ImportFormat } from "../formats/index";
 import { ExportReview } from "./ExportReview";
 import type { SaveContent } from "../core/index";
@@ -63,7 +65,8 @@ import { version as appVersion } from "../../package.json";
 
 type Modal =
   | { type: "icons"; card: MemoryCard; info: SaveInfo; initialPath: string; returnFocus: HTMLElement }
-  | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard }
+  | { type: "import"; slot: CardSlot; save: SaveContent; format: ImportFormat; expected: MemoryCard; archive?: ArchiveInfo }
+  | { type: "archive"; slot: CardSlot; expected: MemoryCard; bytes: Uint8Array; choices: ArchiveChoices }
   | { type: "export"; save: SaveContent }
   | { type: "choose" }
   | { type: "close" | "open" | "save"; slot: CardSlot }
@@ -480,9 +483,10 @@ export function App() {
         event.target.value = "";
         if (!file || !pending) return;
         void run(async () => {
-          const { save, format } = await decodePackage(await readSavePackage(file));
+          const bytes = await readSavePackage(file), result = await inspectPackage(bytes);
           if (session.state(pending.slot).card !== pending.expected) throw new Error("The destination card changed. Import the package again.");
-          setModal({ type: "import", ...pending, save, format });
+          if (result.kind === 'choices') setModal({ type: "archive", ...pending, bytes, choices: result });
+          else setModal({ type: "import", ...pending, ...result });
         });
       }} />
       <fieldset className="application-controls" disabled={busy}>
@@ -562,7 +566,7 @@ export function App() {
             <button className="large" onClick={createCard}><FilePlus2 /> New memory card</button>
             </div>
             <span className="welcome-formats">Standard 8 MiB card images, including .ps2, .mc2, and .bin</span>
-            <span className="welcome-formats">Import PSU, MAX, CBS, SPS, XPS and signed PS2 PSV save packages.</span>
+            <span className="welcome-formats">Import PSU, MAX, CBS, SPS, XPS and signed PS2 PSV save packages, including ZIP and RAR archives.</span>
             </div>
             <div className="card-bays" aria-label="Available card slots">
               <svg className="bay-orbits" viewBox="0 0 500 400" fill="none" aria-hidden="true">
@@ -1033,7 +1037,7 @@ export function App() {
           <span>v{appVersion}</span>
         </span>
       </footer>
-      {error && modal?.type !== "export" && (
+      {error && modal?.type !== "export" && modal?.type !== "archive" && (
         <div className="error-banner" role="alert">
           <Info />
           <div>
@@ -1047,8 +1051,9 @@ export function App() {
       )}
       {modal && (
         <Dialog
+          key={modal.type}
           className={modal.type === "icons" ? "icon-dialog" : undefined}
-          returnFocus={modal.type === "import" ? document.getElementById(`import-save-${modal.slot}`) : modal.type === "icons" ? modal.returnFocus : null}
+          returnFocus={modal.type === "import" || modal.type === "archive" ? document.getElementById(`import-save-${modal.slot}`) : modal.type === "icons" ? modal.returnFocus : null}
           title={
             {
               choose: "Both card slots are in use",
@@ -1059,6 +1064,7 @@ export function App() {
               replace: "Replace this file?",
               save: "Download card as",
               import: "Review save import",
+              archive: "Choose a save from the archive",
               export: "Export selected save",
               icons: "Icon Viewer",
             }[modal.type]
@@ -1076,7 +1082,13 @@ export function App() {
               onPauseChange={setPaused}
             />
           )}
-          {modal.type === "import" && <ImportReview save={modal.save} format={modal.format} card={modal.expected}
+          {modal.type === "archive" && <ArchiveChoice choices={modal.choices} busy={busy} onReview={path => { void run(async () => {
+            const result = await decodePackage(modal.bytes, path);
+            if (session.state(modal.slot).card !== modal.expected) throw new Error("The destination card changed. Import the archive again.");
+            setModal({ type: "import", slot: modal.slot, expected: modal.expected, ...result });
+          }); }} />}
+          {modal.type === "archive" && error && <p role="alert">{error}</p>}
+          {modal.type === "import" && <ImportReview save={modal.save} format={modal.format} card={modal.expected} archive={modal.archive}
             destination={`Card ${letter(modal.slot)}: ${cards[modal.slot]?.filename ?? 'Closed card'}`}
             onApply={(choice) => act(() => {
               const changed = session.importSave(modal.slot, modal.save, modal.expected, choice);

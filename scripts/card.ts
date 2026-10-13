@@ -1,4 +1,7 @@
-import { decodeSavePackage, exportSavePackage } from '../src/formats/index';
+import { exportSavePackage } from '../src/formats/index';
+import { inspectSaveInput } from '../src/formats/archives';
+import { isRar } from '../src/formats/rar';
+import { createRequire } from 'node:module';
 import { MAX_PACKAGE_BYTES } from '../src/formats/psu';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { MemoryCard } from '../src/core/index';
@@ -31,10 +34,18 @@ async function main(): Promise<void> {
     const output = exportSavePackage(card.extractSave(args[1]!), format, args[4] === '--allow-metadata-loss');
     await writeFile(args[2]!, output.bytes, { flag: 'wx' });
     console.log(`Exported ${format.toUpperCase()} to ${args[2]}. Input card is unchanged.`);
-  } else if (command === 'import-save' && (args.length === 3 || args.length === 4)) {
+  } else if (command === 'import-save' && args.length >= 3 && args.length <= 5) {
     const card = await open(args[0]!);
     if ((await stat(args[1]!)).size > MAX_PACKAGE_BYTES) throw new Error('Save package exceeds the 16 MiB input limit.');
-    const { save, format } = decodeSavePackage(await readFile(args[1]!));
+    const input = await readFile(args[1]!);
+    const wasm = isRar(input) ? await readFile(createRequire(import.meta.url).resolve('node-unrar-js/esm/js/unrar.wasm')) : undefined;
+    const resultInput = await inspectSaveInput(input, wasm?.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength), args[4]);
+    if (resultInput.kind === 'choices') throw new Error(`Archive contains several packages. Specify a conflict choice and archive path:\n${resultInput.paths.join('\n')}`);
+    const { save, format } = resultInput;
+    if (resultInput.archive) {
+      console.log(`From ${resultInput.archive.format}: ${resultInput.archive.path}.`);
+      if (resultInput.archive.ignoredFiles) console.log(`${resultInput.archive.ignoredFiles} other archive files will not be imported.`);
+    }
     for (const notice of save.notices) console.log(notice);
     const choice = args[3] ?? 'skip';
     if (!['skip', 'replace', 'error'].includes(choice)) throw new Error('Conflict choice must be skip, replace, or error.');
@@ -78,7 +89,7 @@ async function main(): Promise<void> {
   } else {
     throw new Error('Usage: npm run card -- create NEW_CARD [data|ecc]\n' +
       '       npm run card -- inspect CARD\n' +
-      '       npm run card -- import-save CARD PACKAGE NEW_CARD [skip|replace|error]\n' +
+      '       npm run card -- import-save CARD PACKAGE_OR_ARCHIVE NEW_CARD [skip|replace|error] [ARCHIVE_PATH]\n' +
       '       npm run card -- export-save CARD SAVE_NAME NEW_PACKAGE [psu|max|psv] [--allow-metadata-loss]\n' +
       '       npm run card -- extract CARD /SAVE/FILE NEW_OUTPUT\n' +
       '       npm run card -- copy SOURCE DESTINATION SAVE_NAME NEW_OUTPUT [skip|replace|error]\n' +

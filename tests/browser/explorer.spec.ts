@@ -3,6 +3,8 @@ import type { Page, Download } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { fixture } from "../helpers";
 import { MemoryCard } from "../../src/core/index";
+import { zip } from '../archive-helper';
+import { gunzipSync } from 'node:zlib';
 
 async function open(page: Page, bytes: Uint8Array, name: string) {
   await page.locator("#open-card").click();
@@ -16,6 +18,65 @@ async function open(page: Page, bytes: Uint8Array, name: string) {
 async function downloaded(download: Download) {
   return new Uint8Array(await readFile((await download.path())!));
 }
+
+test('ZIP and RAR import through the worker preserves package bytes and exact Undo/Redo', async ({ page }) => {
+  await page.goto('/');
+  const original = fixture('destination', 'ecc');
+  await open(page, original, 'archives.ps2');
+  const pane = page.getByRole('region', { name: 'Card A', exact: true });
+  for (const name of ['flat-deflated.zip', 'flat-stored.rar', 'flat-deflated.rar']) {
+    await pane.getByRole('button', { name: 'Import save', exact: true }).click();
+    await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'renamed.data', mimeType: 'application/octet-stream', buffer: gunzipSync(await readFile(`tests/fixtures/${name}.gz`)) });
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText(name.endsWith('zip') ? 'From ZIP:' : 'From RAR:');
+    await expect(dialog).toContainText('EMS (.psu)');
+    await dialog.getByRole('button', { name: 'Import save', exact: true }).click();
+    const pending = page.waitForEvent('download');
+    await pane.getByRole('button', { name: 'Download card', exact: true }).click();
+    const output = await downloaded(await pending);
+    const { decodeSavePackage } = await import('../../src/formats/index');
+    const save = decodeSavePackage(gunzipSync(await readFile('tests/fixtures/flat.psu.gz'))).save;
+    expect(output).toEqual(new MemoryCard(original).importSave(save).export());
+    await pane.getByRole('button', { name: 'Undo card A' }).click();
+    await expect(pane.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+    await pane.getByRole('button', { name: 'Redo card A' }).click();
+    const redone = page.waitForEvent('download');
+    await pane.getByRole('button', { name: 'Download card', exact: true }).click();
+    expect(await downloaded(await redone)).toEqual(output);
+    await pane.getByRole('button', { name: 'Undo card A' }).click();
+  }
+});
+
+test('archive choice supports keyboard review, long paths, retry and unchanged history on errors', async ({ page }, testInfo) => {
+  const psu = gunzipSync(await readFile('tests/fixtures/flat.psu.gz')), bad = gunzipSync(await readFile('tests/fixtures/flat.psv.gz')); bad[bad.length - 1]! ^= 1;
+  const longPath = `${'nested/'.repeat(35)}second.data`;
+  const bytes = zip([{ path: 'bad.psv', bytes: bad }, { path: longPath, bytes: psu }, { path: 'readme.txt', bytes: Buffer.from('hello') }]);
+  await page.goto('/'); await open(page, fixture('destination'), 'choose.ps2');
+  const importButton = page.getByRole('button', { name: 'Import save', exact: true });
+  await importButton.click();
+  await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'several.zip', mimeType: 'application/zip', buffer: Buffer.from(bytes) });
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('2 save packages'); await expect(dialog).toContainText('1 other archive file');
+  await dialog.getByRole('button', { name: 'Review save' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('signature does not match');
+  await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+  await dialog.getByLabel('Save package', { exact: true }).selectOption(longPath);
+  for (const width of [1440, 400]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`archive-choice-${width}.png`) });
+  }
+  await dialog.getByRole('button', { name: 'Review save' }).focus(); await page.keyboard.press('Enter');
+  await expect(dialog.getByRole('heading', { name: 'Review save import' })).toBeVisible();
+  await expect(dialog).toContainText(longPath);
+  expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+  await page.keyboard.press('Escape'); await expect(importButton).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
+  await importButton.click();
+  await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'solid.rar', mimeType: 'application/octet-stream', buffer: gunzipSync(await readFile('tests/fixtures/flat-solid.rar.gz')) });
+  await expect(dialog).toContainText('This RAR contains 2 save packages');
+  await page.keyboard.press('Escape'); await expect(importButton).toBeFocused();
+});
 
 test('landing page fits a roomy window and scrolls on narrow screens', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });

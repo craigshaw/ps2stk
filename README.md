@@ -14,6 +14,8 @@ Original input files stay unchanged.
 - Browse original 3D save icons, inspect files, and view icon models.
 - Copy or delete complete saves, replace individual files, and use Undo/Redo.
 - Import PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV packages.
+- Load packages directly from ZIP or RAR archives. Choose one package when an
+  archive contains several saves.
 - Export PSU, MAX, or signed PS2 PSV. MAX and PSV require acknowledgement of
   metadata loss. Packages support flat saves; nested saves need raw-folder
   output or a complete-card download.
@@ -65,6 +67,7 @@ npm run card -- delete source.ps2 edited.ps2 SAVE-NAME
 npm run card -- replace source.ps2 /SAVE-NAME/data replacement.bin edited.ps2
 npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
 npm run card -- import-save destination.ps2 save.psu edited.ps2
+npm run card -- import-save destination.ps2 saves.zip edited.ps2 skip nested/save.psu
 npm run card -- export-save source.ps2 SAVE-NAME exported.psu
 npm run card -- export-save source.ps2 SAVE-NAME exported.max max --allow-metadata-loss
 npm run card -- export-save source.ps2 SAVE-NAME exported.PSV psv --allow-metadata-loss

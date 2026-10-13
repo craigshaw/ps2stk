@@ -82,6 +82,10 @@ actions. Most dialogs scroll when needed; Icon Viewer fits its preview around
 mode controls, model choices, and instructions. Free View freezes the pose for
 bounded rotation/zoom and reset. Identical model files share one choice.
 Import/export limits and metadata acknowledgement use plain readable text.
+Archive import uses the same review. Show the archive type and contained path.
+For several packages, use a labelled select and a Review save action before
+the existing import review. Long paths must fit narrow dialogs. Keep selection
+available after a failed review and return focus to Import save on dismissal.
 
 Keep PS2 Save Toolkit visible at narrow widths, all operations available through
 controls and keyboard, and original icons replaceable by fallbacks. Errors and

@@ -34,6 +34,7 @@
 <tr><th scope="row">PS2 PSV</th><td>Yes</td><td>Signed</td><td>PS2 save transfer through a PS3. Signatures are checked. PS3 acceptance is unverified.</td></tr>
 </tbody></table></div>
 <p>PS2STK checks package integrity where the format provides it. Missing metadata uses documented defaults, shown in the import review. MAX and PSV exports require acknowledgement of metadata loss.</p>
+<p>ZIP and RAR are archive wrappers. PS2STK can open supported packages inside them, including packages in subfolders. Choose one package when there are several. Other archive files are reported and left out. Raw save folders and nested archives are unsupported.</p>
 <p>PS2 PSV is different from PS1 PSV, native PS3 saves, and encrypted PS2 Classics card images. Those inputs are outside this tool's scope.</p></section>
 <section id="choose"><h2>Choose your output</h2>
 <ul><li><strong>Keep the whole card:</strong> use <b>Download card</b> or <b>Download as</b>.</li>
@@ -44,6 +45,7 @@
 <p>To change package formats with the current tool, <a href="/guides/import-ps2-saves/">import the save into a card</a>, then export the selected save. There is no standalone package converter.</p></section>
 <section id="limits"><h2>Supported limits</h2>
 <p>PS2STK opens at most two standard 8 MiB cards. It supports flat save packages, not packages with nested folders. Larger cards, damaged-card repair, region conversion and game-specific editing are outside scope.</p>
+<p>Archives must be unencrypted and contained in one file. ZIP supports stored and deflated members, without ZIP64. RAR supports RAR4 and RAR5 compression version 0, including solid archives, with dictionaries up to 64 MiB. Archives are limited to 16 MiB input, 256 entries, 16 MiB per member and 32 MiB total extracted bytes. Unsafe paths, links, incomplete data and invalid checksums are rejected.</p>
 <p>Format checks verify bytes and structures. They do not prove that a destination game or device accepts the result. PCSX2, MemCard PRO2 and PS3 game-load validation remains pending.</p></section></article>
     </div>
     <nav class="related-guides" aria-label="Related guides"><h2>Keep reading</h2><a href="/guides/import-ps2-saves/">Import a PS2 save into a memory card image</a><a href="/guides/copy-ps2-saves/">Copy saves between PS2 memory card images</a></nav>

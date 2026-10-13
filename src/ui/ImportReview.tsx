@@ -4,9 +4,11 @@ import { useMemo, useState } from 'react';
 import type { MemoryCard, SaveContent } from '../core/index';
 import { IconPreview } from './IconPreview';
 import { bytesLabel, saveInfo, fileBytes, flattenFiles } from './model';
+import type { ArchiveInfo } from '../formats/archives';
 
-export function ImportReview({ save, format, card, destination, onApply }: {
+export function ImportReview({ save, format, card, destination, archive, onApply }: {
   save: SaveContent; format: ImportFormat; card: MemoryCard; destination: string;
+  archive?: ArchiveInfo | undefined;
   onApply(choice: 'skip' | 'replace'): void;
 }) {
   const [choice, setChoice] = useState<'skip' | 'replace'>('skip');
@@ -20,6 +22,7 @@ export function ImportReview({ save, format, card, destination, onApply }: {
   const blocked = !skipped && (!!plan.error || !!plan.result?.shortageBytes);
   return <>
     <p>Import into <strong>{destination}</strong>. The original files stay unchanged.</p>
+    {archive && <p className="archive-source">From {archive.format}: <code>{archive.path}</code>.{!!archive.ignoredFiles && ` ${archive.ignoredFiles} other archive ${archive.ignoredFiles === 1 ? 'file' : 'files'} will not be imported.`}</p>}
     <div className="package-preview"><IconPreview card={save} info={info} animate={false} /><div><h3>{info.title}</h3><code>{save.name}</code><p>{FORMAT_LABELS[format]} · {save.fileCount} files · {bytesLabel(save.fileBytes)}</p></div></div>
     <dl className="save-details">
       <div><dt>Required allocation</dt><dd>{plan.result ? bytesLabel(plan.result.requiredBytes) : 'Unavailable'}</dd></div>

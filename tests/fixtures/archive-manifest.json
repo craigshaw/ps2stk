@@ -1,0 +1,41 @@
+{
+  "zipTool": "3.14.5",
+  "rarTool": "RAR 7.23 macOS ARM",
+  "archives": {
+    "flat-stored.zip": {
+      "sha256": "50877f95f68b8c35ad8f990ea49a8d195f57b676c66e19bc0e86a1ffbe782d6f",
+      "size": 7949,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "flat-deflated.zip": {
+      "sha256": "6c7f1bb7e2dc0ec1051663928869da47d45b979af31c91eeb484967eb722d302",
+      "size": 737,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "flat-stored.rar": {
+      "sha256": "3602d2d0ffed459edf263092754d84d63e8a8c49e78fdb81bd80b3de22f0e1b2",
+      "size": 7758,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "flat-deflated.rar": {
+      "sha256": "bbe6f1b622e89cca2f118510faa8686bdae03096a98e6fa78a51033888b7f53a",
+      "size": 555,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "flat-solid.rar": {
+      "sha256": "92844a19376daa69b2067503d3a4e59866ea64bc74161365d5c618b7033ee241",
+      "size": 633,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "encrypted.rar": {
+      "sha256": "8e43c34def9be2cc4c9b353cd965bda3042967050bb62620a4bd15a3ef2707af",
+      "size": 612,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    },
+    "headers-encrypted.rar": {
+      "sha256": "ade8d067df9490447dd2829bdfcc707001e1baee2a75548c46a809f9df58ae54",
+      "size": 718,
+      "payloadSha256": "c387c603cc6098ea0575dc84e24a7f5fe7bfca12b036b5aa2c8084ca11f50793"
+    }
+  }
+}

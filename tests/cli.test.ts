@@ -5,6 +5,34 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fixture } from './helpers';
+import { zip } from './archive-helper';
+import { gunzipSync } from 'node:zlib';
+import { MemoryCard } from '../src/core/card';
+
+test('CLI imports ZIP and RAR, requires a choice for several packages, and preserves inputs on failure', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'ps2stk-archive-cli-'));
+  const run = (...args: string[]) => spawnSync(process.execPath, ['--import', 'tsx', 'scripts/card.ts', ...args], { encoding: 'utf8' });
+  try {
+    const source = join(directory, 'source.ps2'), output = join(directory, 'result.ps2'), archive = join(directory, 'archive.data');
+    const original = fixture('destination'); writeFileSync(source, original);
+    for (const name of ['flat-deflated.zip', 'flat-deflated.rar']) {
+      const bytes = gunzipSync(readFileSync(`tests/fixtures/${name}.gz`)); writeFileSync(archive, bytes);
+      assert.equal(run('import-save', source, archive, output).status, 0);
+      assert.equal(new MemoryCard(readFileSync(output)).entries.some(entry => entry.name === 'PSU-FLAT'), true);
+      assert.deepEqual(readFileSync(archive), bytes); assert.deepEqual(new Uint8Array(readFileSync(source)), original);
+      rmSync(output);
+    }
+    const psu = gunzipSync(readFileSync('tests/fixtures/flat.psu.gz'));
+    const multiple = zip([{ path: 'first', bytes: psu }, { path: 'second', bytes: psu }]); writeFileSync(archive, multiple);
+    const choice = run('import-save', source, archive, output);
+    assert.equal(choice.status, 1); assert.match(choice.stderr, /Specify a conflict choice and archive path/); assert.equal(existsSync(output), false);
+    assert.equal(run('import-save', source, archive, output, 'skip', 'second').status, 0); rmSync(output);
+    assert.equal(run('import-save', source, archive, output, 'skip', 'missing').status, 1); assert.equal(existsSync(output), false);
+    const corrupt = zip([{ path: 'bad', bytes: psu, method: 0 }]); corrupt[40]! ^= 1; writeFileSync(archive, corrupt);
+    assert.equal(run('import-save', source, archive, output).status, 1); assert.equal(existsSync(output), false);
+    assert.deepEqual(new Uint8Array(readFileSync(source)), original);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
 
 test('CLI refuses to overwrite input cards or an existing raw dump', () => {
   const directory = mkdtempSync(join(tmpdir(), 'ps2stk-cli-'));

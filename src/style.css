@@ -303,6 +303,8 @@ dialog::backdrop { background: #030715ce; backdrop-filter: blur(6px); }
 .danger:hover:not(:disabled) { background: #c24b68; border-color: transparent; }
 .name-list { max-height: 200px; overflow: auto; padding-left: 20px; font-family: ui-monospace, monospace; font-size: 12px; }
 .form-field { display: grid; gap: 8px; margin: 20px 0; font-size: 12px; }
+.form-field select { min-width: 0; max-width: 100%; }
+.archive-source code { overflow-wrap: anywhere; }
 .inline-icon { vertical-align: middle; width: 18px; margin: 0 10px; }
 .copy-plan { display: grid; gap: 10px; max-height: 36dvh; overflow: auto; padding-inline: 6px; margin-inline: -6px; }
 .copy-choice { display: grid; gap: 5px; border-block: 1px solid var(--border); padding: 14px 0; }

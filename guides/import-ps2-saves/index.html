@@ -25,7 +25,7 @@
 <section id="steps"><h2>Import the save</h2>
 <ol class="steps">
 <li><strong>Open a destination card.</strong><p>In the toolkit, choose <b>Open memory card</b> and select your card image. To start with an empty card, choose <b>New memory card</b> instead.</p></li>
-<li><strong>Choose the package.</strong><p>Use <b>Import save</b> on the destination card. Select one package. PS2STK detects the format from its contents.</p></li>
+<li><strong>Choose the package.</strong><p>Use <b>Import save</b> on the destination card. Select a package or a ZIP or RAR archive containing packages. If an archive contains several packages, choose one and use <b>Review save</b>. PS2STK detects package formats from their contents.</p></li>
 <li><strong>Review before applying.</strong><p>Check the destination, save name, space needed, and metadata notices. If the same save directory already exists, <b>Skip</b> keeps it. <b>Replace entire save</b> removes the whole destination save, including files absent from the package. Files are not merged.</p></li>
 <li><strong>Apply the import.</strong><p>Choose <b>Import save</b>, or <b>Replace entire save</b> if you selected replacement. A successful import is one Undo step on the destination card.</p></li>
 <li><strong>Download your card.</strong><p>Choose <b>Download card</b> to keep the displayed filename, or <b>Download as</b> to choose a card extension. Keep the downloaded result separately from your backup.</p></li>
@@ -35,7 +35,8 @@
 <section id="problems"><h2>If the import stops</h2>
 <ul><li><strong>Not enough space:</strong> free space on the destination or use another card. The check includes directory space.</li>
 <li><strong>Unsupported structure:</strong> packages with nested folders cannot be imported. Do not flatten them by hand. Keep a complete card image or use a tool that supports their structure.</li>
-<li><strong>Invalid package or signature:</strong> obtain an intact source file. Changing its extension does not repair it.</li></ul>
+<li><strong>Invalid package or signature:</strong> obtain an intact source file. Changing its extension does not repair it.</li>
+<li><strong>Unsupported archive:</strong> encrypted or split archives, ZIP64, RAR7 compression, raw save folders and nested archives are unsupported. Extract a supported save package with your archive tool, then import that package.</li></ul>
 <p>A failed import leaves the card and its history unchanged. <b>Skip</b> also makes no edit. If you change or replace the destination during review, start the import again.</p>
 <p>Import support does not prove that a game will load the save. Game and region differences can matter. PCSX2, MemCard PRO2 and PS3 game-load validation remains pending.</p></section></article>
     </div>

@@ -42,3 +42,8 @@ export function maxCrc(bytes: Uint8Array): number {
   for (let i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ (i >= 12 && i < 16 ? 0 : bytes[i]!)) & 255]!;
   return (crc ^ 0xffffffff) >>> 0;
 }
+export function crc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 255]!;
+  return (crc ^ 0xffffffff) >>> 0;
+}

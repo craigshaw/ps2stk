@@ -1,5 +1,27 @@
 # Synthetic card fixtures
 
+## ZIP and RAR archives
+
+`archive-manifest.json` records hashes for archive fixtures wrapping the existing
+independent `flat.psu.gz` payload. No personal or game data is included.
+Python's standard `zipfile` produces stored and deflated ZIPs, with a nested
+package whose extension is deliberately wrong and a readme. Independently packed
+RAR4 records cover a stored package with backslash separators. The official
+RAR 7.23 macOS ARM tool produces RAR5 compression version 0, a solid archive
+with two packages, and password/header-encrypted rejection fixtures.
+
+```sh
+python3 scripts/reference-archive-fixtures.py /path/to/rar
+node --import tsx --test tests/archives.test.ts
+```
+
+The generator uses `-ma5 -m3 -md4m -ts- -oi-`. Encrypted fixture hashes change
+when regenerated because salts are random. The external tool stays outside
+the repository and is not a build dependency. Unit tests verify exact extracted
+package contents and metadata, both card layouts, Undo/Redo, malformed ranges,
+CRC failures, encryption, paths, limits and package signatures. Browser tests
+cover the bundled worker/WASM and keyboard package selection in all three engines.
+
 ## Empty-card format vectors
 
 `empty-card-vectors.json` records SHA-256 values for empty cards formatted by

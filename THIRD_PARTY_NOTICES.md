@@ -10,7 +10,8 @@ Licenses link. The unmodified Sora font has its full licence beside it at
 | React, React DOM, Scheduler | Browser UI | MIT |
 | Three.js, including OrbitControls | Icon rendering | MIT |
 | Lucide React, including Feather-derived icons | Interface icons | ISC and MIT |
-| pako and its zlib-derived modules | CBS decompression | MIT and zlib |
+| pako and its zlib-derived modules | CBS and ZIP decompression | MIT and zlib |
+| [node-unrar-js](https://github.com/YuJianrong/node-unrar.js) and its bundled UnRAR | Local RAR extraction; cap WebAssembly memory at runtime | MIT wrapper and UnRAR licence |
 | noble ciphers and hashes | PSV integrity | MIT |
 | Sora | Locally served typeface | SIL OFL 1.1 |
 | [Primer Octicons](https://github.com/primer/octicons/blob/97825f832c98f817867f770d084c08e3edc6f78c/LICENSE) | GitHub mark in `src/ui/GitHubMark.tsx` | MIT |

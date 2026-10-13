@@ -1,7 +1,8 @@
 import type { SaveDirectory } from '../core/save';
 import type { ExportFormat, ImportFormat } from '../formats/index';
-export type PackageRequest = { type: 'decode'; bytes: Uint8Array } | { type: 'encode'; root: SaveDirectory; format: ExportFormat; acknowledgeLoss: boolean };
-export type PackageResult = { type: 'decoded'; root: SaveDirectory; format: ImportFormat } | { type: 'encoded'; bytes: Uint8Array; filename: string } | { type: 'error'; message: string };
+import type { ArchiveChoices, ArchiveInfo } from '../formats/archives';
+export type PackageRequest = { type: 'decode'; bytes: Uint8Array; archivePath?: string } | { type: 'encode'; root: SaveDirectory; format: ExportFormat; acknowledgeLoss: boolean };
+export type PackageResult = { type: 'decoded'; root: SaveDirectory; format: ImportFormat; archive?: ArchiveInfo } | (ArchiveChoices & { type: 'choices' }) | { type: 'encoded'; bytes: Uint8Array; filename: string } | { type: 'error'; message: string };
 export function saveBuffers(root: SaveDirectory): ArrayBuffer[] {
   const buffers = new Set<ArrayBuffer>();
   function visit(node: import('../core/save').SaveNode): void {

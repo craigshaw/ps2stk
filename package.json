@@ -1,6 +1,6 @@
 {
   "name": "ps2stk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -21,6 +21,7 @@
     "@noble/ciphers": "2.0.1",
     "@noble/hashes": "2.0.1",
     "lucide-react": "1.47.0",
+    "node-unrar-js": "2.0.2",
     "pako": "2.1.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

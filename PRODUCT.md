@@ -51,6 +51,17 @@ fallback, capacity, metadata notices, and conflict choice first. Export one sele
 save. PSU is the default. All package formats support flat saves. Reject nested
 structures without flattening or omission; offer raw-folder or whole-card output.
 
+Accept packages directly or inside ZIP and RAR archives, detected from contents.
+An archive with one package opens its review. With several packages, choose one
+before review; there is no batch import. Report other files that will not be
+imported. Package names/extensions do not determine the payload format. Ignore
+macOS resource forks. Raw save folders and nested archives are unsupported.
+Validate the complete archive before presenting its packages. Accept stored and
+deflated ZIP, and RAR4/RAR5 including solid archives with supported compression.
+Reject encryption, split volumes, ZIP64, links, special files, unsafe/duplicate
+paths, incomplete structures, and invalid checksums. RAR7 compression algorithm
+version 1 is unsupported. RAR5 version 0 dictionaries are limited to 64 MiB.
+
 | Format | Import | Export | Integrity and metadata |
 | --- | --- | --- | --- |
 | PSU | Yes | Yes | No checksum. Retain full directory and dot records; rebuild allocation/parent references. Ignore input padding; zero-fill output padding. |
@@ -71,6 +82,12 @@ Bounds: 16 MiB encoded packages, 8 MiB file payloads and save allocation each,
 buffers. Destination capacity includes directory/root growth. Card traversal is
 limited to 128 directory levels. LZARI uses a 4,096-byte history, 60-byte maximum
 match, and at most 64 match candidates per token.
+Archives use the same 16 MiB input limit, at most 256 entries, 1024-byte names,
+16 MiB per extracted member, and 32 MiB total extracted bytes. RAR traversal
+also permits at most 1024 blocks. Bound actual output during decompression;
+cap UnRAR WebAssembly memory at 128 MiB. Browser workers stop after 60 seconds.
+Decode locally in a short-lived worker and fetch the bundled RAR decoder only
+for RAR inputs. Archive metadata never replaces the contained package metadata.
 
 ## Browser and interface
 
@@ -132,7 +149,7 @@ operations and evidence for the following remaining checks:
 ## Exclusions
 
 Version 1 excludes a backend, accounts, persistent workspaces/recovery, damaged-card
-recovery, more than two cards, larger cards, ZIP packages, multi-package batches,
+recovery, more than two cards, larger cards, archive export, multi-package batches,
 arbitrary file/folder import, save renaming, standalone package conversion, online
 databases, direct device synchronisation, hex/game-specific editing, region/checksum
 conversion, advanced icon editing, and dedicated phone workflows. PS1 saves,
