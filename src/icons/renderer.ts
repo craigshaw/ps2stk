@@ -145,6 +145,10 @@ export function mountPreview(
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.NearestFilter;
   texture.needsUpdate = true;
+  // Match PS2IODB's colour cap for games such as Shadow of the Colossus.
+  // Preserve negative channels, which can subtract light.
+  const lightColor = (channels: number[]) =>
+    new THREE.Vector3(...(channels.map((value) => Math.min(value, 1)) as [number, number, number]));
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -154,7 +158,7 @@ export function mountPreview(
       iconTexture: { value: texture },
       textured: { value: !!model.texture },
       ambient: {
-        value: new THREE.Vector3(...(sys.ambient as [number, number, number])),
+        value: lightColor(sys.ambient),
       },
       dirs: {
         value: sys.lightDirs.map(
@@ -162,9 +166,7 @@ export function mountPreview(
         ),
       },
       lights: {
-        value: sys.lightColors.map(
-          (v) => new THREE.Vector3(...(v as [number, number, number])),
-        ),
+        value: sys.lightColors.map(lightColor),
       },
     },
   });

@@ -75,6 +75,8 @@ artwork visible. Card-pane icons remain still; inspector and viewer playback can
 animate at 60 animation frames per second multiplied by the model's stored speed.
 Stored icon backgrounds blend over detail stages. Rendering is a visual
 approximation, not a claim of console-exact presentation.
+Cap stored lighting colour channels above 1 for previews, including games that
+use values up to 255. Preserve negative channels and stored save bytes.
 
 ## Dialogs and accessibility
 

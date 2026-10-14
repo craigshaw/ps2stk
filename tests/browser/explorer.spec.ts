@@ -1084,6 +1084,49 @@ test('package worker keeps near-capacity processing responsive and preserves cal
   await testInfo.attach('package-worker-measurements', {body:JSON.stringify(measurements),contentType:'application/json'});
 });
 
+for (const kind of ['ambient', 'directional'] as const) {
+test(`large ${kind} icon lighting and pre-start keys render without fallback or colour loss`, async ({ page }) => {
+  const { animatedCard } = await import('../icon-helper');
+  let expected: string[] | undefined;
+  for (const intensity of [1, 255]) {
+    const card = new MemoryCard(animatedCard());
+    const sys = card.readFile('/SAVE-A/icon.sys'), icon = card.readFile('/SAVE-A/icon.ico');
+    const lighting = new DataView(sys.buffer), animation = new DataView(icon.buffer);
+    for (const at of [176, 180, 184]) lighting.setFloat32(at, kind === 'ambient' ? intensity : 0, true);
+    if (kind === 'directional') {
+      lighting.setFloat32(88, -1, true);
+      for (const at of [128, 132, 136]) lighting.setFloat32(at, intensity, true);
+    }
+    for (const at of [144, 184]) animation.setFloat32(at, -1, true);
+    const input = card.replaceFile('/SAVE-A/icon.sys', sys).replaceFile('/SAVE-A/icon.ico', icon).export();
+    await page.goto('/');
+    await open(page, input, 'unusual-icons.bin');
+    const tile = page.locator('.save-select canvas');
+    await expect(page.locator('.save-select .icon-fallback')).toHaveCount(0);
+    await page.locator('.save-select').click();
+    const inspector = page.locator('.large-preview canvas');
+    await expect(page.locator('.large-preview .icon-fallback')).toHaveCount(0);
+    const pixels: string[] = [];
+    for (const canvas of [tile, inspector]) {
+      await expect.poll(() => canvas.evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(1);
+      pixels.push(await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL()));
+      const coloured = await canvas.evaluate((c: HTMLCanvasElement) => {
+        const data = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+        for (let at = 0; at < data.length; at += 4)
+          if (data[at + 3]! > 0 && data[at]! > data[at + 1]! && data[at + 1]! > data[at + 2]!) return true;
+        return false;
+      });
+      expect(coloured).toBe(true);
+    }
+    if (expected) expect(pixels).toEqual(expected);
+    else expected = pixels;
+    const output = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download card', exact: true }).click();
+    expect(Buffer.from(await downloaded(await output)).equals(Buffer.from(input))).toBe(true);
+  }
+});
+}
+
 test('zero-keyframe static icon renders its texture instead of the fallback', async ({ page }) => {
   const { animatedCard, staticModel } = await import('../icon-helper');
   const card = new MemoryCard(animatedCard()).replaceFile('/SAVE-A/icon.ico', staticModel());

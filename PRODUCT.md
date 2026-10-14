@@ -109,6 +109,9 @@ per second, multiplied by the model's stored speed, matching
 [PS2IODB's player](https://github.com/Issung/PS2IODB/blob/dbeb200c2a167f72c96233afbe7f3dfbec29cceb/website/src/components/ModelView/ModelViewRenderer.ts#L757).
 Console-exact camera/timing are unverified; action-specific Copy/Delete motion
 remains deferred.
+Icon previews accept a leading animation key at frame -1 and stored lighting
+colour channels up to 255 in magnitude. Rendering caps positive colour channels
+at 1; original icon bytes remain unchanged.
 
 Chrome and Edge support raw-folder output when directory access is available.
 Firefox and Safari retain editing and file/package/card downloads. Folder output
