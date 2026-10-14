@@ -104,8 +104,11 @@ overview approximation. Inspector and Icon Viewer support animation, pause, and
 reduced motion, with stored `icon.sys` backgrounds. Normal, Copy, Delete, and extra
 icon files can be viewed; byte-identical models share one choice. Free View freezes
 the pose for bounded rotation/zoom, reset, and keyboard controls. Broken icons use
-fallbacks without blocking card work. Console-exact camera/timing are unverified;
-action-specific Copy/Delete motion remains deferred.
+fallbacks without blocking card work. Playback advances at 60 animation frames
+per second, multiplied by the model's stored speed, matching
+[PS2IODB's player](https://github.com/Issung/PS2IODB/blob/dbeb200c2a167f72c96233afbe7f3dfbec29cceb/website/src/components/ModelView/ModelViewRenderer.ts#L757).
+Console-exact camera/timing are unverified; action-specific Copy/Delete motion
+remains deferred.
 
 Chrome and Edge support raw-folder output when directory access is available.
 Firefox and Safari retain editing and file/package/card downloads. Folder output

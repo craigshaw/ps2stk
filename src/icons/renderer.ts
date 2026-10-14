@@ -99,7 +99,8 @@ function draw(p: Preview): void {
   p.camera.updateProjectionMatrix();
   const weights = shapeWeights(
     p.model,
-    p.elapsed * 8 * p.model.speed + p.model.offset,
+    // PS2IODB uses 60 animation frames per second before the stored speed.
+    p.elapsed * 60 * p.model.speed + p.model.offset,
   );
   const attr = p.geometry.getAttribute("position") as THREE.BufferAttribute;
   const output = attr.array as Float32Array;

@@ -72,7 +72,8 @@ underline. Theme all page, pane, file-list, and dialog scrollbars.
 Active cards use blue top borders and selected slot controls. Save selection
 adds a bright boundary, checkbox, tinted fill, and elliptical floor. Keep original
 artwork visible. Card-pane icons remain still; inspector and viewer playback can
-animate. Stored icon backgrounds blend over detail stages. Rendering is a visual
+animate at 60 animation frames per second multiplied by the model's stored speed.
+Stored icon backgrounds blend over detail stages. Rendering is a visual
 approximation, not a claim of console-exact presentation.
 
 ## Dialogs and accessibility
