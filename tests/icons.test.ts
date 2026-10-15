@@ -40,6 +40,47 @@ test("bounded RLE produces exactly 128 by 128 pixels", () => {
     assert.throws(() => parseIcon(bytes), /texture/);
   }
 });
+test("a leading key at -1 interpolates at zero without an inserted pose", () => {
+  const bytes = model(true), view = new DataView(bytes.buffer);
+  view.setFloat32(144, -1, true);
+  view.setFloat32(184, -1, true);
+  const original = bytes.slice(), icon = parseIcon(bytes);
+  assert.deepEqual(icon.tracks[0]!.keys[0], { time: -1, value: 1 });
+  assert.equal(icon.tracks[0]!.keys.length, 4);
+  assert.deepEqual(shapeWeights(icon, 0), [0.875, 0.125]);
+  assert.deepEqual(shapeWeights(icon, 0.5), [0.8125, 0.1875]);
+  assert.deepEqual(shapeWeights(icon, 12), shapeWeights(icon, 0));
+  assert.equal(icon.texture!.length, 65536);
+  assert.deepEqual(bytes, original);
+  for (const time of [-2, NaN, Infinity]) {
+    const invalid = original.slice();
+    new DataView(invalid.buffer).setFloat32(144, time, true);
+    assert.throws(() => parseIcon(invalid), /animation|keyframe/);
+  }
+  view.setFloat32(152, -1, true);
+  assert.throws(() => parseIcon(bytes), /keyframe/);
+});
+test("icon.sys retains large and negative colour channels with bounded directions", () => {
+  const bytes = new Uint8Array(964), view = new DataView(bytes.buffer);
+  bytes.set(new TextEncoder().encode("PS2D"));
+  for (const at of [128, 144, 160, 176]) {
+    view.setFloat32(at, 255, true);
+    view.setFloat32(at + 4, 128, true);
+    view.setFloat32(at + 8, -0.5, true);
+  }
+  const original = bytes.slice(), sys = parseIconSys(bytes);
+  assert.deepEqual(sys.ambient, [255, 128, -0.5]);
+  assert.deepEqual(sys.lightColors, Array.from({ length: 3 }, () => [255, 128, -0.5]));
+  assert.deepEqual(bytes, original);
+  for (const at of [128, 144, 160, 176])
+    for (const value of [256, -256, NaN, Infinity]) {
+      const invalid = original.slice();
+      new DataView(invalid.buffer).setFloat32(at, value, true);
+      assert.throws(() => parseIconSys(invalid), /lighting/);
+    }
+  view.setFloat32(80, 101, true);
+  assert.throws(() => parseIconSys(bytes), /lighting/);
+});
 test("malformed icon counts, offsets, non-finite animation, invalid shape IDs and truncated textures fail", () => {
   for (const length of [0, 4, 19, 115, 135, 151, 231, 237])
     assert.throws(() => parseIcon(model(true).slice(0, length)));

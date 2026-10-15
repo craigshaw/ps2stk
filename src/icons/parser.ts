@@ -43,11 +43,11 @@ export function parseIconSys(bytes: Uint8Array): IconSys {
     "Missing or invalid icon.sys.",
   );
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const vector = (offset: number) =>
+  const vector = (offset: number, limit = 100) =>
     Array.from({ length: 3 }, (_, i) => {
       const value = dv.getFloat32(offset + i * 4, true);
       valid(
-        Number.isFinite(value) && Math.abs(value) <= 100,
+        Number.isFinite(value) && Math.abs(value) <= limit,
         "Invalid icon lighting.",
       );
       return value;
@@ -81,9 +81,11 @@ export function parseIconSys(bytes: Uint8Array): IconSys {
     normal: iconName(260),
     copy: iconName(324),
     delete: iconName(388),
-    lightDirs: [80, 96, 112].map(vector),
-    lightColors: [128, 144, 160].map(vector),
-    ambient: vector(176),
+    lightDirs: [80, 96, 112].map((offset) => vector(offset)),
+    // Some games store colour channels up to 255. Keep the stored values;
+    // the preview renderer caps their intensity without changing save bytes.
+    lightColors: [128, 144, 160].map((offset) => vector(offset, 255)),
+    ambient: vector(176, 255),
     backgroundOpacity,
     backgroundColors,
   };
@@ -176,7 +178,7 @@ export function parseIcon(bytes: Uint8Array): IconModel {
       const time = f32(),
         value = f32();
       valid(
-        time >= 0 &&
+        time >= -1 &&
           time <= frameLength + 1 &&
           value >= 0 &&
           value <= 1 &&
@@ -185,7 +187,8 @@ export function parseIcon(bytes: Uint8Array): IconModel {
       );
       keys.push({ time, value });
     }
-    if (shape === 0 && !keys.some((k) => k.time === 0))
+    // Outbreak starts its tracks at -1. Use that key to interpolate at zero.
+    if (shape === 0 && !keys.some((k) => k.time <= 0))
       keys.unshift({ time: 0, value: 1 });
     // Burnout 3 uses shape ID 1 with one shape. It cannot change geometry,
     // so keep the one stored shape as the fallback.
