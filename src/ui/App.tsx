@@ -1052,7 +1052,7 @@ export function App() {
       {modal && (
         <Dialog
           key={modal.type}
-          className={modal.type === "icons" ? "icon-dialog" : undefined}
+          className={modal.type === "icons" ? "icon-dialog" : modal.type === "import" ? "import-dialog" : undefined}
           returnFocus={modal.type === "import" || modal.type === "archive" ? document.getElementById(`import-save-${modal.slot}`) : modal.type === "icons" ? modal.returnFocus : null}
           title={
             {
@@ -1063,7 +1063,7 @@ export function App() {
               copy: "Copy complete saves",
               replace: "Replace this file?",
               save: "Download card as",
-              import: "Review save import",
+              import: "Import save",
               archive: "Choose a save from the archive",
               export: "Export selected save",
               icons: "Icon Viewer",

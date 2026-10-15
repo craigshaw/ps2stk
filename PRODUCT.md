@@ -1,5 +1,16 @@
 # PS2STK product
 
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
+## Users
+
+PS2 players who manage saves in desktop browsers, including people unfamiliar
+with memory card images and save package formats.
+
 ## Purpose and scope
 
 PS2 Save Toolkit is a short-session desktop browser utility for PS2 players,
@@ -12,6 +23,31 @@ Pages. Processing is local. Cards, edits, and Undo/Redo stay in memory for the
 page session. Refresh or close discards them. Original inputs stay intact.
 Card editing, the explorer, and the formats below are implemented. Release
 validation remains open. Hosting was confirmed by the owner on 2026-09-22.
+
+## Positioning
+
+One local tool combines memory card editing, save package transfers, and original
+3D save previews. Users can identify saves, move them between supported formats
+and cards, and download results without accounts or uploads. The supported scope
+and validation limits below define its claims.
+
+## Operating Context
+
+A session starts with a card image, a new empty card, or a save package to import
+into an open card. Users review changes in the browser and download the result
+before closing or refreshing the page. Physical device transfers happen outside
+the app. Browser support for folder output is described below.
+
+## Product Principles
+
+- Keep card data local and preserve original inputs.
+- Validate complete operations before changing a card. Preserve unrelated data
+  and provide exact per-card Undo/Redo within the shared history limit.
+- Make the save and the next action clear. Keep routine format details out of
+  the main task flow and show warnings that affect the user's decision.
+- Require explicit replacement and downloads. Never merge saves implicitly or
+  imply that an in-memory edit has been saved to disk.
+- State compatibility claims only to the extent supported by recorded evidence.
 
 ## Cards and editing
 
@@ -47,9 +83,12 @@ validation remains open. Hosting was confirmed by the owner on 2026-09-22.
 ## Save formats
 
 Import one package per action into an open card. Review the destination, icon or
-fallback, capacity, metadata notices, and conflict choice first. Export one selected
-save. PSU is the default. All package formats support flat saves. Reject nested
-structures without flattening or omission; offer raw-folder or whole-card output.
+fallback, format, file count, payload size, capacity, and conflict choice first.
+A collapsed Files section lists relative file names and sizes. Show integrity
+warnings and excluded archive-file counts; omit routine metadata defaults from
+the dialog. Export one selected save. PSU is the default. All package formats
+support flat saves. Reject nested structures without flattening or omission;
+offer raw-folder or whole-card output.
 
 Accept packages directly or inside ZIP and RAR archives, detected from contents.
 An archive with one package opens its review. With several packages, choose one
@@ -73,9 +112,10 @@ version 1 is unsupported. RAR5 version 0 dictionaries are limited to 64 MiB.
 Missing attributes and opaque fields become zero. Missing dot records use standard
 directory defaults. Missing dates use 2000-01-01 00:00:00; modes use directory
 `0x8427` and file `0x8417`. Preserve explicit represented zero values. Reviews
-report defaults. PSV exports omit extended attributes, opaque metadata, and dot
-records. Its fixed public seed makes output reproducible. Signatures verify
-integrity under the published scheme, without proving authorship or game validity.
+omit routine defaults; the decoded save retains them as notices. PSV exports omit
+extended attributes, opaque metadata, and dot records. Its fixed public seed makes
+output reproducible. Signatures verify integrity under the published scheme,
+without proving authorship or game validity.
 
 Bounds: 16 MiB encoded packages, 8 MiB file payloads and save allocation each,
 16,384 entries including dot entries, 32-byte names, and 9 MiB MAX/CBS decoded
@@ -126,14 +166,26 @@ PS2 Save Toolkit text, the gradient line wordmark, and numeral 2 favicon.
 The landing heading is "The Swiss Army knife for PS2 saves". See
 [DESIGN.md](DESIGN.md). Do not invent endorsements or adoption figures.
 
+## Evidence on Hand
+
+- [Fixture provenance](tests/fixtures/README.md) records synthetic card and package
+  inputs, external tool pins, and reproduction commands.
+- [Tests](tests/) cover byte/metadata/ECC checks, rejected inputs, and exact
+  Undo/Redo restoration. Independent mymc+ and converter checks provide evidence
+  beyond a same-parser round trip.
+- [Browser tests](tests/browser/) cover Chromium, Firefox, and WebKit. Synthetic
+  icon assets support preview checks without publishing personal saves.
+- [Public guides](guides/) explain supported tasks and format limits. The shipped
+  wordmark and favicon are original assets; [third-party notices](THIRD_PARTY_NOTICES.md)
+  identify distributed third-party material.
+
+These checks do not prove destination compatibility or native OS permissions.
+Do not invent endorsements, adoption figures, or completed validation.
+
 ## Release validation
 
-Existing evidence includes synthetic fixtures, independent mymc+/converter
-comparisons, exact byte/metadata/ECC checks, failures, Undo/Redo restoration, and
-Playwright Chromium/Firefox/WebKit regressions. [Fixture provenance](tests/fixtures/README.md)
-records pins and reproduction. These checks do not prove destination compatibility
-or native OS permissions. Release requires no known data-loss defects in supported
-operations and evidence for the following remaining checks:
+Release requires no known data-loss defects in supported operations and evidence
+for the following remaining checks:
 
 - Load edited cards and package-imported saves in PCSX2 and on PS2 through
   MemCard PRO2. Check copied progress, unrelated saves, and saving/reloading new
