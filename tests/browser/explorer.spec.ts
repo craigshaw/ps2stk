@@ -28,7 +28,7 @@ test('ZIP and RAR import through the worker preserves package bytes and exact Un
     await pane.getByRole('button', { name: 'Import save', exact: true }).click();
     await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'renamed.data', mimeType: 'application/octet-stream', buffer: gunzipSync(await readFile(`tests/fixtures/${name}.gz`)) });
     const dialog = page.getByRole('dialog');
-    await expect(dialog).toContainText(name.endsWith('zip') ? 'From ZIP:' : 'From RAR:');
+    await expect(dialog.getByRole('heading', { name: 'Import save', exact: true })).toBeVisible();
     await expect(dialog).toContainText('EMS (.psu)');
     await dialog.getByRole('button', { name: 'Import save', exact: true }).click();
     const pending = page.waitForEvent('download');
@@ -67,8 +67,9 @@ test('archive choice supports keyboard review, long paths, retry and unchanged h
     await page.screenshot({ path: testInfo.outputPath(`archive-choice-${width}.png`) });
   }
   await dialog.getByRole('button', { name: 'Review save' }).focus(); await page.keyboard.press('Enter');
-  await expect(dialog.getByRole('heading', { name: 'Review save import' })).toBeVisible();
-  await expect(dialog).toContainText(longPath);
+  await expect(dialog.getByRole('heading', { name: 'Import save' })).toBeVisible();
+  await expect(dialog).not.toContainText(longPath);
+  await expect(dialog.getByText('1 other archive file will not be imported.', { exact: true })).toBeVisible();
   expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
   await page.keyboard.press('Escape'); await expect(importButton).toBeFocused();
   await expect(page.getByRole('button', { name: 'Undo card A' })).toBeDisabled();
@@ -917,7 +918,7 @@ test("PSU import review, cancel, export and exact Undo/Redo work without folder 
   await load();
   await expect(page.getByRole('dialog')).toContainText('Card B: second.ps2');
   await expect(page.getByRole('dialog')).toContainText('EMS (.psu)');
-  await expect(page.getByRole('dialog')).toContainText('Required allocation');
+  await expect(page.getByRole('dialog')).toContainText('Required space');
   await page.keyboard.press('Escape');
   await expect(pane.getByRole('button', { name: 'Import save', exact: true })).toBeFocused();
   await expect(pane.getByRole('button', { name: 'Undo card B' })).toBeDisabled();
@@ -993,6 +994,8 @@ test('PSU review renders contained icon assets with reduced motion and preserves
   const { animatedCard } = await import('../icon-helper');
   const { SaveContent } = await import('../../src/core/index');
   const { encodePsu } = await import('../../src/formats/psu');
+  const { recordName } = await import('../../src/core/save');
+  const { bytesLabel } = await import('../../src/ui/model');
   const root = new MemoryCard(animatedCard()).extractSave('SAVE-A').snapshot();
   const children = root.children.filter(e => e.kind === 'file');
   new DataView(root.record.buffer).setUint32(4, children.length + 2, true);
@@ -1009,12 +1012,48 @@ test('PSU review renders contained icon assets with reduced motion and preserves
   const pixels = await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL());
   await page.waitForTimeout(150);
   expect(await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL())).toBe(pixels);
-  await page.screenshot({ path: testInfo.outputPath('psu-import-review.png') });
+  const disclosure = dialog.locator('details'), summary = disclosure.locator('summary');
+  await expect(summary).toHaveText(`Files (${children.length})`);
+  await expect(disclosure).not.toHaveAttribute('open', '');
+  await expect(dialog).not.toContainText('The original files stay unchanged');
+  await expect(dialog.locator('.package-preview code')).toHaveCount(0);
+  for (const width of [1440, 400]) {
+    await page.setViewportSize({ width, height: 900 });
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    await expect(disclosure).toHaveAttribute('open', '');
+    const rows = disclosure.locator('dl > div');
+    await expect(rows).toHaveCount(children.length);
+    for (const [index, child] of children.entries()) {
+      if (child.kind !== 'file') continue;
+      await expect(rows.nth(index).locator('dt')).toHaveText(recordName(child.record));
+      await expect(rows.nth(index).locator('dd')).toHaveText(bytesLabel(child.bytes.length));
+    }
+    expect(await dialog.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`import-files-${width}.png`) });
+    await summary.focus(); await page.keyboard.press('Space');
+    await expect(disclosure).not.toHaveAttribute('open', '');
+    await page.screenshot({ path: testInfo.outputPath(`import-review-${width}.png`) });
+  }
   await dialog.getByRole('button', { name: 'Import save', exact: true }).click();
   await expect(page.getByRole('complementary').getByRole('heading', { name: 'Synthetic animated icon' })).toBeVisible();
   const output = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download card', exact: true }).click();
   expect(new MemoryCard(await downloaded(await output)).readFile('/SAVE-A/icon.ico')).toEqual(new MemoryCard(animatedCard()).readFile('/SAVE-A/icon.ico'));
+});
+
+test('import review keeps missing-checksum warnings visible without metadata defaults', async ({ page }) => {
+  const bytes = gunzipSync(await readFile('tests/fixtures/flat.sps.gz'));
+  bytes.fill(0, bytes.length - 4);
+  await page.goto('/');
+  await open(page, fixture('destination'), 'checksum.ps2');
+  await page.getByRole('button', { name: 'Import save', exact: true }).click();
+  await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'unchecked.sps', mimeType: 'application/octet-stream', buffer: bytes });
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('This package has no checksum. Its integrity could not be checked.', { exact: true })).toBeVisible();
+  await expect(dialog).not.toContainText('opaque');
+  await expect(dialog.locator('details')).not.toHaveAttribute('open', '');
+  await expect(dialog.getByRole('button', { name: 'Import save', exact: true })).toBeEnabled();
 });
 
 test('legacy imports use content detection and MAX export requires loss acknowledgement', async ({ page }, testInfo) => {
@@ -1027,7 +1066,9 @@ test('legacy imports use content detection and MAX export requires loss acknowle
     await pane.getByRole('button', { name: 'Import save', exact: true }).click();
     await page.getByLabel('Save package', { exact: true }).setInputFiles({ name: 'renamed.wrong', mimeType: 'application/octet-stream', buffer: gunzipSync(await readFile(`tests/fixtures/flat.${extension}.gz`)) });
     await expect(page.getByRole('dialog')).toContainText(label!);
-    await expect(page.getByRole('dialog')).toContainText('defaults are listed below');
+    await expect(page.getByRole('dialog')).not.toContainText('default timestamps');
+    await expect(page.getByRole('dialog')).not.toContainText('opaque');
+    await expect(page.getByRole('dialog').locator('details')).not.toHaveAttribute('open', '');
     await page.getByRole('dialog').getByRole('button', { name: 'Import save', exact: true }).click();
     await expect(pane.getByRole('button', { name: 'Select PSU-FLAT (PSU-FLAT)', exact: true })).toBeVisible();
     await pane.getByRole('button', { name: 'Undo card A' }).click();

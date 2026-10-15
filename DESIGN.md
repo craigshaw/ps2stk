@@ -85,7 +85,14 @@ actions. Most dialogs scroll when needed; Icon Viewer fits its preview around
 mode controls, model choices, and instructions. Free View freezes the pose for
 bounded rotation/zoom and reset. Identical model files share one choice.
 Import/export limits and metadata acknowledgement use plain readable text.
-Archive import uses the same review. Show the archive type and contained path.
+Import review leads with the save icon and title, then format, file count, and
+payload size. Show the destination in one muted line below the dialog title.
+Use Required space and Available space for capacity. A native, initially collapsed
+Files disclosure lists exact relative file names and right-aligned sizes in a
+bounded scrolling area. Omit internal directory IDs, preservation statements,
+routine metadata defaults, and archive source paths. Keep conflicts, replacement
+consequences, space errors, integrity warnings, and excluded archive-file counts
+visible. Archive import uses the same review.
 For several packages, use a labelled select and a Review save action before
 the existing import review. Long paths must fit narrow dialogs. Keep selection
 available after a failed review and return focus to Import save on dismissal.

@@ -47,9 +47,12 @@ validation remains open. Hosting was confirmed by the owner on 2026-09-22.
 ## Save formats
 
 Import one package per action into an open card. Review the destination, icon or
-fallback, capacity, metadata notices, and conflict choice first. Export one selected
-save. PSU is the default. All package formats support flat saves. Reject nested
-structures without flattening or omission; offer raw-folder or whole-card output.
+fallback, format, file count, payload size, capacity, and conflict choice first.
+A collapsed Files section lists relative file names and sizes. Show integrity
+warnings and excluded archive-file counts; omit routine metadata defaults from
+the dialog. Export one selected save. PSU is the default. All package formats
+support flat saves. Reject nested structures without flattening or omission;
+offer raw-folder or whole-card output.
 
 Accept packages directly or inside ZIP and RAR archives, detected from contents.
 An archive with one package opens its review. With several packages, choose one
@@ -73,9 +76,10 @@ version 1 is unsupported. RAR5 version 0 dictionaries are limited to 64 MiB.
 Missing attributes and opaque fields become zero. Missing dot records use standard
 directory defaults. Missing dates use 2000-01-01 00:00:00; modes use directory
 `0x8427` and file `0x8417`. Preserve explicit represented zero values. Reviews
-report defaults. PSV exports omit extended attributes, opaque metadata, and dot
-records. Its fixed public seed makes output reproducible. Signatures verify
-integrity under the published scheme, without proving authorship or game validity.
+omit routine defaults; the decoded save retains them as notices. PSV exports omit
+extended attributes, opaque metadata, and dot records. Its fixed public seed makes
+output reproducible. Signatures verify integrity under the published scheme,
+without proving authorship or game validity.
 
 Bounds: 16 MiB encoded packages, 8 MiB file payloads and save allocation each,
 16,384 entries including dot entries, 32-byte names, and 9 MiB MAX/CBS decoded
