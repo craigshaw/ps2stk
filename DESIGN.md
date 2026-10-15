@@ -201,6 +201,11 @@ Keep Play/Pause below the model in both modes; its label names the next action.
 Place Reset view beside the mode switch in Free View. It resets only the angle
 and zoom. Keep playback state when switching modes or models, and keep animation
 paused under reduced motion. Identical model files share one choice.
+In Free View, place Previous frame and Next frame around Play/Pause. Reserve
+their space in Playback to keep the controls stable. Enable stepping only for a
+loaded animation while paused, including under reduced motion. Label each icon
+button, show its comma/period shortcut in the tooltip, and include the shortcuts
+in the viewer help. Arrow keys continue to control the camera.
 Import/export limits and metadata acknowledgement use plain readable text.
 Import review leads with the save icon and title, then format, file count, and
 payload size. Show the destination in one muted line below the dialog title.

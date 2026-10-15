@@ -3,7 +3,19 @@ import type { IconModel, IconSys } from "../../src/icons/parser";
 
 // Synthetic morphs only. Expected poses are fixed keyframe positions, not
 // values calculated with the renderer's elapsed-time conversion.
-for (const scenario of [
+interface TimingScenario {
+  speed: number;
+  offset: number;
+  seconds: number;
+  hz: number;
+  expectedFrame: number;
+  freeView?: boolean;
+  returnToPlayback?: boolean;
+  steps?: (-1 | 1)[];
+  stepWhilePlaying?: boolean;
+  resumeFrames?: number;
+}
+const scenarios: TimingScenario[] = [
   { speed: 1, offset: 0, seconds: 1, hz: 60, expectedFrame: 60 },
   { speed: 0.5, offset: 15, seconds: 1, hz: 30, expectedFrame: 45 },
   { speed: 0, offset: 15, seconds: 1, hz: 120, expectedFrame: 15 },
@@ -12,9 +24,19 @@ for (const scenario of [
   { speed: 0.5, offset: 15, seconds: 1, hz: 30, expectedFrame: 45, freeView: true },
   { speed: 0, offset: 15, seconds: 1, hz: 120, expectedFrame: 15, freeView: true },
   { speed: 1, offset: 0, seconds: 1, hz: 60, expectedFrame: 60, freeView: true, returnToPlayback: true },
-]) {
-  const mode = "freeView" in scenario ? `Free View${"returnToPlayback" in scenario ? " then Playback" : ""}` : "Playback";
-  test(`icon timing in ${mode}: speed ${scenario.speed}, offset ${scenario.offset}, ${scenario.seconds}s at ${scenario.hz} Hz`, async ({ page }) => {
+  { speed: 1, offset: 0, seconds: 0, hz: 60, expectedFrame: 119, freeView: true, steps: [-1] },
+  { speed: 1, offset: 119, seconds: 0, hz: 60, expectedFrame: 0, freeView: true, steps: [1] },
+  { speed: 0, offset: 30, seconds: 0, hz: 60, expectedFrame: 31, freeView: true, steps: [1, 1, -1] },
+  { speed: 0.5, offset: 15.5, seconds: 0, hz: 60, expectedFrame: 15.5, freeView: true, steps: [-1, 1] },
+  { speed: 2, offset: 30, seconds: 0, hz: 60, expectedFrame: 31, freeView: true, steps: [1] },
+  { speed: 1, offset: 30, seconds: 0, hz: 60, expectedFrame: 30, freeView: true, steps: [1], stepWhilePlaying: true },
+  { speed: 1, offset: 30, seconds: 0, hz: 60, expectedFrame: 30, steps: [-1] },
+  { speed: 0.5, offset: 30, seconds: 0, hz: 60, expectedFrame: 61, freeView: true, steps: [1], resumeFrames: 60 },
+];
+for (const scenario of scenarios) {
+  const mode = scenario.freeView ? `Free View${scenario.returnToPlayback ? " then Playback" : ""}` : "Playback";
+  const steps = scenario.steps ? `, steps ${scenario.steps.join("/")}${scenario.stepWhilePlaying ? " while playing" : ""}${scenario.resumeFrames ? " then resume" : ""}` : "";
+  test(`icon timing in ${mode}: speed ${scenario.speed}, offset ${scenario.offset}, ${scenario.seconds}s at ${scenario.hz} Hz${steps}`, async ({ page }) => {
     await page.goto("/");
     const result = await page.evaluate(async (scenario) => {
       // @ts-expect-error Vite serves this browser module.
@@ -60,7 +82,7 @@ for (const scenario of [
       const actual = mountPreview(canvases[0]!, model, sys, fail);
       const expected = mountPreview(canvases[1]!, { ...model, speed: 0, offset: scenario.expectedFrame }, sys, fail);
       try {
-        const freeView = "freeView" in scenario && scenario.freeView;
+        const freeView = scenario.freeView ?? false;
         actual.setFreeView(freeView);
         expected.setFreeView(freeView);
         actual.animate(true);
@@ -73,7 +95,24 @@ for (const scenario of [
           callbacks.clear();
           for (const callback of pending) callback(1000 + frame * 1000 / scenario.hz);
         }
-        if ("returnToPlayback" in scenario) {
+        const flush = (now: number) => {
+          const pending = [...callbacks.values()];
+          callbacks.clear();
+          for (const callback of pending) callback(now);
+        };
+        if (scenario.steps) {
+          if (!scenario.stepWhilePlaying) actual.animate(false);
+          for (const direction of scenario.steps) actual.stepFrame(direction);
+          flush(1000 + scenario.seconds * 1000);
+        }
+        if (scenario.resumeFrames) {
+          // One step reaches frame 31; one second at half speed reaches 61.
+          // Keep the reference still at that known final pose.
+          actual.animate(true);
+          for (let frame = 0; frame <= scenario.resumeFrames; frame++)
+            flush(2000 + frame * 1000 / scenario.hz);
+        }
+        if (scenario.returnToPlayback) {
           actual.animate(false);
           actual.setFreeView(false);
           expected.setFreeView(false);

@@ -5,7 +5,9 @@ import { shapeWeights } from "./parser";
 import type { IconModel, IconSys } from "./parser";
 
 export interface PreviewHandle {
+  readonly canStepFrames: boolean;
   animate(value: boolean): void;
+  stepFrame(direction: -1 | 1): void;
   setFreeView(value: boolean): void;
   resetView(): void;
   rotateView(horizontal: number, vertical: number): void;
@@ -28,7 +30,7 @@ interface Preview {
   freeView: boolean;
   freeYaw: number;
   active: boolean;
-  elapsed: number;
+  animationFrame: number;
   rotationElapsed: number;
   dirty: boolean;
   fail: () => void;
@@ -69,7 +71,8 @@ function tick(now: number): void {
   for (const p of [...previews]) {
     if (!p.active && !p.dirty) continue;
     if (p.active) {
-      p.elapsed += delta;
+      // PS2IODB uses 60 animation frames per second before the stored speed.
+      p.animationFrame += delta * 60 * p.model.speed;
       if (!p.freeView) p.rotationElapsed += delta;
       moving = true;
     }
@@ -98,11 +101,7 @@ function draw(p: Preview): void {
   r.setSize(width, height, false);
   p.camera.aspect = width / height;
   p.camera.updateProjectionMatrix();
-  const weights = shapeWeights(
-    p.model,
-    // PS2IODB uses 60 animation frames per second before the stored speed.
-    p.elapsed * 60 * p.model.speed + p.model.offset,
-  );
+  const weights = shapeWeights(p.model, p.animationFrame);
   const attr = p.geometry.getAttribute("position") as THREE.BufferAttribute;
   const output = attr.array as Float32Array;
   output.fill(0);
@@ -230,7 +229,7 @@ export function mountPreview(
     freeView: false,
     freeYaw: 0.65,
     active: false,
-    elapsed: 0,
+    animationFrame: model.offset,
     rotationElapsed: 0,
     dirty: true,
   };
@@ -241,9 +240,18 @@ export function mountPreview(
     preview.dirty = true;
     schedule();
   }
+  const canStepFrames = model.duration > 0 && model.shapes.length > 1 &&
+    model.tracks.some((track) => track.keys.length > 1);
   return {
+    canStepFrames,
     animate(value) {
       preview.active = value;
+      invalidate();
+    },
+    stepFrame(direction) {
+      if (!preview.freeView || preview.active || !canStepFrames) return;
+      const duration = model.duration;
+      preview.animationFrame = ((preview.animationFrame + direction) % duration + duration) % duration;
       invalidate();
     },
     setFreeView(value) {

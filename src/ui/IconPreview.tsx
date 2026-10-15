@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { KeyboardEvent, Ref } from "react";
 import { Box } from "lucide-react";
 import type { MemoryCard } from "../core/index";
 import { parseIcon } from "../icons/parser";
 import type { PreviewHandle } from "../icons/renderer";
 import type { SaveInfo } from "./model";
 
+export type IconPreviewHandle = Pick<PreviewHandle, "stepFrame">;
+
 export function IconPreview({
+  ref,
   card,
   info,
   animate,
@@ -18,6 +21,7 @@ export function IconPreview({
   resetViewToken = 0,
   onReadyChange,
 }: {
+  ref?: Ref<IconPreviewHandle>;
   card: Pick<MemoryCard, "readFile">;
   info: SaveInfo;
   animate: boolean;
@@ -27,7 +31,7 @@ export function IconPreview({
   label?: string;
   freeView?: boolean;
   resetViewToken?: number;
-  onReadyChange?: (ready: boolean) => void;
+  onReadyChange?: (ready: boolean, canStepFrames?: boolean) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const mounted = useRef<PreviewHandle | null>(null);
@@ -39,6 +43,9 @@ export function IconPreview({
   readyChange.current = onReadyChange;
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
+  useImperativeHandle(ref, () => ({
+    stepFrame: (direction) => mounted.current?.stepFrame(direction),
+  }), []);
   const colors = info.sys?.backgroundColors;
   const gradient = (left: number[], right: number[]) =>
     `linear-gradient(to right, rgb(${left.join(",")}), rgb(${right.join(",")}))`;
@@ -75,7 +82,7 @@ export function IconPreview({
         mounted.current.setFreeView(interactive.current);
         mounted.current.animate(active.current);
         setReady(true);
-        readyChange.current?.(true);
+        readyChange.current?.(true, mounted.current.canStepFrames);
       } catch {
         if (alive) {
           setFailed(true);
@@ -138,7 +145,7 @@ export function IconPreview({
         ref={canvas}
         className={failed || !iconPath ? "invisible" : ""}
         role={freeView ? "group" : undefined}
-        aria-label={freeView ? `${info.title}: ${label}. Use arrow keys to rotate, plus or minus to zoom, and 0 to reset.` : undefined}
+        aria-label={freeView ? `${info.title}: ${label}. Use arrow keys to rotate, plus or minus to zoom, and 0 to reset. While paused, use comma or period to step frames.` : undefined}
         tabIndex={freeView && ready && !failed && iconPath ? 0 : undefined}
         onKeyDown={handleFreeViewKeys}
       />

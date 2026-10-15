@@ -800,6 +800,89 @@ test("icon viewer free view plays, pauses, rotates, zooms, and resets", async ({
   }
 });
 
+test("paused free view steps frames with buttons and keyboard", async ({ page }) => {
+  const { iconGalleryCard } = await import("../icon-helper");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await open(page, iconGalleryCard(), "icons.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
+  const canvas = viewer.locator("canvas");
+  const pixels = () => canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+  const previous = viewer.getByRole("button", { name: "Previous frame", exact: true });
+  const next = viewer.getByRole("button", { name: "Next frame", exact: true });
+  await expect(next).toHaveCount(0);
+  await viewer.getByRole("button", { name: "Free View", exact: true }).click();
+  await expect(previous).toBeDisabled();
+  await expect(next).toBeDisabled();
+  await viewer.getByRole("button", { name: "Pause icon animation" }).click();
+  await expect(previous).toBeEnabled();
+  await expect(next).toBeEnabled();
+  await page.waitForTimeout(100);
+  const paused = await pixels();
+  await next.click();
+  await expect.poll(pixels).not.toBe(paused);
+  await previous.click();
+  await expect.poll(pixels).toBe(paused);
+  await canvas.focus();
+  await page.keyboard.press(".");
+  await expect.poll(pixels).not.toBe(paused);
+  await page.keyboard.press(",");
+  await expect.poll(pixels).toBe(paused);
+  await page.keyboard.press("Control+.");
+  await page.waitForTimeout(100);
+  expect(await pixels()).toBe(paused);
+  // The same shortcuts work with focus on the animation controls.
+  await next.focus();
+  await page.keyboard.press(".");
+  await expect.poll(pixels).not.toBe(paused);
+  await page.keyboard.press(",");
+  await expect.poll(pixels).toBe(paused);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(viewer.getByRole("button", { name: "Play icon animation" })).toBeDisabled();
+  await expect(next).toBeEnabled();
+  // The reduced-motion notice changes the stage size. Capture the settled pose
+  // at its new dimensions before comparing a forward/backward step.
+  await page.waitForTimeout(100);
+  const reducedPaused = await pixels();
+  await next.click();
+  await expect.poll(pixels).not.toBe(reducedPaused);
+  await previous.click();
+  await expect.poll(pixels).toBe(reducedPaused);
+  await viewer.getByRole("button", { name: "Copy copy.ico" }).click();
+  await expect(next).toBeEnabled();
+  await page.waitForTimeout(100);
+  const copy = await pixels();
+  await next.click();
+  await expect.poll(pixels).not.toBe(copy);
+  await previous.click();
+  await expect.poll(pixels).toBe(copy);
+  await expect(page.getByRole("button", { name: "Undo card A" })).toBeDisabled();
+});
+
+test("static and broken icons keep frame stepping disabled", async ({ page }) => {
+  const { iconGalleryCard, staticModel } = await import("../icon-helper");
+  const card = new MemoryCard(iconGalleryCard())
+    .replaceFile("/SAVE-ICONS/icon.ico", staticModel())
+    .replaceFile("/SAVE-ICONS/copy.ico", new Uint8Array(10));
+  await page.goto("/");
+  await open(page, card.export(), "static-and-broken.bin");
+  await page.getByRole("button", { name: /Select Synthetic icon gallery/ }).click();
+  await page.getByRole("button", { name: "View icons", exact: true }).click();
+  const viewer = page.getByRole("dialog", { name: "Icon Viewer" });
+  await viewer.getByRole("button", { name: "Free View", exact: true }).click();
+  for (const choice of ["Normal icon.ico", "Copy copy.ico"]) {
+    await viewer.getByRole("button", { name: choice }).click();
+    await expect(viewer.getByRole("button", { name: "Previous frame" })).toBeDisabled();
+    await expect(viewer.getByRole("button", { name: "Next frame" })).toBeDisabled();
+  }
+  await expect(viewer.getByRole("button", { name: "Play icon animation" })).toBeDisabled();
+  await expect(viewer.getByText("No preview", { exact: true })).toBeVisible();
+  await viewer.getByRole("button", { name: "Delete del.ico" }).click();
+  await expect(viewer.getByRole("button", { name: "Next frame" })).toBeEnabled();
+});
+
 test("free view retains playback state across models and modes", async ({ page }) => {
   const { iconGalleryCard } = await import("../icon-helper");
   await page.emulateMedia({ reducedMotion: "no-preference" });
