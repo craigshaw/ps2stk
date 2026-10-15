@@ -8,8 +8,13 @@ for (const scenario of [
   { speed: 0.5, offset: 15, seconds: 1, hz: 30, expectedFrame: 45 },
   { speed: 0, offset: 15, seconds: 1, hz: 120, expectedFrame: 15 },
   { speed: 1, offset: 0, seconds: 2, hz: 120, expectedFrame: 0 },
+  { speed: 1, offset: 0, seconds: 1, hz: 60, expectedFrame: 60, freeView: true },
+  { speed: 0.5, offset: 15, seconds: 1, hz: 30, expectedFrame: 45, freeView: true },
+  { speed: 0, offset: 15, seconds: 1, hz: 120, expectedFrame: 15, freeView: true },
+  { speed: 1, offset: 0, seconds: 1, hz: 60, expectedFrame: 60, freeView: true, returnToPlayback: true },
 ]) {
-  test(`icon timing: speed ${scenario.speed}, offset ${scenario.offset}, ${scenario.seconds}s at ${scenario.hz} Hz`, async ({ page }) => {
+  const mode = "freeView" in scenario ? `Free View${"returnToPlayback" in scenario ? " then Playback" : ""}` : "Playback";
+  test(`icon timing in ${mode}: speed ${scenario.speed}, offset ${scenario.offset}, ${scenario.seconds}s at ${scenario.hz} Hz`, async ({ page }) => {
     await page.goto("/");
     const result = await page.evaluate(async (scenario) => {
       // @ts-expect-error Vite serves this browser module.
@@ -55,13 +60,26 @@ for (const scenario of [
       const actual = mountPreview(canvases[0]!, model, sys, fail);
       const expected = mountPreview(canvases[1]!, { ...model, speed: 0, offset: scenario.expectedFrame }, sys, fail);
       try {
+        const freeView = "freeView" in scenario && scenario.freeView;
+        actual.setFreeView(freeView);
+        expected.setFreeView(freeView);
         actual.animate(true);
-        expected.animate(true);
+        // In Free View, compare against a still pose with a fixed camera. This
+        // catches both frozen morphs and accidental automatic rotation.
+        expected.animate(!freeView);
         // First callback establishes the clock. Later callbacks advance it.
         for (let frame = 0; frame <= scenario.seconds * scenario.hz; frame++) {
           const pending = [...callbacks.values()];
           callbacks.clear();
           for (const callback of pending) callback(1000 + frame * 1000 / scenario.hz);
+        }
+        if ("returnToPlayback" in scenario) {
+          actual.animate(false);
+          actual.setFreeView(false);
+          expected.setFreeView(false);
+          const pending = [...callbacks.values()];
+          callbacks.clear();
+          for (const callback of pending) callback(1000 + scenario.seconds * 1000);
         }
         const pixels = canvases[0]!.getContext("2d")!.getImageData(0, 0, canvases[0]!.width, canvases[0]!.height).data;
         return {

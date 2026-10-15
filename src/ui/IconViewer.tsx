@@ -42,6 +42,11 @@ export function IconViewer({
   return (
     <div className="icon-viewer">
       <div className="icon-viewer-toolbar">
+        {mode === "free" && (
+          <button className="text-button" disabled={!previewReady} onClick={() => setResetViewToken((token) => token + 1)}>
+            <RotateCcw /> Reset view
+          </button>
+        )}
         <div className="segmented" role="group" aria-label="Icon view mode">
           <button aria-pressed={mode === "playback"} onClick={() => setMode("playback")}>Playback</button>
           <button aria-pressed={mode === "free"} disabled={!icon.path || !previewReady} onClick={() => setMode("free")}>Free View</button>
@@ -53,7 +58,7 @@ export function IconViewer({
           info={info}
           iconPath={icon.path}
           label={`${icon.label} icon`}
-          animate={mode === "playback" && !paused && !reduced}
+          animate={!paused && !reduced}
           showBackground
           freeView={mode === "free"}
           resetViewToken={resetViewToken}
@@ -65,21 +70,15 @@ export function IconViewer({
           <strong>{icon.label} icon</strong>
           <span>{icon.filename}{!icon.path && " · File missing"}</span>
         </div>
-        {mode === "playback" ? (
-          <button
-            className="text-button"
-            disabled={reduced || !icon.path}
-            aria-label={paused || reduced ? "Play icon animation" : "Pause icon animation"}
-            onClick={() => onPauseChange(!paused)}
-          >
-            {paused || reduced ? <Play /> : <Pause />}
-            {paused || reduced ? "Paused" : "Pause"}
-          </button>
-        ) : (
-          <button className="text-button" disabled={!previewReady} onClick={() => setResetViewToken((token) => token + 1)}>
-            <RotateCcw /> Reset view
-          </button>
-        )}
+        <button
+          className="text-button"
+          disabled={reduced || !icon.path || !previewReady}
+          aria-label={paused || reduced ? "Play icon animation" : "Pause icon animation"}
+          onClick={() => onPauseChange(!paused)}
+        >
+          {paused || reduced ? <Play /> : <Pause />}
+          {paused || reduced ? "Play" : "Pause"}
+        </button>
       </div>
       <p className="small muted icon-viewer-help">
         Free View: drag to rotate, scroll to zoom. Focus the model to use arrow keys to rotate, + to zoom in, - to zoom out, and 0 to reset.

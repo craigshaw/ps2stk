@@ -25,11 +25,11 @@ interface Preview {
   controls: OrbitControls | undefined;
   view: "overview" | "detail";
   model: IconModel;
-  playbackActive: boolean;
   freeView: boolean;
   freeYaw: number;
   active: boolean;
   elapsed: number;
+  rotationElapsed: number;
   dirty: boolean;
   fail: () => void;
   observer: ResizeObserver;
@@ -70,6 +70,7 @@ function tick(now: number): void {
     if (!p.active && !p.dirty) continue;
     if (p.active) {
       p.elapsed += delta;
+      if (!p.freeView) p.rotationElapsed += delta;
       moving = true;
     }
     try {
@@ -114,7 +115,7 @@ function draw(p: Preview): void {
   attr.needsUpdate = true;
   p.group.rotation.y = p.freeView
     ? p.freeYaw
-    : p.view === "overview" ? 0 : 0.65 + p.elapsed * 0.4;
+    : p.view === "overview" ? 0 : 0.65 + p.rotationElapsed * 0.4;
   r.render(p.scene, p.camera);
   const ctx = p.canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
@@ -226,11 +227,11 @@ export function mountPreview(
     view,
     observer,
     fail,
-    playbackActive: false,
     freeView: false,
     freeYaw: 0.65,
     active: false,
     elapsed: 0,
+    rotationElapsed: 0,
     dirty: true,
   };
   previews.add(preview);
@@ -242,16 +243,14 @@ export function mountPreview(
   }
   return {
     animate(value) {
-      preview.playbackActive = value;
-      preview.active = value && !preview.freeView;
+      preview.active = value;
       invalidate();
     },
     setFreeView(value) {
       if (preview.freeView === value) return;
       preview.freeView = value;
-      preview.active = preview.playbackActive && !value;
       if (value) {
-        preview.freeYaw = 0.65 + preview.elapsed * 0.4;
+        preview.freeYaw = preview.view === "overview" ? 0 : 0.65 + preview.rotationElapsed * 0.4;
         const controls = new OrbitControls(camera, canvas);
         controls.enablePan = false;
         controls.enableDamping = false;
