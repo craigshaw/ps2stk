@@ -195,8 +195,17 @@ use values up to 255. Preserve negative channels and stored save bytes.
 
 Use bounded dark dialogs (`#101b30`) with Sora titles, focus handling, and aligned
 actions. Most dialogs scroll when needed; Icon Viewer fits its preview around
-mode controls, model choices, and instructions. Free View freezes the pose for
-bounded rotation/zoom and reset. Identical model files share one choice.
+mode controls, model choices, and instructions. Free View stops automatic rotation
+and allows bounded rotation/zoom while the model animation can play or pause.
+Keep Play/Pause below the model in both modes; its label names the next action.
+Place Reset view beside the mode switch in Free View. It resets only the angle
+and zoom. Keep playback state when switching modes or models, and keep animation
+paused under reduced motion. Identical model files share one choice.
+In Free View, place Previous frame and Next frame around Play/Pause. Reserve
+their space in Playback to keep the controls stable. Enable stepping only for a
+loaded animation while paused, including under reduced motion. Label each icon
+button, show its comma/period shortcut in the tooltip, and include the shortcuts
+in the viewer help. Arrow keys continue to control the camera.
 Import/export limits and metadata acknowledgement use plain readable text.
 Import review leads with the save icon and title, then format, file count, and
 payload size. Show the destination in one muted line below the dialog title.

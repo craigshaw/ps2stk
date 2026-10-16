@@ -142,9 +142,16 @@ Use one/two card panes, a comfortable icon grid with a list alternative, and one
 shared collapsible inspector. Card-pane icons stay still at the fixed 45-degree
 overview approximation. Inspector and Icon Viewer support animation, pause, and
 reduced motion, with stored `icon.sys` backgrounds. Normal, Copy, Delete, and extra
-icon files can be viewed; byte-identical models share one choice. Free View freezes
-the pose for bounded rotation/zoom, reset, and keyboard controls. Broken icons use
-fallbacks without blocking card work. Playback advances at 60 animation frames
+icon files can be viewed; byte-identical models share one choice. Free View stops
+automatic rotation for bounded rotation/zoom, reset, and keyboard controls.
+Play/Pause stays available in both modes and retains its state when switching
+modes or models. Reset view changes only the viewing angle and zoom. Reduced
+motion keeps animation paused while manual viewing remains available. When paused
+in Free View, Previous frame and Next frame move one stored animation frame,
+independent of playback speed, and wrap around the animation cycle. The comma
+and period keys provide the same actions within the viewer. Manual stepping is
+available under reduced motion; static or unavailable models cannot step. Broken
+icons use fallbacks without blocking card work. Playback advances at 60 animation frames
 per second, multiplied by the model's stored speed, matching
 [PS2IODB's player](https://github.com/Issung/PS2IODB/blob/dbeb200c2a167f72c96233afbe7f3dfbec29cceb/website/src/components/ModelView/ModelViewRenderer.ts#L757).
 Console-exact camera/timing are unverified; action-specific Copy/Delete motion

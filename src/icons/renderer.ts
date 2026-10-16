@@ -5,7 +5,9 @@ import { shapeWeights } from "./parser";
 import type { IconModel, IconSys } from "./parser";
 
 export interface PreviewHandle {
+  readonly canStepFrames: boolean;
   animate(value: boolean): void;
+  stepFrame(direction: -1 | 1): void;
   setFreeView(value: boolean): void;
   resetView(): void;
   rotateView(horizontal: number, vertical: number): void;
@@ -25,11 +27,11 @@ interface Preview {
   controls: OrbitControls | undefined;
   view: "overview" | "detail";
   model: IconModel;
-  playbackActive: boolean;
   freeView: boolean;
   freeYaw: number;
   active: boolean;
-  elapsed: number;
+  animationFrame: number;
+  rotationElapsed: number;
   dirty: boolean;
   fail: () => void;
   observer: ResizeObserver;
@@ -69,7 +71,9 @@ function tick(now: number): void {
   for (const p of [...previews]) {
     if (!p.active && !p.dirty) continue;
     if (p.active) {
-      p.elapsed += delta;
+      // PS2IODB uses 60 animation frames per second before the stored speed.
+      p.animationFrame += delta * 60 * p.model.speed;
+      if (!p.freeView) p.rotationElapsed += delta;
       moving = true;
     }
     try {
@@ -97,11 +101,7 @@ function draw(p: Preview): void {
   r.setSize(width, height, false);
   p.camera.aspect = width / height;
   p.camera.updateProjectionMatrix();
-  const weights = shapeWeights(
-    p.model,
-    // PS2IODB uses 60 animation frames per second before the stored speed.
-    p.elapsed * 60 * p.model.speed + p.model.offset,
-  );
+  const weights = shapeWeights(p.model, p.animationFrame);
   const attr = p.geometry.getAttribute("position") as THREE.BufferAttribute;
   const output = attr.array as Float32Array;
   output.fill(0);
@@ -114,7 +114,7 @@ function draw(p: Preview): void {
   attr.needsUpdate = true;
   p.group.rotation.y = p.freeView
     ? p.freeYaw
-    : p.view === "overview" ? 0 : 0.65 + p.elapsed * 0.4;
+    : p.view === "overview" ? 0 : 0.65 + p.rotationElapsed * 0.4;
   r.render(p.scene, p.camera);
   const ctx = p.canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is unavailable.");
@@ -226,11 +226,11 @@ export function mountPreview(
     view,
     observer,
     fail,
-    playbackActive: false,
     freeView: false,
     freeYaw: 0.65,
     active: false,
-    elapsed: 0,
+    animationFrame: model.offset,
+    rotationElapsed: 0,
     dirty: true,
   };
   previews.add(preview);
@@ -240,18 +240,25 @@ export function mountPreview(
     preview.dirty = true;
     schedule();
   }
+  const canStepFrames = model.duration > 0 && model.shapes.length > 1 &&
+    model.tracks.some((track) => track.keys.length > 1);
   return {
+    canStepFrames,
     animate(value) {
-      preview.playbackActive = value;
-      preview.active = value && !preview.freeView;
+      preview.active = value;
+      invalidate();
+    },
+    stepFrame(direction) {
+      if (!preview.freeView || preview.active || !canStepFrames) return;
+      const duration = model.duration;
+      preview.animationFrame = ((preview.animationFrame + direction) % duration + duration) % duration;
       invalidate();
     },
     setFreeView(value) {
       if (preview.freeView === value) return;
       preview.freeView = value;
-      preview.active = preview.playbackActive && !value;
       if (value) {
-        preview.freeYaw = 0.65 + preview.elapsed * 0.4;
+        preview.freeYaw = preview.view === "overview" ? 0 : 0.65 + preview.rotationElapsed * 0.4;
         const controls = new OrbitControls(camera, canvas);
         controls.enablePan = false;
         controls.enableDamping = false;
