@@ -2,7 +2,7 @@
 
 ## Read first
 
-- Read `README.md` for status, commands, and hosting values; `CONTEXT.md` for
+- Read `README.md` for features, limits, and commands; `CONTEXT.md` for
   terms; `PRODUCT.md` for scope and release requirements; `DESIGN.md` for UI work.
 - Follow the current request. Do not start later work merely because it is listed.
 - Use Simplified Technical English. Do not use em dashes.
@@ -74,3 +74,16 @@
   `https://ps2stk.craigshaw.com`. Reuse the existing Cloudflare Pages project.
 - Destination game-load tests and detailed hosted checks remain open. Do not
   claim PCSX2, MemCard PRO2, or PS3 compatibility from format checks alone.
+
+## Hosting and public guides
+
+- Use the existing Cloudflare Pages `ps2stk` Git project and `main` branch.
+  Set Node 24, `NODE_VERSION=24`, and `SKIP_DEPENDENCY_INSTALL=1`. Use
+  `npm ci && npm run check` as the build command and `dist` as the output.
+  The app needs no runtime secrets or server bindings. Final dashboard settings
+  and the deployed commit still need independent recording.
+- Public guide sources are in `guides/`, with shared styles in `public/guides/`.
+  Add each new guide to `vite.config.ts` and `public/sitemap.xml`.
+- After deployment, verify the site in Google Search Console and submit
+  `https://ps2stk.craigshaw.com/sitemap.xml`. Setup and live indexing checks are
+  separate from the local build.

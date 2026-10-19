@@ -1,100 +1,136 @@
-# PS2STK
+<p align="center">
+  <img src="public/wordmark.svg" width="360" alt="PS2STK">
+</p>
 
-PS2 Save Toolkit. A desktop browser app for managing PS2 memory card images.
+<h1 align="center">PS2 Save Toolkit</h1>
 
-**[Open PS2STK](https://ps2stk.craigshaw.com)**
+<p align="center">
+  Browse, copy, and manage your PlayStation 2 saves in your browser.<br>
+  No installation. No accounts. No uploads.
+</p>
 
-Card data stays in your browser. There are no accounts, uploads, or saved
-workspaces. Download results before closing or refreshing the page.
-Original input files stay unchanged.
+<p align="center">
+  <strong><a href="https://ps2stk.craigshaw.com">Open PS2STK</a></strong>
+  · <a href="https://ps2stk.craigshaw.com/guides/">Read the guides</a>
+</p>
 
-## Features
+![Two memory card images open in PS2STK, with original game icons and the save inspector.](docs/screenshots/workspace.png)
 
-- Open up to two standard 8 MiB cards, or create an empty formatted card.
-- Browse original 3D save icons, inspect files, and view icon models.
-- Copy or delete complete saves, replace individual files, and use Undo/Redo.
-- Import PSU, MAX, SPS, XPS, CBS, and signed PS2 PSV packages.
-- Load packages directly from ZIP or RAR archives. Choose one package when an
-  archive contains several saves.
-- Export PSU, MAX, or signed PS2 PSV. MAX and PSV require acknowledgement of
-  metadata loss. Packages support flat saves; nested saves need raw-folder
-  output or a complete-card download.
-- Download exact raw files or complete cards. Chrome and Edge also support
-  complete-save folder output when directory access is available.
+## Your saves, at a glance
 
-Input layout is detected from bytes. **Download card** keeps the displayed
-filename. `.ps2` output includes ECC spare bytes; `.mc2` and `.bin` omit them.
-**Download as** selects an extension. Inline renaming keeps the extension.
-Package exports and raw dumps do not clear the whole card's changed status.
+- **Two cards, side by side.** Open two memory card images and copy saves between them, or create an empty card.
+- **Original 3D icons.** Recognise saves by their game artwork. Rotate, zoom, pause, and step through animated models.
+- **Raw save export.** Download individual save files byte for byte, without package headers or wrappers, or dump a complete save to a folder. Ready for hex editing, comparing save data, and reverse engineering.
+- **Control over every edit.** Copy or delete saves, inspect and replace individual files, and use per-card Undo and Redo.
+- **Save formats in one place.** Import packages, including those inside ZIP and RAR archives. Review space and conflicts before importing.
+- **Packages and complete cards.** Export a save package or download the complete edited memory card.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/icon-viewer.png" alt="Icon Viewer showing an original game icon with playback and Free View controls."></td>
+    <td width="50%"><img src="docs/screenshots/import-review.png" alt="Import review showing the save preview, destination card, file list, and space needed."></td>
+  </tr>
+  <tr>
+    <td align="center">Explore the original 3D save icons.</td>
+    <td align="center">Review a save before it reaches your card.</td>
+  </tr>
+</table>
+
+## Get started
+
+1. **[Open PS2STK](https://ps2stk.craigshaw.com)** in a desktop browser. Open a memory card image, or create an empty card to start with a save package.
+2. **Choose your saves.** Open a second card to copy between cards, or use **Import save** to add a package. Select a save to inspect, export, or delete it.
+3. **Download your card** to keep your changes.
+
+Your card data stays in your browser, and original input files stay unchanged.
+**Download your results before closing or refreshing the page.** Cards and edits
+are kept only for the current page session. Exporting a single save does not
+save the rest of the card.
+
+To download raw data, select a file under **Save files** in the inspector and
+choose **Dump file**. For a complete raw save dump, choose **Export selected
+save**, then **Raw files to folder** in Chrome or Edge.
+
+Need a walkthrough? See [importing saves](https://ps2stk.craigshaw.com/guides/import-ps2-saves/),
+[copying between cards](https://ps2stk.craigshaw.com/guides/copy-ps2-saves/),
+or the [save format guide](https://ps2stk.craigshaw.com/guides/ps2-save-formats/).
+
+## Supported formats
+
+Open and download standard **8 MiB memory card images** as `.ps2`, `.mc2`, or
+`.bin`, with or without ECC spare bytes. `.ps2` downloads include ECC; `.mc2`
+and `.bin` downloads omit it.
+
+| Save package | Import | Export |
+| --- | :---: | :---: |
+| PSU | Yes | Yes |
+| MAX | Yes | Yes |
+| SPS / XPS | Yes | No |
+| CBS | Yes | No |
+| PS2 PSV | Yes, with signature verification | Yes, signed |
+
+ZIP and RAR archives can contain several packages; choose one save per import.
+MAX and PSV exports ask you to acknowledge metadata loss. Packages support
+saves without subfolders. For saves with subfolders, download the complete card
+or use folder export.
+
+Chrome and Edge support folder export when directory access is available.
 Firefox and Safari support editing and file, package, and card downloads.
-Undo/Redo retains at most 64 MiB of card snapshots across both cards;
-parsed cards and temporary buffers use additional memory.
+Game-load checks on PCSX2, PS2 through MemCard PRO2, and PS3 remain pending.
+See [validation status](PRODUCT.md#release-validation) for the current limits.
 
-## Status
+## Run locally
 
-The features above are implemented. Automated tests and independent format
-checks provide byte-level evidence. Game-load validation on PCSX2, PS2 through
-MemCard PRO2, and PS3 remains pending. PS3 compatibility is not yet verified.
-Installed-browser permissions, minimum versions, and detailed hosted checks
-remain open. See [release requirements](PRODUCT.md#release-validation).
-
-## Development
-
-Use Node.js 24. Dependencies are pinned in `package-lock.json`.
+Install **Node.js 24**, which includes npm. Then run:
 
 ```sh
+git clone https://github.com/craigshaw/ps2stk.git
+cd ps2stk
 npm ci
 npm run dev
+```
+
+Open the local URL printed in the terminal, usually `http://localhost:5173`.
+
+### Build for production
+
+```sh
+npm run build
+```
+
+The built site is in `dist/`. It is a static site with no backend or runtime
+secrets. To preview the build locally:
+
+```sh
+npm run preview
+```
+
+### Run checks
+
+```sh
 npm run check
 npx playwright install chromium firefox webkit
 npm run test:browser
 ```
 
-`check` runs TypeScript checks, unit/CLI tests, and the production build.
-Engine, session, and format code also compile without DOM or Node types.
-There is no separate lint command. Browser tests use synthetic cards in
-Playwright Chromium, Firefox, and WebKit. Native OS picker flows are separate
-manual checks. See [fixture provenance](tests/fixtures/README.md) for independent
-reference checks and fixture generation.
+`check` runs TypeScript checks, unit and CLI tests, and the production build.
+The browser suite runs in Playwright Chromium, Firefox, and WebKit.
+See [test fixtures](tests/fixtures/README.md) for independent format checks and
+fixture sources.
 
-## Command-line harness
+### Command line
+
+A CLI is included for local scripts and card operations:
 
 ```sh
 npm run card -- inspect source.ps2
-npm run card -- create new-card.ps2 ecc
-npm run card -- copy source.ps2 destination.mc2 SAVE-NAME edited.mc2
-npm run card -- delete source.ps2 edited.ps2 SAVE-NAME
-npm run card -- replace source.ps2 /SAVE-NAME/data replacement.bin edited.ps2
-npm run card -- extract source.ps2 /SAVE-NAME/data extracted.bin
-npm run card -- import-save destination.ps2 save.psu edited.ps2
-npm run card -- import-save destination.ps2 saves.zip edited.ps2 skip nested/save.psu
 npm run card -- export-save source.ps2 SAVE-NAME exported.psu
-npm run card -- export-save source.ps2 SAVE-NAME exported.max max --allow-metadata-loss
-npm run card -- export-save source.ps2 SAVE-NAME exported.PSV psv --allow-metadata-loss
 ```
 
-CLI output paths must be new files. Card mutations keep the destination layout;
-the browser's extension-based download conversion is a separate policy.
-Run `npm run card --` for command syntax.
+Run `npm run card --` to see all commands. Output paths must be new files.
 
-## Hosting and records
+## Project
 
-Public [save guides](https://ps2stk.craigshaw.com/guides/) cover imports,
-save formats, and copying between cards. Their HTML sources are in `guides/`,
-with one shared stylesheet in `public/guides/`. Vite builds them alongside the app.
-When adding a guide, include its entry in `vite.config.ts` and `public/sitemap.xml`.
-After deployment, verify the site in Google Search Console and submit
-`https://ps2stk.craigshaw.com/sitemap.xml`. Search Console setup and live indexing
-checks are not part of the local build.
-
-Cloudflare Pages uses the existing `ps2stk` Git project and `main` branch.
-Setup values: Node 24, `NODE_VERSION=24`, `SKIP_DEPENDENCY_INSTALL=1`, build
-command `npm ci && npm run check`, output `dist`. Hosting was confirmed by the
-owner on 2026-09-22; final dashboard settings and the deployed commit still need
-independent recording. The app needs no runtime secrets or server bindings.
-
-[PRODUCT.md](PRODUCT.md) defines scope and release requirements.
-[CONTEXT.md](CONTEXT.md) defines terms. [DESIGN.md](DESIGN.md) records the visual
-system. [AGENTS.md](AGENTS.md) gives development rules.
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) identifies distributed third-party
-material and its licence texts.
+Built with React, TypeScript, Vite, and Three.js.
+See [product scope](PRODUCT.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+The screenshots show real game saves; the save files are not included.
