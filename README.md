@@ -134,3 +134,5 @@ Run `npm run card --` to see all commands. Output paths must be new files.
 Built with React, TypeScript, Vite, and Three.js.
 See [product scope](PRODUCT.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
 The screenshots show real game saves; the save files are not included.
+
+Licensed under the [MIT License](LICENSE).
