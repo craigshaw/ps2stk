@@ -18,12 +18,12 @@
 
 ## Your saves, at a glance
 
-- **Two cards, side by side.** Open two memory card images and copy saves between them, or create an empty card.
-- **Original 3D icons.** Recognise saves by their game artwork. Rotate, zoom, pause, and step through animated models.
-- **Raw save export.** Download individual save files byte for byte, without package headers or wrappers, or dump a complete save to a folder. Ready for hex editing, comparing save data, and reverse engineering.
-- **Control over every edit.** Copy or delete saves, inspect and replace individual files, and use per-card Undo and Redo.
-- **Save formats in one place.** Import packages, including those inside ZIP and RAR archives. Review space and conflicts before importing.
-- **Packages and complete cards.** Export a save package or download the complete edited memory card.
+- **Memory cards.** Open up to two card images, create empty cards, and copy saves between them.
+- **3D icons.** View original save icons with animation, rotation, zoom, pause, and frame controls.
+- **Raw save export.** Download exact file bytes without package headers, or dump complete saves to folders for hex editing, comparison, and game hacking.
+- **Editing.** Delete saves and replace individual files, with separate Undo and Redo for each card.
+- **Import.** Load save packages directly or from ZIP and RAR archives, with space and conflict checks.
+- **Export.** Download save packages or complete memory card images.
 
 <table>
   <tr>
@@ -31,29 +31,28 @@
     <td width="50%"><img src="docs/screenshots/import-review.png" alt="Import review showing the save preview, destination card, file list, and space needed."></td>
   </tr>
   <tr>
-    <td align="center">Explore the original 3D save icons.</td>
-    <td align="center">Review a save before it reaches your card.</td>
+    <td align="center">3D icon viewer</td>
+    <td align="center">Save import review</td>
   </tr>
 </table>
 
 ## Get started
 
-1. **[Open PS2STK](https://ps2stk.craigshaw.com)** in a desktop browser. Open a memory card image, or create an empty card to start with a save package.
-2. **Choose your saves.** Open a second card to copy between cards, or use **Import save** to add a package. Select a save to inspect, export, or delete it.
-3. **Download your card** to keep your changes.
+1. **Open a card.** Open [PS2STK](https://ps2stk.craigshaw.com) in a desktop browser and load a memory card image, or create an empty card.
+2. **Copy, import, or edit saves.** Open a second card to copy saves between cards. Use **Import save** to add a package, or select a save to inspect its files.
+3. **Download your changes.** Use **Download card** to save the complete edited card.
 
-Your card data stays in your browser, and original input files stay unchanged.
-**Download your results before closing or refreshing the page.** Cards and edits
-are kept only for the current page session. Exporting a single save does not
-save the rest of the card.
+All processing stays in your browser. Original files stay unchanged.
+**Closing or refreshing the page discards open cards and edits.** Exporting one
+save does not save the rest of the card.
 
-To download raw data, select a file under **Save files** in the inspector and
-choose **Dump file**. For a complete raw save dump, choose **Export selected
+For individual raw files, select a file under **Save files** in the inspector
+and choose **Dump file**. For a complete raw save dump, choose **Export selected
 save**, then **Raw files to folder** in Chrome or Edge.
 
-Need a walkthrough? See [importing saves](https://ps2stk.craigshaw.com/guides/import-ps2-saves/),
-[copying between cards](https://ps2stk.craigshaw.com/guides/copy-ps2-saves/),
-or the [save format guide](https://ps2stk.craigshaw.com/guides/ps2-save-formats/).
+Guides: [Importing saves](https://ps2stk.craigshaw.com/guides/import-ps2-saves/),
+[copying between cards](https://ps2stk.craigshaw.com/guides/copy-ps2-saves/), and
+[save formats](https://ps2stk.craigshaw.com/guides/ps2-save-formats/).
 
 ## Supported formats
 
